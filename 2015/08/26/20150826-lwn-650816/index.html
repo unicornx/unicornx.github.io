@@ -1,0 +1,827 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Hexo, NexT" />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+#Why Debian returned to FFmpeg为何Debain又转向FFmpeg
+By Jonathan CorbetJuly 13, 2015">
+<meta property="og:type" content="article">
+<meta property="og:title" content="翻译-lwn-650816">
+<meta property="og:url" content="http://unicornx.github.io/2015/08/26/20150826-lwn-650816/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+#Why Debian returned to FFmpeg为何Debain又转向FFmpeg
+By Jonathan CorbetJuly 13, 2015">
+<meta property="og:updated_time" content="2016-03-18T23:02:50.439Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="翻译-lwn-650816">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+#Why Debian returned to FFmpeg为何Debain又转向FFmpeg
+By Jonathan CorbetJuly 13, 2015">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/08/26/20150826-lwn-650816/"/>
+
+  <title> 翻译-lwn-650816 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                翻译-lwn-650816
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-08-26T13:16:38+08:00" content="2015-08-26">
+              2015-08-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/文章翻译/" itemprop="url" rel="index">
+                    <span itemprop="name">文章翻译</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/08/26/20150826-lwn-650816/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/26/20150826-lwn-650816/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>#<a href="http://lwn.net/Articles/650816/" target="_blank" rel="external">Why Debian returned to FFmpeg</a><br>为何Debain又转向FFmpeg</p>
+<p>By Jonathan Corbet<br>July 13, 2015</p>
+<a id="more"></a>
+<p>Slightly less than one year ago, the Debian community had an extended discussion on whether the FFmpeg multimedia library should return to the distribution. Debian had followed the contentious libav fork when it happened in 2011, but some community members were starting to have second thoughts about that move. At the time, the discussion died out without any changes being made, but the seeds had evidently been planted; on July 8, the project’s multimedia developers announced that not only was FFmpeg returning to Debian, but it would be replacing libav.<br>大概不超过一年前，Debain社区曾经讨论过是否需要在发布包中重新添加FFmpeg多媒体库。Debian从2011年起已经追随饱受争议的libav库多年，一些社区成员早就开始怀疑这么做是否正确。但那是，虽然没有产生任何实质性的结论，但变化的种子已就此埋下。在今年的7月8日，Debian项目的多媒体子系统的开发人员宣布，FFmpeg正在回归Debian，而且它将逐步代替libav。</p>
+<p>Chances are that many Debian (and Ubuntu) users are not more than peripherally aware of which multimedia library is running on their system. Libav has been in use for some years and has generally filled the bill, so it is natural to wonder what drove the project to make a change that will require a lot of work and which seems certain to prove disruptive while it is underway. Getting to the answers is an interesting study in how distributions try to ensure that the code they ship comes from healthy upstream projects.<br>需要注意的是许多Debain(和ubuntu)的用户已经开始逐渐意识到他们系统上运行的多媒体库的重要性。libav库已经被使用多年并被广泛使用，所以很自然地人们会问是什么原因导致项目组决定要转向FFmpeg，这种转变明显需要付出大量的工作并且很明显在此过程中会导致很多不兼容性问题。为了得到这个问题的答案导致了一个有趣的讨论，从这些讨论中我们可以看出Debain的社区是如何努力地保证他们的发布包的组成模块必须来自健康的上游项目。</p>
+<p>##Security and more<br>安全性以及更多</p>
+<p>The Debian project is not normally known for being afraid to ship multiple packages providing the same function, so one might wonder why it can’t just ship both FFmpeg and libav, letting users decide which one they want to use. The big sticking point in 2014 was security support. Both projects have had more than their share of security issues, and the Debian security team didn’t think it could keep up with patching both of them. At that time, FFmpeg seemed to have a better record of responding to vulnerabilities than libav, but that still was not enough to convince the security team to support both libraries.<br>对于如果存在有多个软件包都可以提供相同的功能的情况，通常Debian项目并不会因为怕麻烦就只支持并发布其中的一个。所以人们可能会问，为什么它不同时包括FFmpeg的和libav，让用户自己决定他们想要使用哪一个呢。在2014年里面对这个问题的最大的考量是有关安全性的支持。这两个项目都存在大量的的安全问题，以至Debian的安全团队不认为它可以同时支持两者。在当时看来，相对于libav，FFmpeg似乎在回应漏洞修补上的表现更好些，但这仍然不足以说服Debian的安全团队同时支持这两个库。</p>
+<p>One year later, security issues remained at the top of the list, but it would appear that FFmpeg has pulled well ahead of libav in this regard. Debian security team member Moritz Muehlenhoff made it clear that he saw FFmpeg as being more responsive to security reports. A rather stronger argument came from Mateusz “j00ru” Jurczyk who, in his security-oriented role at Google, has been doing extensive fuzz testing of both projects and reporting the problems that come up:<br>一年后，安全问题仍然位于影响因素列表的顶部，但数据显示FFmpeg在这方面的改进遥遥领先于libav。Debian安全小组的成员Moritz Muehlenhoff明确表示，他看到FFmpeg对安全报告的响应更积极。另一个更强大的证据来自Mateusz“j00ru”Jurczyk，他目前就职于谷歌，从事安全方向的研究，一直在针对这两个项目进行大量的测试并报告它们存在的潜在安全问题：</p>
+<pre><code>We have been quite successful working on the above effort with FFmpeg for the last ~3.5 years: 
+every single issue we have found (even the least severe ones) has been fixed in a timely manner. 
+As a result, after tens of fuzzing iterations, there are currently no bugs in FFmpeg that we are
+ able to find using our current input corpus and mutation algorithms. The situation is entirely 
+ different with Libav, which is still affected by hundreds of such bugs, even though we have 
+ provided the developers with reproducing testcases a number of times in the past.
+我们在FFmpeg的上述努力一直相当成功，在过去的大约3年半的时间里：我们发现的每一个问
+题（即使是最不严重的问题）也已得到及时的修复。因此，经过无数次迭代后，到目前为止，
+使用我们的资料库和变异算法对FFmpeg进行检测都没有发现FFmpeg有什么安全方面的问题。
+但同样的事情在Libav上状况则完全不同，它仍然受到数百个类似问题的困扰，
+即使我们过去已经多次向开发者提供了可以重现的测试用例。
+</code></pre><p>The notion of hundreds of open security issues is generally unappealing. FFmpeg does not appear to lead on just security updates, though; by all accounts, it now supports a far wider variety of codecs and containers than libav does. There is an increasing range of formats that FFmpeg can play, but libav cannot. As the feature gap grows, the project’s desire to stay with libav wanes.<br>存在未解决的大量安全问题其实已经不是很吸引人的话题了。FFmpeg也并没有在涉及安全更新上显示出很大的优势。但更重要的是FFmpeg相比于libav，它现在可以支持更广泛的多种编解码格式和容器。FFmpeg正在支持越来越多的格式，但libav却不行。随着以后在这方面的差距越来越大，Debain保留libav的可能性也就越来越渺茫了。</p>
+<p>##The libav maintainer’s perspective<br>libav维护人员的观点</p>
+<p>When Alessio Treglia restarted the discussion at the end of April, the above points were quickly expressed. Even so, the conversation did not appear to be heading toward any sort of consensus. Arguably, the turning point was when Debian libav maintainer Reinhard Tartler entered the discussion. Reinhard argued forcefully for the advantages he saw in libav, but, in the end, could not bring himself to say that he was sure libav was the better choice.<br>当Alessio Tregli在四月底重启讨论去留libav的话题时，本文前面所描述的那些观点很快就被提出来了。即便如此，谈话并没有显示出达到共识的趋势。相反，自从Debian社区的libav库的维护者Reinhard Tartler参与进来后，讨论的调调又进入了一个转折点。Reinhard强调了在他看来libav所拥有的各种优点，但是，到最后他自己也不能确信libav是否是更好的选择。</p>
+<p>With regard to security issues, Reinhard attributed the difference in fix rates to a difference in how the two projects approach development (“Michael” is Michael Niedermayer, the lead developer of FFmpeg):<br>关于安全问题解决率的差异，Reinhard将其归因于两个项目不同的开发方式（“Michael”是Michael Niedermayer，FFmpeg的的主要开发人员）：</p>
+<pre><code>Michael seems to have much more capacity and time, and thus is usually faster with pushing patches
+for such crashers. Libav takes the time to investigate, reproduce and understand those patches.
+Unfortunately, in the majority of cases, this is not trivial at all, often because of terse (or 
+even wrong) commit messages, or the fact that there are better places to fix a particular issue in 
+the code. &quot;Better&quot; usually means that more than a single instance of the issue is fixed.
+Michael似乎有更多的能力和时间，因而通常更快地推动补丁的修复。Libav需要更多的时间对这些补丁进行研究，
+重现并了解修改的补丁。不幸的是，在大多数情况下，这要花费很多的精力，往往是因为补丁提交的注释过于简单
+（甚至是错误的），或一个事实是，针对某些具体的问题，直接应用提交的补丁还不如重新考虑更好的设计修改。
+这里所谓的 “更好”，通常是指在新的设计中一并解决多个问题。
+</code></pre><p>Reinhard initially asserted that, even so, libav had parity with FFmpeg when it came to fixing security-related bugs, but he later backed down on that.<br>Reinhard最初声称，即使如此，在一些有关安全的问题修复上，libav做的并不比FFmpeg差，但在这一点上他后来又让步了。</p>
+<p>In Reinhard’s view, the two projects are managed differently, with different goals; that difference makes libav appealing in a number of ways. Libav, he said, is trying to improve the state of the code and come up with something better than the “horrible” APIs it inherited from FFmpeg. He summarized the differences between the project this way:<br>在Reinhard看来，这两个项目的管理方式之所以不同，是在于两者希望达到的目标不同;这种差别使得libav在许多方面具有自己的吸引力。他说，libav正在努力提高代码的质量，并试图改进一些它从FFmpeg继承过来的“糟糕”的API。他总结了这两个项目之间的这种区别：</p>
+<pre><code>I think the debate on the development methodology is the biggest disagreement between the 
+two projects: FFmpeg insists on keeping its development velocity and allowing developers 
+to &quot;get work done&quot;, compromising on maintainability and common understanding of the code 
+base in favor of more features. Libav on the other hand rather focuses on clean 
+implementation and let&apos;s say better designed APIs. This requires more work, which in 
+effect significantly lowers the development velocity. For a system integration job on 
+the scale of Debian, less velocity seems more appealing to me.
+我觉得对开发方法的争论是两个项目之间最大的分歧：FFmpeg坚持保持其开发的速度，使开发人员
+能够“尽快完成”，牺牲了可维护性，为了支持更多功能，没有考虑对代码的公共部分进行很好的抽象。
+Libav则更加专注于整理代码并力图将API设计得更好。这需要更多的工作，这也实际上显著降低了开
+发的速度。考虑到和Debian系统集成所涉及的的规模，走得慢一点似乎更吸引我。
+</code></pre><p>Even through he seems to like the libav approach more, Reinhard, in the end, was not able to argue against the change; his position came down to: “I still have some concerns with this move, but I can’t claim Libav to be superior to FFmpeg at this point”. With the project’s libav maintainer taking that position (and also, importantly, saying that he no longer has the time to maintain libav at the same level as he has in the past), the decision seemed to settle out fairly quickly.<br>就算他似乎更喜欢libav的开发方式，Reinhard，到最后，也无法推翻当前的改变;对此他持有保留意见：“我对目前的改变仍然抱有顾虑，虽然我现在也无法证明Libav的确比FFmpeg好”。由于libav维护者也不能确定是否libav就一定比FFmpeg好（而且，重要的是，他说他不再有足够的时间保持和过去同样的水平来维护libav），这也意味着对当前的决定已经没有什么好反对的了。</p>
+<p>##Other concerns<br>其他考虑</p>
+<p>A desire that was expressed more than once in this discussion was that the two projects would stop fighting and join back into a single, well-supported effort. There is, however, no real indication that any such reconciliation is in the cards. There is another way that the community could go back to having a single project, though: if one of them were to simply fail. Dmitry Smirnov suggested that a switch to FFmpeg by Debian could maybe bring that about:<br>在这次讨论中曾经有人不止一次提到说，是否可以让这两个项目停止争吵，或者干脆合并起来，这样可以更好地相互支持。然而，可惜是到目前为止没有看到任何一点和解的迹象。当然还有另一种方式可以导致社区最后只保留一个项目，那就是它们两个中最后有一个最终失败。Dmitry Smirnov认为，Debian切换到FFmpeg的结果也许就是这样：</p>
+<pre><code>I have a feeling that Debian already became life support for libav. Ever since Debian chosen
+ libav, FFmpeg remained alive and apparently doing well without our help. I&apos;m not too sure 
+ if libav would be able to stay alive without Debian.
+我有一种感觉：Debian的已经成为libav这个项目能够维持下去的唯一支柱。自从Debian选择libav以来，
+没有我们的帮助，FFmpeg活得也不错。我反倒是不太确定如果没有Debain的帮助libav是否能够存活下去。
+</code></pre><p>Opinions vary on how much “life support” Debian actually provides to libav, but the loss of Debian and Ubuntu seems certain not to do the project any good. There aren’t a lot of distributions out there that carry libav anymore; without Debian, that list will be short indeed. It might just be that libav is not sustainable without Debian.<br>针对究竟Debain对libav的存活意义有多大这个观点可以说是众说纷纭，但如果Debian和Ubuntu放弃对libav的支持的话那肯定对这个项目没什么好处。除了Debain，实在没有太多的发行版本还在使用libav。实际的情况就是如果没有Debian的话libav这个项目几乎是不可持续的。</p>
+<p>That said, there are some concerns about the sustainability of FFmpeg as well. By all accounts, Michael is a highly productive developer; he accounts for, by far, the largest share of the patches going into FFmpeg. Reinhard asked whether FFmpeg is a one-developer project that would find itself in trouble should Michael stop working on it. “To me, this constitutes a serious bus-factor: Without Michael, (probably) nobody is able to replace him.” He went on to suggest, though, that Michael’s departure could do a lot to bring an end to the fork.<br>讨论中也有一些对FFmpeg的可持续性的关注。从各方面来看，Michael是一个高生产力的开发人员;他一个人占了，到目前为止，提交进入FFmpeg的补丁的最大份额。Reinhard曾经怀疑FFmpeg是否是一个单人的开发项目，如果万一哪一天迈克尔不干了，这个项目会怎么办。“以我的观点看来，这是一个很严重的大问题：除了Michael，（可能）没有其他人能够代替他。”他甚至认为，如果Michael不干了的话也许两个项目之间的分歧就没了。</p>
+<p>As an argument against the “one-man show” concern, Andreas Cadhalpun posted some commit statistics for both projects, covering the period since September 2014:<br>作为对所谓“独角戏”问题的关注，Andreas Cadhalpun发布了一些针对两个项目的提交数目的统计数据，涵盖的时间段从2014年9月开始至今：</p>
+<table>
+<thead>
+<tr>
+<th>libav<br>Commits</th>
+<th>Developer</th>
+<th>FFmpeg<br>Commits</th>
+<th>Developer</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>294</td>
+<td>Vittorio Giovara</td>
+<td>1831</td>
+<td>Michael Niedermayer</td>
+</tr>
+<tr>
+<td>253</td>
+<td>Martin Storsj?</td>
+<td>294</td>
+<td>Vittorio Giovara</td>
+</tr>
+<tr>
+<td>206</td>
+<td>Anton Khirnov</td>
+<td>252</td>
+<td>Martin Storsj?</td>
+</tr>
+<tr>
+<td>131</td>
+<td>Luca Barbato</td>
+<td>197</td>
+<td>Anton Khirnov</td>
+</tr>
+<tr>
+<td>72</td>
+<td>Diego Biurrun</td>
+<td>179</td>
+<td>Clément B?sch</td>
+</tr>
+<tr>
+<td>46</td>
+<td>Michael Niedermayer</td>
+<td>155</td>
+<td>James Almer</td>
+</tr>
+<tr>
+<td>32</td>
+<td>Rémi Denis-Courmont</td>
+<td>150</td>
+<td>Carl Eugen Hoyos</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Andreas Cadhalpun</td>
+<td>114</td>
+<td>Andreas Cadhalpun</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Hendrik Leppkes</td>
+<td>113</td>
+<td>Luca Barbato</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Gabriel Dume</td>
+<td>98</td>
+<td>Lukasz Marek</td>
+</tr>
+<tr>
+<td>16</td>
+<td>Himangi Saraogi</td>
+<td>93</td>
+<td>Paul B Mahol</td>
+</tr>
+<tr>
+<td>16</td>
+<td>wm4</td>
+<td>85</td>
+<td>Ronald S. Bultje</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Federico Tomassetti</td>
+<td>83</td>
+<td>wm4</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Peter Meerwald</td>
+<td>66</td>
+<td>Christophe Gisquet</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Janne Grunau</td>
+<td>48</td>
+<td>Benoit Fouet</td>
+</tr>
+</tbody>
+</table>
+<p>At a first glance, the table shows that (1) FFmpeg appears to have a much higher commit traffic than libav, and (2) Michael, while being the largest contributor, is certainly not the only contributor. But, as Reinhard pointed out, there is a bit more to this story. Changes to libav are routinely merged into FFmpeg, but the flow of patches in the other direction is quite low. If the libav changes are subtracted out of the FFmpeg numbers, the result is that Michael very much stands alone; no other developer is even close.<br>乍一看，该表显示，（1）FFmpeg比libav的提交数要高的多，（2）Michael，作为FFmpeg最大的贡献者，并不是唯一的贡献者。但是，正如Reinhard所指出，仔细分析这些数据我们会发现更有趣的问题。由于FFmpeg合并了很多libav的修订，但相反方向上的动作却很少。如果不考虑FFmpeg合并的libav的改动，我们会发现FFmpeg项目上几乎就一个Michael在战斗；其他的开发者的贡献和他相比起来简直差得太远。</p>
+<p>The Debian multimedia developers decided to make the switch to FFmpeg even though nobody really had an answer to Reinhard’s concern. For now, FFmpeg appears to be going strong, but there is a single-developer risk there that could come to the fore in the future. Given that nearly the entire distribution ecosystem now depends on FFmpeg, chances are that a way would be found to keep the project going if Michael were to decide he had better things to do. But the process of getting there might prove to be a little rough.<br>虽然没有人能对Reinhard关注的问题给出真正的答复，Debian的多媒体开发人员还是决定转换到FFmpeg。现在，FFmpeg项目的发展看上去还是蛮强壮的，但是只有一个单一的开发人员的风险问题有可能会在未来浮现出来。考虑到现在整个Debain生态系统都开始逐渐依赖于FFmpeg，未来总是有机会可以发现一个解决这个问题的办法的，以便以后真的发生譬如Michael决定离开的情况的话社区可以继续保持项目的延续性。当然，要实现这个目标的过程肯定不会那么一帆风顺。</p>
+<p>The Debian project was faced with a difficult choice: given that it was not possible to support both libraries in the distribution, which one offers the most to Debian’s users while presenting the least long-term sustainability and security risk? The developers involved chose to move away from a project that many of them see as lacking the resources needed to be truly healthy. That choice will result in a lot of work, but, assuming the choice was the correct one, Debian users should benefit in the long term.<br>Debian目前的确面临着一个艰难的选择：由于它不可能同时支持这两个库，那么从确保长期可延续性以及安全风险最小的角度出发，究竟选择哪个库提供给Debian的用户呢？从开发人员的角度出发，他们选择移除那个在他们看来缺乏必要的资源支持的项目。这一选择将导致大量的移植工作，但是，假设选择是正确的话，从长远的观点来看，Debian的用户应该还是会最终受益。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/08/26/20150826-lwn-651833/" rel="next" title="翻译-lwn-651833">
+                <i class="fa fa-chevron-left"></i> 翻译-lwn-651833
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/09/06/20150906-mini2440-dma/" rel="prev" title="基于mini2440开发板学习DMA">
+                基于mini2440开发板学习DMA <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/08/26/20150826-lwn-650816/"
+           data-title="翻译-lwn-650816" data-url="http://unicornx.github.io/2015/08/26/20150826-lwn-650816/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

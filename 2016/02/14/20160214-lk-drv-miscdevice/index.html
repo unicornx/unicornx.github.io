@@ -1,0 +1,757 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,driver,miscdevice," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-02-14
+主要参考
+
+Linux设备驱动开发详解（第2版）12.5章节，宋宝华
+linux系统中misc子系统 - 这位博主写了不少好文章，值得参考
+linux内核代码v2.6.32.6">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux中的misc设备">
+<meta property="og:url" content="http://unicornx.github.io/2016/02/14/20160214-lk-drv-miscdevice/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-02-14
+主要参考
+
+Linux设备驱动开发详解（第2版）12.5章节，宋宝华
+linux系统中misc子系统 - 这位博主写了不少好文章，值得参考
+linux内核代码v2.6.32.6">
+<meta property="og:updated_time" content="2016-03-18T23:02:47.288Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="linux中的misc设备">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-02-14
+主要参考
+
+Linux设备驱动开发详解（第2版）12.5章节，宋宝华
+linux系统中misc子系统 - 这位博主写了不少好文章，值得参考
+linux内核代码v2.6.32.6">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/02/14/20160214-lk-drv-miscdevice/"/>
+
+  <title> linux中的misc设备 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                linux中的misc设备
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-02-14T16:47:12+08:00" content="2016-02-14">
+              2016-02-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux驱动开发/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux驱动开发</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/02/14/20160214-lk-drv-miscdevice/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/14/20160214-lk-drv-miscdevice/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-02-14</p>
+<p>主要参考</p>
+<ul>
+<li>Linux设备驱动开发详解（第2版）12.5章节，宋宝华</li>
+<li><a href="http://blog.csdn.net/wang_zheng_kai/article/details/42716403" target="_blank" rel="external">linux系统中misc子系统</a> - 这位博主写了不少好文章，值得参考</li>
+<li>linux内核代码v2.6.32.6</li>
+</ul>
+<a id="more"></a>
+<h1 id="linux子系统-miscdevice"><a href="#linux子系统-miscdevice" class="headerlink" title="linux子系统-miscdevice"></a>linux子系统-miscdevice</h1><p>杂项设备(miscdevice)是嵌入式系统中用得比较多的一种设备类型。在Linux驱动中把无法归类的五花八门的设备定义为混杂设备(用miscdevice结构体表述)。Linux内核所提供的miscdevice有很强的包容性，各种无法归结为标准字符设备的类型都可以定义为miscdevice，譬如NVRAM，看门狗，实时时钟，字符LCD等，就象一组大杂烩。</p>
+<p>在linux内核里把所有的misc设备组织在一起，构成了一个子系统(subsys)，统一进行管理。在这个子系统里的所有miscdevice类型的设备共享一个主设备号MISC_MAJOR(即10)，但次设备号不同。</p>
+<p>在内核中用<code>struct miscdevice</code>表示miscdevice设备，具体的定义在内核头文件<code>include/linux/miscdevice.h</code>。</p>
+<pre><code>struct miscdevice  {
+    int minor;
+    const char *name;
+    const struct file_operations *fops;
+    struct list_head list;
+    struct device *parent;
+    struct device *this_device;
+    const char *nodename;
+    mode_t mode;
+};
+</code></pre><p>miscdevice的API的实现在<code>drivers/char/misc.c</code>中，misc子系统的的初始化，以及misc设备的注册，注销等接口都实现在这个文件中。通过阅读这个文件，miscdevice类型的设备实际上就是对字符设备的简单封装，最直接的证据可以看miscdevice子系统的初始化函数<code>misc_init()</code>，在这个函数里，撇开其他的代码不看，其中有如下这两行代码：</p>
+<pre><code>...
+misc_class = class_create(THIS_MODULE, &quot;misc&quot;);
+...
+if (register_chrdev(MISC_MAJOR,&quot;misc&quot;,&amp;misc_fops))
+</code></pre><p>第一行，创建了一个名字叫<code>misc</code>的类，具体表现是在<code>/sys/class/</code>目录下创建一个名为<code>misc</code>的目录。以后每注册一个自己的miscdevice都会在该目录下新建一项。</p>
+<p>第二行，调用<code>register_chrdev</code>为给定的主设备号<code>MISC_MAJOR(10)</code>注册0~255共256个次设备号，并为每个设备建立一个对应的默认cdev结构，该函数是2.6内核之前的老函数，现在已经不建议使用了。由此可见misc设备其实也就是主设备号是<code>MISC_MAJOR(10)</code>的字符设备。从面向对象的角度来看，字符设备类是misc设备类的父类。同时我们也要注意到采用这个函数注册后实际上系统最多可以支持有255个驱动自定义的杂项设备，因为杂项设备子系统模块自己占用了一个次设备号0。查看源文件可知，目前内核里已经被预先使用的子设备号定义在<code>include/linux/miscdevice.h</code>的开头。</p>
+<p>在这个子系统中所有的miscdevice设备形成了一个链表，他们共享一个主设备号10，但它们有不同的次设备号。对设备访问时内核根据次设备号查找对应的miscdevice设备。这一点我们可以通过阅读misc子系统提供的注册接口函数<code>misc_register()</code>和注销接口函数<code>misc_deregister()</code>来理解。具体可以参考<a href="http://blog.csdn.net/wang_zheng_kai/article/details/42716403" target="_blank" rel="external">linux系统中misc子系统</a>。</p>
+<p>在这个子系统中所有的miscdevice设备不仅共享了主设备号，还共享了一个<code>misc_open()</code>的文件操作方法。</p>
+<pre><code>static const struct file_operations misc_fops = {
+    .owner        = THIS_MODULE,
+    .open        = misc_open,
+};
+</code></pre><p>该方法结构在注册设备时通过<code>register_chrdev(MISC_MAJOR,&quot;misc&quot;,&amp;misc_fops)</code>传递给内核。但不要以为所有的miscdevice都使用相同的文件open方法，仔细阅读<code>misc_open()</code>我们发现该函数内部会检查驱动模块自己定义的<code>miscdevice</code>结构体对象的<code>fops</code>成员，如果不为空会将其替换掉缺省的，参考函数中的<code>new_fops = fops_get(c-&gt;fops);</code>以及<code>file-&gt;f_op = new_fops;</code>语句。如此这般，以后内核再调用设备文件的操作时就会调用该misc设备自己定义的文件操作函数了。这种实现方式是不是很类似于面向对象语言中的函数重载的概念。</p>
+<h1 id="采用miscdevice开发设备驱动的方法"><a href="#采用miscdevice开发设备驱动的方法" class="headerlink" title="采用miscdevice开发设备驱动的方法"></a>采用miscdevice开发设备驱动的方法</h1><p>大致的步骤如下：</p>
+<p>第一步，定义自己misc设备的文件操作函数以及<code>file_operations</code>结构体对象，如下：</p>
+<pre><code>static const struct file_operations my_misc_drv_fops = {
+    .owner    = THIS_MODULE,
+    .open    = my_misc_drv_open,
+    .release = my_misc_drv_release,
+    //根据实际情况扩充 ...
+};
+</code></pre><p>第二步，定义自己的misc设备对象，如下：</p>
+<pre><code>static struct miscdevice my_misc_drv_dev = {
+    .minor    = MISC_DYNAMIC_MINOR,
+    .name    = KBUILD_MODNAME,
+    .fops    = &amp;my_misc_drv_fops,
+};
+</code></pre><ul>
+<li><code>.minor</code>如果填充<code>MISC_DYNAMIC_MINOR</code>，则由内核动态分配次设备号，否则根据根据你自己定义的指定。</li>
+<li><code>.name</code>给定设备的名字，也可以直接利用内核编译系统的环境变量<code>KBUILD_MODNAME</code>。</li>
+<li><code>.fops</code>设置为第一步定i的文件操作结构体对象的地址。</li>
+</ul>
+<p>第三步，注册和注销</p>
+<p>驱动模块一般在模块初始化函数中调用<code>misc_register()</code>注册自己的misc设备。实例代码如下：</p>
+<pre><code>ret = misc_register(&amp;my_misc_drv_dev);
+if (ret &lt; 0) {
+    //失败处理
+}
+</code></pre><p>注意在<code>misc_register()</code>函数中有如下语句:</p>
+<pre><code>misc-&gt;this_device = device_create(misc_class, misc-&gt;parent, dev,
+                  misc, &quot;%s&quot;, misc-&gt;name);
+</code></pre><p>这句话配合前面在<code>misc_init()</code>函数中的<code>misc_class = class_create(THIS_MODULE, &quot;misc&quot;);</code></p>
+<p>这样，<code>class_create()</code>创建了一个类，而<code>device_create()</code>就创建了该类的一个设备，这些都涉及linux内核的设备模型和sys文件系统额概念，暂不展开，我们只需要知道，如此这般，当该驱动模块被加载(insmod)时，和内核态的设备模型配套运行的用户态有个udev的后台服务会自动在<code>/dev</code>下创建一个驱动模块中注册的misc设备对应的设备文件节点，其名字就是<code>misc-&gt;name</code>。这样就省去了自己创建设备文件的麻烦。这样也有助于动态设备的管理。</p>
+<p>驱动模块可以在模块卸载函数中调用<code>misc_deregister()</code>注销自己的misc设备。实例代码如下：</p>
+<pre><code>misc_deregister(&amp;my_misc_drv_dev);
+</code></pre><p>在这个函数中会自动删除<code>`/dev</code>下的同名设备文件。</p>
+<h1 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h1><p>杂项设备作为字符设备的封装，为字符设备提供的简单的编程接口，如果编写新的字符驱动，可以考虑使用杂项设备接口，方便简单，只需要初始化一个miscdevice的结构体设备对象，然后调用<code>misc_register</code>注册就可以了，不用的时候，调用<code>misc_deregister</code>进行卸载。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/driver/" rel="tag">#driver</a>
+          
+            <a href="/tags/miscdevice/" rel="tag">#miscdevice</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/13/20160213-ldd3-samples/" rel="next" title="LDD3源代码">
+                <i class="fa fa-chevron-left"></i> LDD3源代码
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/18/20160218-lk-drv-workqueue/" rel="prev" title="Linux内核中的下半部机制之工作队列(workqueue)">
+                Linux内核中的下半部机制之工作队列(workqueue) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/02/14/20160214-lk-drv-miscdevice/"
+           data-title="linux中的misc设备" data-url="http://unicornx.github.io/2016/02/14/20160214-lk-drv-miscdevice/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#linux子系统-miscdevice"><span class="nav-number">1.</span> <span class="nav-text">linux子系统-miscdevice</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#采用miscdevice开发设备驱动的方法"><span class="nav-number">2.</span> <span class="nav-text">采用miscdevice开发设备驱动的方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结："><span class="nav-number">3.</span> <span class="nav-text">总结：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1722 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="bootloader,U-boot,make," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+参考：u-boot2013.01.01 for s5pv210：《Makefile分析》
+总体上看2013.01版本的主Makefile文件相较于2009.11版本并没有本质上的改变。
+规则描述前的准备工作设置版本VERSION = 20">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解u-boot的Makefile(基于v2013.01)">
+<meta property="og:url" content="http://unicornx.github.io/2015/07/17/20150717-uboot-makefile-v2013-01/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+参考：u-boot2013.01.01 for s5pv210：《Makefile分析》
+总体上看2013.01版本的主Makefile文件相较于2009.11版本并没有本质上的改变。
+规则描述前的准备工作设置版本VERSION = 20">
+<meta property="og:updated_time" content="2016-03-18T23:02:49.347Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="理解u-boot的Makefile(基于v2013.01)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+参考：u-boot2013.01.01 for s5pv210：《Makefile分析》
+总体上看2013.01版本的主Makefile文件相较于2009.11版本并没有本质上的改变。
+规则描述前的准备工作设置版本VERSION = 20">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/07/17/20150717-uboot-makefile-v2013-01/"/>
+
+  <title> 理解u-boot的Makefile(基于v2013.01) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                理解u-boot的Makefile(基于v2013.01)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-07-17T15:29:13+08:00" content="2015-07-17">
+              2015-07-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Bootloader/" itemprop="url" rel="index">
+                    <span itemprop="name">Bootloader</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/07/17/20150717-uboot-makefile-v2013-01/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/17/20150717-uboot-makefile-v2013-01/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-7-20</p>
+<p>参考：<br><a href="http://m.blog.csdn.net/blog/zsy2020314/9309995" target="_blank" rel="external">u-boot2013.01.01 for s5pv210：《Makefile分析》</a></p>
+<p>总体上看2013.01版本的主Makefile文件相较于2009.11版本并没有本质上的改变。</p>
+<h1 id="规则描述前的准备工作"><a href="#规则描述前的准备工作" class="headerlink" title="规则描述前的准备工作"></a>规则描述前的准备工作</h1><h2 id="设置版本"><a href="#设置版本" class="headerlink" title="设置版本"></a>设置版本</h2><pre><code>VERSION = 2013
+PATCHLEVEL = 01
+SUBLEVEL =
+EXTRAVERSION =
+ifneq &quot;$(SUBLEVEL)&quot; &quot;&quot;
+U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION)
+else
+U_BOOT_VERSION = $(VERSION).$(PATCHLEVEL)$(EXTRAVERSION)
+endif
+</code></pre><p>这里都是些有关版本号的配置，参考README的“Versioning:”章节，u-boot对其版本的定义方式如下：</p>
+<a id="more"></a>
+<pre><code>Versioning:
+===========
+Starting with the release in October 2008, the names of the releases
+were changed from numerical release numbers without deeper meaning
+into a time stamp based numbering. Regular releases are identified by
+names consisting of the calendar year and month of the release date.
+Additional fields (if present) indicate release candidates or bug fix
+releases in &quot;stable&quot; maintenance trees.
+
+Examples:
+    U-Boot v2009.11        - Release November 2009
+    U-Boot v2009.11.1   - Release 1 in version November 2009 stable tree
+    U-Boot v2010.09-rc1 - Release candiate 1 for September 2010 release
+</code></pre><p>相比较于2009.11版本的README，这里的描述清晰了很多。大致的意思是说从2008年10月起，发行版本的名称格式及其含义发生了变化,从没有什么具体含义的数字版本号变为基于时间戳的数字作为版本号。具体的格式为：</p>
+<p><strong><code>$(VERSION).$(PATCHLEVEL).$(SUBLEVEL)$(EXTRAVERSION</code></strong></p>
+<p>VERSION对应发布的年，PATCHLEVEL对应发布的月，该两项不可以为空。<br>SUBLEVEL对应子版本号，即某固定年月的第几次小版本发布，EXTRAVERSION对应额外的信息，譬如指明为候选发布版本号等，该两项可能为空。<br>具体例子见README。</p>
+<pre><code>TIMESTAMP_FILE = $(obj)include/generated/timestamp_autogenerated.h
+VERSION_FILE = $(obj)include/generated/version_autogenerated.h
+</code></pre><h2 id="设置主机host的编译环境"><a href="#设置主机host的编译环境" class="headerlink" title="设置主机host的编译环境"></a>设置主机host的编译环境</h2><p>因为是嵌入式开发，采用的是交叉编译，所以需要设置主机的编译环境，包括：获取主机的arch和os，以及设置shell。<br>sed -e的意思，选项允许在同一行里执行多条命令，就是表示后面跟的是一串命令脚本，<code>s/abc/def/</code>的命令表达式，就是表示要从<code>uname -m</code>的输出中，查找到内容为abc的，然后替换成def</p>
+<pre><code>HOSTARCH := $(shell uname -m | \
+    sed -e s/i.86/x86/ \
+        -e s/sun4u/sparc64/ \
+        -e s/arm.*/arm/ \
+        -e s/sa110/arm/ \
+        -e s/ppc64/powerpc/ \
+        -e s/ppc/powerpc/ \
+        -e s/macppc/powerpc/\
+        -e s/sh.*/sh/)
+
+HOSTOS := $(shell uname -s | tr &apos;[:upper:]&apos; &apos;[:lower:]&apos; | \
+        sed -e &apos;s/\(cygwin\).*/cygwin/&apos;)
+
+# Set shell to bash if possible, otherwise fall back to sh
+SHELL := $(shell if [ -x &quot;$$BASH&quot; ]; then echo $$BASH; \
+    else if [ -x /bin/bash ]; then echo /bin/bash; \
+    else echo sh; fi; fi)
+</code></pre><p>export相当于C语言中的extern，把变量输出到全局，这样这些变量将设置为环境变量<br>注意:export的语意就是将自定义变量转成环境变量,在系统的任何地方你都可以使用这个变量!</p>
+<pre><code>export    HOSTARCH HOSTOS SHELL
+
+# Deal with colliding definitions from tcsh etc.
+VENDOR=
+</code></pre><h2 id="处理make命令行的选项参数"><a href="#处理make命令行的选项参数" class="headerlink" title="处理make命令行的选项参数"></a>处理make命令行的选项参数</h2><h3 id="s选项"><a href="#s选项" class="headerlink" title="s选项"></a><code>s</code>选项</h3><p>检查是否禁止在编译过程中向终端输出信息，利用findstring函数检查变量 MAKEFLAGS 是否为参数’s’<br>当编译U-boot的时候，我们会输入make [选项] [目标] …如果输入:make -s，则MAKEFLAGS = s<br>XECHO = echo 编译时将输出编译过程的信息，否则安静编译,不输出信息</p>
+<pre><code>#########################################################################
+# Allow for silent builds
+ifeq (,$(findstring s,$(MAKEFLAGS)))
+XECHO = echo
+else
+XECHO = :
+endif
+</code></pre><h3 id="O选项"><a href="#O选项" class="headerlink" title="O选项"></a><code>O</code>选项</h3><p>uboot允许将生成的所有编译结果都存放在源代码主目录以外的一个单独的目录下，这样就可以保持源代码目录比较干净，这个目录用变量<code>BUILD_DIR</code>来表示，缺省为空，即为uboot源代码目录的主目录。这个变量可以修改，具体的设置方法，可以参考Makefile中的注释，大致有两种方法可以实现：<br>1) 指定编译参数 O=目录，该选项会覆盖<code>BUILD_DIR</code>的值，例如: 执行<code>make O= /tmp/build all</code>后，<code>BUILD_DIR</code>的值就是<code>/tmp/build all</code>。<br>2) 设置环境变量<code>BUILD_DIR</code>，该变量指定目录并设置为设置为环境变量，例如:<code>export BUILD_DIR=/tmp/build</code>，然后再<code>make</code>。该方法也适用于执行MAKEALL，MAKEALL主要用于u-boot自身的测试发布工作。<br>我们自己编译时一般不需要指定，就在当前源代码顶层目录下生成，所以直接<code>make</code>就好。  </p>
+<pre><code>#########################################################################
+#
+# U-boot build supports producing a object files to the separate external
+# directory. Two use cases are supported:
+#
+# 1) Add O= to the make command line
+# &apos;make O=/tmp/build all&apos;
+#
+# 2) Set environement variable BUILD_DIR to point to the desired location
+# &apos;export BUILD_DIR=/tmp/build&apos;
+# &apos;make&apos;
+#
+# The second approach can also be used with a MAKEALL script
+# &apos;export BUILD_DIR=/tmp/build&apos;
+# &apos;./MAKEALL&apos;
+#
+# Command line &apos;O=&apos; setting overrides BUILD_DIR environent variable.
+#
+# When none of the above methods is used the local build is performed and
+# the object files are placed in the source directory.
+#
+
+ifdef O
+ifeq (&quot;$(origin O)&quot;, &quot;command line&quot;)
+BUILD_DIR := $(O)
+endif
+endif
+</code></pre><h3 id="C选项"><a href="#C选项" class="headerlink" title="C选项"></a><code>C</code>选项</h3><pre><code># Call a source code checker (by default, &quot;sparse&quot;) as part of the
+# C compilation.
+#
+# Use &apos;make C=1&apos; to enable checking of re-compiled files.
+#
+# See the linux kernel file &quot;Documentation/sparse.txt&quot; for more details,
+# including where to get the &quot;sparse&quot; utility.
+
+ifdef C
+ifeq (&quot;$(origin C)&quot;, &quot;command line&quot;)
+CHECKSRC := $(C)
+endif
+endif
+ifndef CHECKSRC
+  CHECKSRC = 0
+endif
+export CHECKSRC
+</code></pre><p>下面是一系列和创建build目录相关的动作，如果创建失败，就输出错误并退出。注：这里if用了一个三段式的形式，#if(a,b,c)这样的形式，执行步骤为，先判断a的真假，如果为真，则执行b，如果为假，则执行c。</p>
+<pre><code>ifneq ($(BUILD_DIR),)
+saved-output := $(BUILD_DIR)
+
+# Attempt to create a output directory.
+$(shell [ -d ${BUILD_DIR} ] || mkdir -p ${BUILD_DIR})
+
+# Verify if it was successful.
+BUILD_DIR := $(shell cd $(BUILD_DIR) &amp;&amp; /bin/pwd)
+$(if $(BUILD_DIR),,$(error output directory &quot;$(saved-output)&quot; does not exist))
+endif # ifneq ($(BUILD_DIR),)
+</code></pre><h2 id="定义几个有用的环境变量："><a href="#定义几个有用的环境变量：" class="headerlink" title="定义几个有用的环境变量："></a>定义几个有用的环境变量：</h2><p>其中：</p>
+<ul>
+<li>OBJTREE： 如果指定了编译目录BUILD_DIR的值，就采用$(BUILD_DIR)替换它，否则就等于$(CURDIR)，CURDUR是Make自定义的变量，指当前工作路径，因为我们在编译make之前都要cd到uboot源代码的主目录下，所以其值就等于uboot源代码的主目录的文件系统路径。</li>
+<li>SRCTREE：设置为$(CURDIR)</li>
+</ul>
+<p>其他的就不多啰嗦了。</p>
+<pre><code>OBJTREE        := $(if $(BUILD_DIR),$(BUILD_DIR),$(CURDIR))
+SPLTREE        := $(OBJTREE)/spl
+SRCTREE        := $(CURDIR)
+TOPDIR        := $(SRCTREE)
+LNDIR        := $(OBJTREE)
+export    TOPDIR SRCTREE OBJTREE SPLTREE
+
+MKCONFIG    := $(SRCTREE)/mkconfig
+export MKCONFIG
+
+ifneq ($(OBJTREE),$(SRCTREE))
+REMOTE_BUILD    := 1
+export REMOTE_BUILD
+endif
+</code></pre><p>仔细看看下面这段注释，obj和src也是两个编译中重要的变量，虽然这两个变量主要是定义在顶层目录的config.mk文件里(config.mk也是一个相当重要的文件，具体我们后面会专门讨论)，但由于主Makefile中有些伪规则，譬如unconfig, clean, clobber, distclean等会用到它们，所以预先定义在这里。如果我们指定了BUILD_DIR，则$(OBJTREE)和$(SRCTREE)的值会不同，那么obj和src会相应地被赋予$(OBJTREE)和$(SRCTREE)的值，否则就都是为空，即缺省为当前主目录。</p>
+<pre><code># $(obj) and (src) are defined in config.mk but here in main Makefile
+# we also need them before config.mk is included which is the case for
+# some targets like unconfig, clean, clobber, distclean, etc.
+ifneq ($(OBJTREE),$(SRCTREE))
+obj := $(OBJTREE)/
+src := $(SRCTREE)/
+else
+obj :=
+src :=
+endif
+export obj src
+
+# Make sure CDPATH settings don&apos;t interfere
+unexport CDPATH
+</code></pre><p>至此，前期准备工作就绪，Makefile文件从这里开始往下就是make的规则描述了，一个Makefile一般会包括很多规则，U-boot的规则整体上由三部分组成：</p>
+<ul>
+<li><p><a href="#rules_main">生成u-boot镜像的终极规则及其所依赖的规则</a></p>
+</li>
+<li><p><a href="#rules_board">生成针对各种开发板的配置开关项列表的规则</a></p>
+</li>
+<li><p><a href="#rules_others">其他辅助规则</a></p>
+</li>
+</ul>
+<p>下面我们依次分别来看一下。</p>
+<p><a name="rules_main" id="rules_main"></a></p>
+<h1 id="生成u-boot最终img的主要规则"><a href="#生成u-boot最终img的主要规则" class="headerlink" title="生成u-boot最终img的主要规则"></a>生成u-boot最终img的主要规则</h1><p>先还是一些准备工作，<code>SUBDIRS</code>这个变量会保存参与编译的所有子目录，即参与编译的模块的名称，用空格分隔，make时会按照SUBDIRS中子目录出现的顺序，依次进入并制作。根据注释，因为make时会需要用到一些uboot自制的tools，所以将tools目录列为SUBDIRS的第一个成员，然后会根据一些编译的配置选项对这个<code>SUBDIRS</code>变量追加别的子目录。</p>
+<pre><code>#########################################################################
+
+# The &quot;tools&quot; are needed early, so put this first
+# Don&apos;t include stuff already done in $(LIBS)
+# The &quot;examples&quot; conditionally depend on U-Boot (say, when USE_PRIVATE_LIBGCC
+# is &quot;yes&quot;), so compile examples after U-Boot is compiled.
+SUBDIR_TOOLS = tools
+SUBDIR_EXAMPLES = examples/standalone examples/api
+SUBDIRS = $(SUBDIR_TOOLS)
+
+.PHONY : $(SUBDIRS) $(VERSION_FILE) $(TIMESTAMP_FILE)
+</code></pre><h2 id="一个重要的判断"><a href="#一个重要的判断" class="headerlink" title="一个重要的判断"></a>一个重要的判断</h2><pre><code>ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk))
+</code></pre><p>上面这句ifeq判断的话很重要，首先这句话是一个if判断，在判断什么呢？wildcard的格式是<code>wildcard PATTERN</code>，PATTERN表达式一般是个文件路径，wildcard会根据PATTERN表达式匹配并查找该文件是否存在，如果存在就将其路径字符串返回，否则就返回空，所以可以用wildcard来查找一个文件是否存在。这里就是在判断“$(obj)include/config.mk”这个文件是否存在。假设我们没有指定编译输出目录，则$(obj为空，所以就是在检查“include/config.mk”这个文件是否存在，这个文件是我们在编译之前执行形如<code>make xxx_config</code>的命令创建出来的，所以通过判断该文件是否存在可以知道我们在make之前是否执行了<code>make xxx_config</code>，如果还没有执行<code>make xxx_config</code>进行相应配置就执行<code>make</code>这是不允许的。有关<code>make xxx_config</code>干了些什么，参考<a href="../20150628-notes-uboot-config-v2009-11">理解u-boot的make xxx_config机制(基于v2009.11)</a></p>
+<p>注意这个ifeq其对应的endif在下面很远的地方，具体是在主Makefile文件的第719行<strong><a href="#line_719">一个重要判断的else分支</a></strong>，而且还是个二路分支判断语句，去掉内部的大段逻辑，总框架如下：</p>
+<pre><code>ifeq ($(obj)include/config.mk,$(wildcard $(obj)include/config.mk)) 
+# 分支一，可编译最终结果相关的一系列规则描述，此处跳过300+行
+... 
+else    # !config.mk 第719行
+# 分支二： 
+all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
+$(obj)u-boot.img $(obj)u-boot.dis $(obj)u-boot \
+$(filter-out tools,$(SUBDIRS)) \
+updater depend dep tags ctags etags cscope $(obj)System.map:
+    @echo &quot;System not configured - see README&quot; &gt;&amp;2
+    @ exit 1
+
+tools: $(VERSION_FILE) $(TIMESTAMP_FILE)
+    $(MAKE) -C $@ all
+endif    # config.mk
+</code></pre><p>所以这个判断的作用就是确保在<code>make</code>或者<code>make all</code>之前我们必须针对你需要移植的开发板运行过<code>make xxx_config</code>。判断的原则就是看$(obj)include/config.mk这个文件是否存在，如果存在说明运行过配置，就允许继续make，否则会打印错误告警如下：</p>
+<pre><code>fs@ubuntu$ make
+System not configured - see README
+make: *** [all] Error 1
+</code></pre><p>所以我们重点看分支一，走进分支一就是在具体执行制作u-boot二进制镜像的编译工作了，主要规则都在这里了。</p>
+<h2 id="导入-include-重要的配置文件-mk"><a href="#导入-include-重要的配置文件-mk" class="headerlink" title="导入(include)重要的配置文件(.mk)"></a>导入(include)重要的配置文件(.mk)</h2><h3 id="导入-obj-include-autoconf-mk"><a href="#导入-obj-include-autoconf-mk" class="headerlink" title="导入$(obj)include/autoconf.mk"></a>导入$(obj)include/autoconf.mk</h3><p>这里出现的all是个假的终极目标，我们输入make all时并不是运行它，因为这个all既没有依赖，也没有规则，它下面的sinclude语句不是它的动作，原因很简单，因为前面没有TAB。这个all的用途在这里的注释里说得很清楚了，定义这个伪目标all的目的是防止autoconf.mk.dep中的依赖目标成为默认终极目标，因为默认make会把主Makefile里碰到的第一个目标当作终极目标。</p>
+<pre><code># Include autoconf.mk before config.mk so that the config options are available
+# to all top level build files.  We need the dummy all: target to prevent the
+# dependency target in autoconf.mk.dep from being the default.
+all:
+</code></pre><p>所以make接着开始执行<code>sinclude $(obj)include/autoconf.mk.dep</code>，参考<a href="http://blog.chinaunix.net/uid-26404201-id-3037401.html" target="_blank" rel="external">Makefile中include、-include、sinclude的区别</a>,总结如下：</p>
+<ul>
+<li>使用“<strong>include</strong> FILENAMES…”，make程序处理时，如果“FILENAMES”列表中的任何一个文件不能正常读取而且不存在一个创建此文件的规则时make程序将会提示错误并退出。</li>
+<li>使用“<strong>-include</strong> FILENAMES…”的情况是，当所包含的文件不存在或者不存在一个规则去创建它，make程序会继续执行，只有真正由于不能正确完成终极目标的重建时（某些必需的目标无法在当前已读取的makefile文件内容中找到正确的重建规则），才会提示致命错误并退出。</li>
+<li>为了和其它的make程序进行兼容。也可以使用“<strong>sinclude</strong>”来代替“<strong>-include</strong>”（GNU所支持的方式）。</li>
+</ul>
+<p>autoconf.mk和autoconf.mk.dep这些文件是在后继规则中被创建出来的，<a href="#autoconf.mk">创建autoconf.mk的具体的位置</a>。如果是第一次干净的build，还没有被创建，所以”sinclude”的意思就是如果这些文件还不存在就忽略这两条命令，继续。</p>
+<pre><code>sinclude $(obj)include/autoconf.mk.dep
+sinclude $(obj)include/autoconf.mk
+
+ifndef CONFIG_SANDBOX
+SUBDIRS += $(SUBDIR_EXAMPLES)
+endif
+</code></pre><h3 id="导入-obj-include-config-mk"><a href="#导入-obj-include-config-mk" class="headerlink" title="导入$(obj)include/config.mk"></a>导入$(obj)include/config.mk</h3><p>这时候$(obj)include/config.mk被导入，这个文件是通过运行<code>make xxx_config</code>产生的。这一步必须成功也一定会成功，因为根据前述ifeq的逻辑，逻辑走到这里说明已经做过<code>make xxx_config</code>。</p>
+<p><strong>注意这里执行的导出ARCH，CPU，BOARD，VENDOR，SOC的行为</strong>。这些记录在$(obj)include/config.mk中的变量的值会直接导致后继导入的$(TOPDIR)/config.mk和生成autoconf.mk文件时代码中所有引用这些变量的地方执行字符串替换，从而使相关的配置只针对make第一阶段，即<code>make xxx_config</code>针对的特定开发板。详细的操作参考<a href="/2015/07/17/20150717-uboot-config-mk-v2013-01">理解u-boot的顶层config.mk(基于v2013.01)</a>的”导入各级配置文件(.mk)，实现平台的定制化”章节。</p>
+<pre><code># load ARCH, BOARD, and CPU configuration
+include $(obj)include/config.mk
+export    ARCH CPU BOARD VENDOR SOC
+</code></pre><p>判断如果宿主机的架构和目标板的架构是同一种架构，则CROSS_COMPILE为空，也即采用宿主机默认的交叉编译链。通常我们将目标板使用的交叉工具链安装好以后，在宿主机中设置环境变量，指定开发板使用的交叉编译链。</p>
+<pre><code># set default to nothing for native builds
+ifeq ($(HOSTARCH),$(ARCH))
+CROSS_COMPILE ?=
+endif
+</code></pre><p>在执行make命令时指定CROSS_COMPILE，有如下两种方法：</p>
+<ul>
+<li><p>方法一，在调用make命令时直接指定，譬如：</p>
+<pre><code>$ make all CROSS_COMPILE=arm-linux-gnueabi-
+</code></pre></li>
+<li><p>方法二：调用make命令前先定义该变量，再make，譬如：</p>
+<pre><code>$ export CROSS_COMPILE=arm-linux-gnueabi-
+$ make all
+</code></pre></li>
+</ul>
+<p>如果不指定就认为是本地编译。</p>
+<h3 id="导入-TOPDIR-config-mk"><a href="#导入-TOPDIR-config-mk" class="headerlink" title="导入$(TOPDIR)/config.mk"></a>导入$(TOPDIR)/config.mk</h3><p>注：这里include是uboot顶层目录下的config.mk文件。这也是一个重要的make配置文件，参考<a href="/2015/07/17/20150717-uboot-config-mk-v2013-01">理解u-boot的顶层config.mk(基于v2013.01)</a>。</p>
+<pre><code># load other configuration
+include $(TOPDIR)/config.mk
+</code></pre><h3 id="搜索链接脚本文件"><a href="#搜索链接脚本文件" class="headerlink" title="搜索链接脚本文件"></a>搜索链接脚本文件</h3><p>仔细读一下下面的这段注释，意思大致是说用户自己可以通过定义LDSCRIPT或者CONFIG_SYS_LDSCRIPT来指定lds脚本文件。如果指定了则makefile就会用，如果这两个变量都为空，则makefile会根据特定的规则在一些标准位置上搜索lds文件。</p>
+<pre><code># If board code explicitly specified LDSCRIPT or CONFIG_SYS_LDSCRIPT, use
+# that (or fail if absent).  Otherwise, search for a linker script in a
+# standard location.
+
+LDSCRIPT_MAKEFILE_DIR = $(dir $(LDSCRIPT))
+</code></pre><p>先使用dir函数尝试从LDSCRIPT中取出目录部分。</p>
+<p>如果LDSCRIPT没定义再看看用户有没有自己通过CONFIG_SYS_LDSCRIPT指定。注意：如果CONFIG_SYS_LDSCRIPT有定义也是在include/autoconf.mk中定义。</p>
+<pre><code>ifndef LDSCRIPT
+    #LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds.debug
+    ifdef CONFIG_SYS_LDSCRIPT
+        # need to strip off double quotes
+        LDSCRIPT := $(subst &quot;,,$(CONFIG_SYS_LDSCRIPT))
+    endif
+endif
+</code></pre><p>如果既没有定义LDSCRIPT，也没有配置CONFIG_SYS_LDSCRIPT，接下来会按照如下顺序进行搜索:<br>如果支持uboot从nandflash启动(CONFIG_NAND_U_BOOT的值为’y’)则先尝试指定lds脚本为<code>$(TOPDIR)/board/$(BOARDDIR)/u-boot-nand.lds</code>，如果该文件不存在，则尝试查找<code>$(TOPDIR)/$(CPUDIR)/u-boot-nand.lds</code>。<br>如果还是没找到，则尝试<code>$(TOPDIR)/board/$(BOARDDIR)/u-boot.lds</code>。<br>如果还是没找到，则尝试<code>$(TOPDIR)/$(CPUDIR)/u-boot.lds</code>。<br>如果还是没找到，则尝试<code>$(TOPDIR)/arch/$(ARCH)/cpu/u-boot.lds</code>。<br>如果还是没找到，则认为失败，输出<code>could not find linker script</code>。</p>
+<pre><code># If there is no specified link script, we look in a number of places for it
+ifndef LDSCRIPT
+    ifeq ($(CONFIG_NAND_U_BOOT),y)
+        LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot-nand.lds
+        ifeq ($(wildcard $(LDSCRIPT)),)
+            LDSCRIPT := $(TOPDIR)/$(CPUDIR)/u-boot-nand.lds
+        endif
+    endif
+    ifeq ($(wildcard $(LDSCRIPT)),)
+        LDSCRIPT := $(TOPDIR)/board/$(BOARDDIR)/u-boot.lds
+    endif
+    ifeq ($(wildcard $(LDSCRIPT)),)
+        LDSCRIPT := $(TOPDIR)/$(CPUDIR)/u-boot.lds
+    endif
+    ifeq ($(wildcard $(LDSCRIPT)),)
+        LDSCRIPT := $(TOPDIR)/arch/$(ARCH)/cpu/u-boot.lds
+        # We don&apos;t expect a Makefile here
+        LDSCRIPT_MAKEFILE_DIR =
+    endif
+    ifeq ($(wildcard $(LDSCRIPT)),)
+$(error could not find linker script)
+    endif
+endif
+</code></pre><h2 id="定义制作过程中需要的对象"><a href="#定义制作过程中需要的对象" class="headerlink" title="定义制作过程中需要的对象"></a>定义制作过程中需要的对象</h2><h3 id="定义目标变量OBJS"><a href="#定义目标变量OBJS" class="headerlink" title="定义目标变量OBJS"></a>定义目标变量OBJS</h3><p>start.o是必须放在第一位的，顺序很重要,没事别乱改这些目标对象和库的顺序!<br>其中CPUDIR=arch/$(ARCH)/cpu/$(CPU)，定义在源码顶层目录的config.mk中</p>
+<pre><code>#########################################################################
+# U-Boot objects....order is important (i.e. start must be first)
+
+OBJS  = $(CPUDIR)/start.o
+ifeq ($(CPU),x86)
+RESET_OBJS-$(CONFIG_X86_NO_RESET_VECTOR) += $(CPUDIR)/start16.o
+RESET_OBJS-$(CONFIG_X86_NO_RESET_VECTOR) += $(CPUDIR)/resetvec.o
+endif
+ifeq ($(CPU),ppc4xx)
+OBJS += $(CPUDIR)/resetvec.o
+endif
+ifeq ($(CPU),mpc85xx)
+OBJS += $(CPUDIR)/resetvec.o
+endif
+
+OBJS := $(addprefix $(obj),$(OBJS) $(RESET_OBJS-))
+</code></pre><h3 id="定义库变量LIBS"><a href="#定义库变量LIBS" class="headerlink" title="定义库变量LIBS"></a>定义库变量LIBS</h3><p>LIBS变量指明了U-boot需要的库文件，包括平台/开发板相关的目录、通用目录下相应的库，都通过相应的子目录编译得到。<br>但新版本的Makefile里并不是直接对LIBS变量赋值，而是先对中间变量LIBS-y和LIBS-n进行赋值。其中使用了如下技巧：<br>假设一个变量FOO(大部分形如<code>CONFIG_xxx</code>)，其取值无非是<code>y</code>或者<code>n</code><br>则语句：<code>LIBS-$(FOO) += libxxxx.o</code>的效果会根据$(FOO)的取值是<code>y</code>还是<code>n</code>，将libxxxx.o分别添加到LIBS-y或者LIBS-n中。而最后LIBS变量的值是从LIBS-y里取，达到的效果就是可以根据FOO的取值决定某个lib库文件是否参与编译。</p>
+<pre><code>HAVE_VENDOR_COMMON_LIB = $(if $(wildcard board/$(VENDOR)/common/Makefile),y,n)
+
+LIBS-y += lib/libgeneric.o
+LIBS-y += lib/lzma/liblzma.o
+LIBS-y += lib/lzo/liblzo.o
+LIBS-y += lib/zlib/libz.o
+LIBS-$(CONFIG_TIZEN) += lib/tizen/libtizen.o
+LIBS-$(HAVE_VENDOR_COMMON_LIB) += board/$(VENDOR)/common/lib$(VENDOR).o
+LIBS-y += $(CPUDIR)/lib$(CPU).o
+ifdef SOC
+LIBS-y += $(CPUDIR)/$(SOC)/lib$(SOC).o
+endif
+ifeq ($(CPU),ixp)
+LIBS-y += drivers/net/npe/libnpe.o
+endif
+LIBS-$(CONFIG_OF_EMBED) += dts/libdts.o
+LIBS-y += arch/$(ARCH)/lib/lib$(ARCH).o
+LIBS-y += fs/libfs.o \
+    fs/cbfs/libcbfs.o \
+    fs/cramfs/libcramfs.o \
+    fs/ext4/libext4fs.o \
+    fs/fat/libfat.o \
+    fs/fdos/libfdos.o \
+    fs/jffs2/libjffs2.o \
+    fs/reiserfs/libreiserfs.o \
+    fs/ubifs/libubifs.o \
+    fs/yaffs2/libyaffs2.o \
+    fs/zfs/libzfs.o
+LIBS-y += net/libnet.o
+LIBS-y += disk/libdisk.o
+LIBS-y += drivers/bios_emulator/libatibiosemu.o
+LIBS-y += drivers/block/libblock.o
+LIBS-$(CONFIG_BOOTCOUNT_LIMIT) += drivers/bootcount/libbootcount.o
+LIBS-y += drivers/dma/libdma.o
+LIBS-y += drivers/fpga/libfpga.o
+LIBS-y += drivers/gpio/libgpio.o
+LIBS-y += drivers/hwmon/libhwmon.o
+LIBS-y += drivers/i2c/libi2c.o
+LIBS-y += drivers/input/libinput.o
+LIBS-y += drivers/misc/libmisc.o
+LIBS-y += drivers/mmc/libmmc.o
+LIBS-y += drivers/mtd/libmtd.o
+LIBS-y += drivers/mtd/nand/libnand.o
+LIBS-y += drivers/mtd/onenand/libonenand.o
+LIBS-y += drivers/mtd/ubi/libubi.o
+LIBS-y += drivers/mtd/spi/libspi_flash.o
+LIBS-y += drivers/net/libnet.o
+LIBS-y += drivers/net/phy/libphy.o
+LIBS-y += drivers/pci/libpci.o
+LIBS-y += drivers/pcmcia/libpcmcia.o
+LIBS-y += drivers/power/libpower.o \
+    drivers/power/fuel_gauge/libfuel_gauge.o \
+    drivers/power/pmic/libpmic.o \
+    drivers/power/battery/libbattery.o
+LIBS-y += drivers/spi/libspi.o
+LIBS-y += drivers/dfu/libdfu.o
+ifeq ($(CPU),mpc83xx)
+LIBS-y += drivers/qe/libqe.o
+LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
+LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
+endif
+ifeq ($(CPU),mpc85xx)
+LIBS-y += drivers/qe/libqe.o
+LIBS-y += drivers/net/fm/libfm.o
+LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
+LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
+endif
+ifeq ($(CPU),mpc86xx)
+LIBS-y += arch/powerpc/cpu/mpc8xxx/ddr/libddr.o
+LIBS-y += arch/powerpc/cpu/mpc8xxx/lib8xxx.o
+endif
+LIBS-y += drivers/rtc/librtc.o
+LIBS-y += drivers/serial/libserial.o
+LIBS-y += drivers/sound/libsound.o
+LIBS-$(CONFIG_GENERIC_LPC_TPM) += drivers/tpm/libtpm.o
+LIBS-y += drivers/twserial/libtws.o
+LIBS-y += drivers/usb/eth/libusb_eth.o
+LIBS-y += drivers/usb/gadget/libusb_gadget.o
+LIBS-y += drivers/usb/host/libusb_host.o
+LIBS-y += drivers/usb/musb/libusb_musb.o
+LIBS-y += drivers/usb/musb-new/libusb_musb-new.o
+LIBS-y += drivers/usb/phy/libusb_phy.o
+LIBS-y += drivers/usb/ulpi/libusb_ulpi.o
+LIBS-y += drivers/video/libvideo.o
+LIBS-y += drivers/watchdog/libwatchdog.o
+LIBS-y += common/libcommon.o
+LIBS-y += lib/libfdt/libfdt.o
+LIBS-y += api/libapi.o
+LIBS-y += post/libpost.o
+LIBS-y += test/libtest.o
+
+ifneq ($(CONFIG_AM33XX)$(CONFIG_OMAP34XX)$(CONFIG_OMAP44XX)$(CONFIG_OMAP54XX),)
+LIBS-y += $(CPUDIR)/omap-common/libomap-common.o
+endif
+
+ifneq (,$(filter $(SOC), mx25 mx27 mx5 mx6 mx31 mx35))
+LIBS-y += arch/$(ARCH)/imx-common/libimx-common.o
+endif
+
+ifeq ($(SOC),s5pc1xx)
+LIBS-y += $(CPUDIR)/s5p-common/libs5p-common.o
+endif
+ifeq ($(SOC),exynos)
+LIBS-y += $(CPUDIR)/s5p-common/libs5p-common.o
+endif
+ifeq ($(SOC),tegra20)
+LIBS-y += arch/$(ARCH)/cpu/$(SOC)-common/lib$(SOC)-common.o
+LIBS-y += arch/$(ARCH)/cpu/tegra-common/libcputegra-common.o
+LIBS-y += $(CPUDIR)/tegra-common/libtegra-common.o
+endif
+
+LIBS := $(addprefix $(obj),$(sort $(LIBS-y)))
+.PHONY : $(LIBS)
+</code></pre><h3 id="定义板级库变量LIBBOARD"><a href="#定义板级库变量LIBBOARD" class="headerlink" title="定义板级库变量LIBBOARD"></a>定义板级库变量LIBBOARD</h3><pre><code>LIBBOARD = board/$(BOARDDIR)/lib$(BOARD).o
+LIBBOARD := $(addprefix $(obj),$(LIBBOARD))
+</code></pre><h3 id="其他的一些变量"><a href="#其他的一些变量" class="headerlink" title="其他的一些变量"></a>其他的一些变量</h3><p>添加GCC库</p>
+<pre><code># Add GCC lib
+ifdef USE_PRIVATE_LIBGCC
+ifeq (&quot;$(USE_PRIVATE_LIBGCC)&quot;, &quot;yes&quot;)
+PLATFORM_LIBGCC = $(OBJTREE)/arch/$(ARCH)/lib/libgcc.o
+else
+PLATFORM_LIBGCC = -L $(USE_PRIVATE_LIBGCC) -lgcc
+endif
+else
+PLATFORM_LIBGCC := -L $(shell dirname `$(CC) $(CFLAGS) -print-libgcc-file-name`) -lgcc
+endif
+PLATFORM_LIBS += $(PLATFORM_LIBGCC)
+export PLATFORM_LIBS
+
+# Special flags for CPP when processing the linker script.
+# Pass the version down so we can handle backwards compatibility
+# on the fly.
+LDPPFLAGS += \
+    -include $(TOPDIR)/include/u-boot/u-boot.lds.h \
+    -DCPUDIR=$(CPUDIR) \
+    $(shell $(LD) --version | \
+      sed -ne &apos;s/GNU ld version \([0-9][0-9]*\)\.\([0-9][0-9]*\).*/-DLD_MAJOR=\1 -DLD_MINOR=\2/p&apos;)
+
+__OBJS := $(subst $(obj),,$(OBJS))
+__LIBS := $(subst $(obj),,$(LIBS)) $(subst $(obj),,$(LIBBOARD))
+</code></pre><h2 id="终极规则-all-及其主要依赖规则"><a href="#终极规则-all-及其主要依赖规则" class="headerlink" title="终极规则(all)及其主要依赖规则"></a>终极规则(all)及其主要依赖规则</h2><pre><code>#########################################################################
+#########################################################################
+</code></pre><p>这里定义的BOARD_SIZE_CHECK后面定义各个目标规则时会用到。</p>
+<pre><code>ifneq ($(CONFIG_BOARD_SIZE_LIMIT),)
+BOARD_SIZE_CHECK = \
+    @actual=`wc -c $@ | awk &apos;{print $$1}&apos;`; \
+    limit=`printf &quot;%d&quot; $(CONFIG_BOARD_SIZE_LIMIT)`; \
+    if test $$actual -gt $$limit; then \
+        echo &quot;$@ exceeds file size limit:&quot; &gt;&amp;2 ; \
+        echo &quot;  limit:  $$limit bytes&quot; &gt;&amp;2 ; \
+        echo &quot;  actual: $$actual bytes&quot; &gt;&amp;2 ; \
+        echo &quot;  excess: $$((actual - limit)) bytes&quot; &gt;&amp;2; \
+        exit 1; \
+    fi
+else
+BOARD_SIZE_CHECK =
+endif
+
+# Always append ALL so that arch config.mk&apos;s can add custom ones
+ALL-y += $(obj)u-boot.srec $(obj)u-boot.bin $(obj)System.map
+</code></pre><p>有的开发板支持在NAND Flash启动，则可以在开发板的配置文件里定义CONFIG_NAND_U_BOOT，CONFIG_ONENAND_U_BOOT这些开关，那么最终生成的结果输出中就会产生对应的u-boot-nand.bin和u-boot-onenand.bin文件。我测试用的versatile不需要，所以后面涉及到这块的就先暂时忽略。</p>
+<pre><code>ALL-$(CONFIG_NAND_U_BOOT) += $(obj)u-boot-nand.bin
+ALL-$(CONFIG_ONENAND_U_BOOT) += $(obj)u-boot-onenand.bin
+ALL-$(CONFIG_SPL) += $(obj)spl/u-boot-spl.bin
+ALL-$(CONFIG_SPL) += $(obj)$(subst &quot;,,$(CONFIG_SPL_TARGET))
+ALL-$(CONFIG_OF_SEPARATE) += $(obj)u-boot.dtb $(obj)u-boot-dtb.bin
+
+# enable combined SPL/u-boot/dtb rules for tegra
+ifeq ($(SOC),tegra20)
+ifeq ($(CONFIG_OF_SEPARATE),y)
+ALL-y += $(obj)u-boot-dtb-tegra.bin
+else
+ALL-y += $(obj)u-boot-nodtb-tegra.bin
+endif
+endif
+
+all:        $(ALL-y) $(SUBDIR_EXAMPLES)
+</code></pre><p>走到这里，终于看到了我们的终极目标定义<strong>all</strong>。这里新版本的Makefile也是先定义ALL-y和ALL-n，然后根据配置y或者n决定最后的all。<br>这里我们看到了u-boot这个项目最终希望制作出来的都是些什么东东，即运行<code>make all</code>的结果：</p>
+<p>all依赖于u-boot.srec，u-boot.bin，System.map，而u-boot.srec，u-boot.bin，System.map都是由u-boot转化而来，所以它们都依赖于u-boot。</p>
+<table>
+<thead>
+<tr>
+<th>文件名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>u-boot</td>
+<td>ELF格式的U-boot文件</td>
+</tr>
+<tr>
+<td>u-boot.srec</td>
+<td>Motorola S-Record格式的U-boot文件</td>
+</tr>
+<tr>
+<td>u-boot.bin</td>
+<td>最终烧写到开发板的二进制可执行的U-boot文件</td>
+</tr>
+<tr>
+<td>System.map</td>
+<td>U-Boot文件的符号表，System.map是U-Boot的符号表，它包含了U-Boot的全局变量和函数的地址信息，也就是将nm命令查看u-boot的输出信息经过过滤和排序后输出到System.map。System.map表示的是地址标号到该标号表示的地址的一个映射关系。System.map每一行的格式都是“addr type name”，addr是标号对应的地址值，name是标号名，type表示标号的类型。U-Boot的编译和运行并不一定要生成System.map，这个文件主要是提供给用户或外部程序调试时使用的。</td>
+</tr>
+</tbody>
+</table>
+<pre><code>$(obj)u-boot.dtb:    $(obj)u-boot
+        $(MAKE) -C dts binary
+        mv $(obj)dts/dt.dtb $@
+
+$(obj)u-boot-dtb.bin:    $(obj)u-boot.bin $(obj)u-boot.dtb
+        cat $^ &gt;$@
+
+$(obj)u-boot.hex:    $(obj)u-boot
+        $(OBJCOPY) ${OBJCFLAGS} -O ihex $&lt; $@
+
+$(obj)u-boot.srec:    $(obj)u-boot
+        $(OBJCOPY) -O srec $&lt; $@
+
+$(obj)u-boot.bin:    $(obj)u-boot
+        $(OBJCOPY) ${OBJCFLAGS} -O binary $&lt; $@
+        $(BOARD_SIZE_CHECK)
+
+$(obj)u-boot.ldr:    $(obj)u-boot
+        $(CREATE_LDR_ENV)
+        $(LDR) -T $(CONFIG_BFIN_CPU) -c $@ $&lt; $(LDR_FLAGS)
+        $(BOARD_SIZE_CHECK)
+
+$(obj)u-boot.ldr.hex:    $(obj)u-boot.ldr
+        $(OBJCOPY) ${OBJCFLAGS} -O ihex $&lt; $@ -I binary
+
+$(obj)u-boot.ldr.srec:    $(obj)u-boot.ldr
+        $(OBJCOPY) ${OBJCFLAGS} -O srec $&lt; $@ -I binary
+
+#
+# U-Boot entry point, needed for booting of full-blown U-Boot
+# from the SPL U-Boot version.
+#
+ifndef CONFIG_SYS_UBOOT_START
+CONFIG_SYS_UBOOT_START := 0
+endif
+
+$(obj)u-boot.img:    $(obj)u-boot.bin
+        $(obj)tools/mkimage -A $(ARCH) -T firmware -C none \
+        -O u-boot -a $(CONFIG_SYS_TEXT_BASE) \
+        -e $(CONFIG_SYS_UBOOT_START) \
+        -n $(shell sed -n -e &apos;s/.*U_BOOT_VERSION//p&apos; $(VERSION_FILE) | \
+            sed -e &apos;s/&quot;[     ]*$$/ for $(BOARD) board&quot;/&apos;) \
+        -d $&lt; $@
+
+$(obj)u-boot.imx:       $(obj)u-boot.bin
+        $(obj)tools/mkimage -n  $(CONFIG_IMX_CONFIG) -T imximage \
+        -e $(CONFIG_SYS_TEXT_BASE) -d $&lt; $@
+
+$(obj)u-boot.kwb:       $(obj)u-boot.bin
+        $(obj)tools/mkimage -n $(CONFIG_SYS_KWD_CONFIG) -T kwbimage \
+        -a $(CONFIG_SYS_TEXT_BASE) -e $(CONFIG_SYS_TEXT_BASE) -d $&lt; $@
+
+$(obj)u-boot.pbl:    $(obj)u-boot.bin
+        $(obj)tools/mkimage -n $(CONFIG_PBLRCW_CONFIG) \
+        -R $(CONFIG_PBLPBI_CONFIG) -T pblimage \
+        -d $&lt; $@
+
+$(obj)u-boot.sha1:    $(obj)u-boot.bin
+        $(obj)tools/ubsha1 $(obj)u-boot.bin
+
+$(obj)u-boot.dis:    $(obj)u-boot
+        $(OBJDUMP) -d $&lt; &gt; $@
+
+$(obj)u-boot-with-spl.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin
+        $(OBJCOPY) ${OBJCFLAGS} --pad-to=$(PAD_TO) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
+        cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin &gt; $@
+        rm $(obj)spl/u-boot-spl-pad.bin
+
+$(obj)u-boot.ubl:       $(obj)u-boot-with-spl.bin
+        $(obj)tools/mkimage -n $(UBL_CONFIG) -T ublimage \
+        -e $(CONFIG_SYS_TEXT_BASE) -d $&lt; $(obj)u-boot.ubl
+
+$(obj)u-boot.ais:       $(obj)spl/u-boot-spl.bin $(obj)u-boot.img
+        $(obj)tools/mkimage -s -n $(if $(CONFIG_AIS_CONFIG_FILE),$(CONFIG_AIS_CONFIG_FILE),&quot;/dev/null&quot;) \
+            -T aisimage \
+            -e $(CONFIG_SPL_TEXT_BASE) \
+            -d $(obj)spl/u-boot-spl.bin \
+            $(obj)spl/u-boot-spl.ais
+        $(OBJCOPY) ${OBJCFLAGS} -I binary \
+            --pad-to=$(CONFIG_SPL_MAX_SIZE) -O binary \
+            $(obj)spl/u-boot-spl.ais $(obj)spl/u-boot-spl-pad.ais
+        cat $(obj)spl/u-boot-spl-pad.ais $(obj)u-boot.img &gt; \
+            $(obj)u-boot.ais
+
+# Specify the target for use in elftosb call
+ELFTOSB_TARGET-$(CONFIG_MX28) = imx28
+
+$(obj)u-boot.sb:       $(obj)u-boot.bin $(obj)spl/u-boot-spl.bin
+        elftosb -zf $(ELFTOSB_TARGET-y) -c $(TOPDIR)/$(CPUDIR)/$(SOC)/u-boot-$(ELFTOSB_TARGET-y).bd \
+            -o $(obj)u-boot.sb
+
+# On x600 (SPEAr600) U-Boot is appended to U-Boot SPL.
+# Both images are created using mkimage (crc etc), so that the ROM
+# bootloader can check its integrity. Padding needs to be done to the
+# SPL image (with mkimage header) and not the binary. Otherwise the resulting image
+# which is loaded/copied by the ROM bootloader to SRAM doesn&apos;t fit.
+# The resulting image containing both U-Boot images is called u-boot.spr
+$(obj)u-boot.spr:    $(obj)u-boot.img $(obj)spl/u-boot-spl.bin
+        $(obj)tools/mkimage -A $(ARCH) -T firmware -C none \
+        -a $(CONFIG_SPL_TEXT_BASE) -e $(CONFIG_SPL_TEXT_BASE) -n XLOADER \
+        -d $(obj)spl/u-boot-spl.bin $(obj)spl/u-boot-spl.img
+        tr &quot;\000&quot; &quot;\377&quot; &lt; /dev/zero | dd ibs=1 count=$(CONFIG_SPL_PAD_TO) \
+            of=$(obj)spl/u-boot-spl-pad.img 2&gt;/dev/null
+        dd if=$(obj)spl/u-boot-spl.img of=$(obj)spl/u-boot-spl-pad.img \
+            conv=notrunc 2&gt;/dev/null
+        cat $(obj)spl/u-boot-spl-pad.img $(obj)u-boot.img &gt; $@
+
+ifeq ($(SOC),tegra20)
+ifeq ($(CONFIG_OF_SEPARATE),y)
+nodtb=dtb
+dtbfile=$(obj)u-boot.dtb
+else
+nodtb=nodtb
+dtbfile=
+endif
+
+$(obj)u-boot-$(nodtb)-tegra.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.bin $(dtbfile)
+        $(OBJCOPY) ${OBJCFLAGS} --pad-to=$(CONFIG_SYS_TEXT_BASE) -O binary $(obj)spl/u-boot-spl $(obj)spl/u-boot-spl-pad.bin
+        cat $(obj)spl/u-boot-spl-pad.bin $(obj)u-boot.bin $(dtbfile) &gt; $@
+        rm $(obj)spl/u-boot-spl-pad.bin
+endif
+
+$(obj)u-boot-img.bin: $(obj)spl/u-boot-spl.bin $(obj)u-boot.img
+        cat $(obj)spl/u-boot-spl.bin $(obj)u-boot.img &gt; $@
+
+ifeq ($(CONFIG_SANDBOX),y)
+GEN_UBOOT = \
+        cd $(LNDIR) &amp;&amp; $(CC) $(SYMS) -T $(obj)u-boot.lds \
+            -Wl,--start-group $(__LIBS) -Wl,--end-group \
+            $(PLATFORM_LIBS) -Wl,-Map -Wl,u-boot.map -o u-boot
+else
+GEN_UBOOT = \
+        UNDEF_LST=`$(OBJDUMP) -x $(LIBBOARD) $(LIBS) | \
+        sed  -n -e &apos;s/.*\($(SYM_PREFIX)_u_boot_list_.*\)/-u\1/p&apos;|sort|uniq`;\
+        cd $(LNDIR) &amp;&amp; $(LD) $(LDFLAGS) $(LDFLAGS_$(@F)) \
+            $$UNDEF_LST $(__OBJS) \
+            --start-group $(__LIBS) --end-group $(PLATFORM_LIBS) \
+            -Map u-boot.map -o u-boot
+endif
+
+$(obj)u-boot:    depend \
+        $(SUBDIR_TOOLS) $(OBJS) $(LIBBOARD) $(LIBS) $(LDSCRIPT) $(obj)u-boot.lds
+        $(GEN_UBOOT)
+</code></pre><p>u-boot依赖于以下目标</p>
+<table>
+<thead>
+<tr>
+<th>依赖的目标</th>
+<th>制作该目标的动作</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>depend</strong></td>
+<td>对于$(SUBDIRS)，cpu/$(CPU)，$(dir $(LDSCRIPT))中的每个元素都进入该目录执行“make _depend”，生成各个子目录的.depend文件，.depend列出每个目标文件的依赖文件。<br>仅仅有目标和依赖，没有命令的，所以调用该目标时是通过隐含规则执行隐含命令的。 <br>注意depend目标仅仅是生成了文件.depend，但是并没有执行生成任何的目标文件（比如start.o）二进制文本的任何命令，也就是说在顶层目录make depend后，在cpu/$(CPU)目录下并没有start.o文件</td>
+</tr>
+<tr>
+<td><strong>$(SUBDIRS)</strong></td>
+<td>执行tools ，examples/standalone ，examples/api目录下的Makefile</td>
+</tr>
+<tr>
+<td><strong>$(OBJS)</strong></td>
+<td>对于OBJS包含的每个成员，都进入cpu/$(CPU)目录（即cpu/arm920t）编译它们。</td>
+</tr>
+<tr>
+<td><strong>$(LIBBOARD)</strong></td>
+<td>查看对应规则</td>
+</tr>
+<tr>
+<td><strong>$(LIBS)</strong></td>
+<td>对于LIBS中的每个成员，都进入相应的子目录执行“make”命令编译它们。例如对于LIBS中的“common/libcommon.a”成员，程序将进入common目录执行Makefile，生成libcommon.a</td>
+</tr>
+<tr>
+<td><strong>$(LDSCRIPT)</strong></td>
+<td>注意对于versatile开发板，$(LDSCRIPT)是定于在lib_arm/config.mk里，<code>LDSCRIPT := $(SRCTREE)/cpu/$(CPU)/u-boot.lds</code>所以是cd到cpu/arm926ejs/目录下，执行<code>make u-boot.lds</code>命令</td>
+</tr>
+<tr>
+<td><strong>$(obj)u-boot.lds</strong></td>
+<td>将cpu/arm926ejs/u-boot.lds经cpp预处理后输出到U-Boot顶层目录下的u-boot.lds文件。</td>
+</tr>
+</tbody>
+</table>
+<p>GEN_UBOOT描述的实际是最终的链接动作。</p>
+<pre><code>ifeq ($(CONFIG_KALLSYMS),y)
+        smap=`$(call SYSTEM_MAP,$(obj)u-boot) | \
+            awk &apos;$$2 ~ /[tTwW]/ {printf $$1 $$3 &quot;\\\\000&quot;}&apos;` ; \
+        $(CC) $(CFLAGS) -DSYSTEM_MAP=&quot;\&quot;$${smap}\&quot;&quot; \
+            -c common/system_map.c -o $(obj)common/system_map.o
+        $(GEN_UBOOT) $(obj)common/system_map.o
+endif
+</code></pre><p>以下规则会导致make进入各个相关的子目录进行make。</p>
+<pre><code>$(OBJS):    depend
+        $(MAKE) -C $(CPUDIR) $(if $(REMOTE_BUILD),$@,$(notdir $@))
+
+$(LIBS):    depend $(SUBDIR_TOOLS)
+        $(MAKE) -C $(dir $(subst $(obj),,$@))
+
+$(LIBBOARD):    depend $(LIBS)
+        $(MAKE) -C $(dir $(subst $(obj),,$@))
+
+$(SUBDIRS):    depend
+        $(MAKE) -C $@ all
+
+$(SUBDIR_EXAMPLES): $(obj)u-boot
+
+$(LDSCRIPT):    depend
+        $(MAKE) -C $(dir $@) $(notdir $@)
+
+# The following line expands into whole rule which generates u-boot.lst,
+# the file containing u-boots LG-array linker section. This is included into
+# $(LDSCRIPT). The function make_u_boot_list is defined in helper.mk file.
+$(eval $(call make_u_boot_list, $(obj)include/u-boot.lst, $(LIBBOARD) $(LIBS)))
+$(obj)u-boot.lds: $(LDSCRIPT) $(obj)include/u-boot.lst
+        $(CPP) $(CPPFLAGS) $(LDPPFLAGS) -ansi -D__ASSEMBLY__ -P - &lt;$&lt; &gt;$@
+
+nand_spl:    $(TIMESTAMP_FILE) $(VERSION_FILE) depend
+        $(MAKE) -C nand_spl/board/$(BOARDDIR) all
+
+$(obj)u-boot-nand.bin:    nand_spl $(obj)u-boot.bin
+        cat $(obj)nand_spl/u-boot-spl-16k.bin $(obj)u-boot.bin &gt; $(obj)u-boot-nand.bin
+
+$(obj)spl/u-boot-spl.bin:    $(SUBDIR_TOOLS) depend
+        $(MAKE) -C spl all
+
+updater:
+        $(MAKE) -C tools/updater all
+
+# Explicitly make _depend in subdirs containing multiple targets to prevent
+# parallel sub-makes creating .depend files simultaneously.
+depend dep:    $(TIMESTAMP_FILE) $(VERSION_FILE) \
+        $(obj)include/autoconf.mk \
+        $(obj)include/generated/generic-asm-offsets.h \
+        $(obj)include/generated/asm-offsets.h
+        for dir in $(SUBDIRS) $(CPUDIR) $(LDSCRIPT_MAKEFILE_DIR) ; do \
+            $(MAKE) -C $$dir _depend ; done
+
+TAG_SUBDIRS = $(SUBDIRS)
+TAG_SUBDIRS += $(dir $(__LIBS))
+TAG_SUBDIRS += include
+
+FIND := find
+FINDFLAGS := -L
+
+checkstack:
+        $(CROSS_COMPILE)objdump -d $(obj)u-boot \
+            `$(FIND) $(obj) -name u-boot-spl -print` | \
+            perl $(src)tools/checkstack.pl $(ARCH)
+
+tags ctags:
+        ctags -w -o $(obj)ctags `$(FIND) $(FINDFLAGS) $(TAG_SUBDIRS) \
+                        -name &apos;*.[chS]&apos; -print`
+
+etags:
+        etags -a -o $(obj)etags `$(FIND) $(FINDFLAGS) $(TAG_SUBDIRS) \
+                        -name &apos;*.[chS]&apos; -print`
+cscope:
+        $(FIND) $(FINDFLAGS) $(TAG_SUBDIRS) -name &apos;*.[chS]&apos; -print &gt; \
+                        cscope.files
+        cscope -b -q -k
+
+SYSTEM_MAP = \
+        $(NM) $1 | \
+        grep -v &apos;\(compiled\)\|\(\.o$$\)\|\( [aUw] \)\|\(\.\.ng$$\)\|\(LASH[RL]DI\)&apos; | \
+        LC_ALL=C sort
+$(obj)System.map:    $(obj)u-boot
+        @$(call SYSTEM_MAP,$&lt;) &gt; $(obj)System.map
+
+checkthumb:
+    @if test $(call cc-version) -lt 0404; then \
+        echo -n &apos;*** Your GCC does not produce working &apos;; \
+        echo &apos;binaries in THUMB mode.&apos;; \
+        echo &apos;*** Your board is configured for THUMB mode.&apos;; \
+        false; \
+    fi
+
+# GCC 3.x is reported to have problems generating the type of relocation
+# that U-Boot wants.
+# See http://lists.denx.de/pipermail/u-boot/2012-September/135156.html
+checkgcc4:
+    @if test $(call cc-version) -lt 0400; then \
+        echo -n &apos;*** Your GCC is too old, please upgrade to GCC 4.x or newer&apos;; \
+        false; \
+    fi
+</code></pre><p><a name="autoconf.mk" id="autoconf.mk"></a></p>
+<h2 id="生成autoconf-mk的规则"><a href="#生成autoconf-mk的规则" class="headerlink" title="生成autoconf.mk的规则"></a>生成autoconf.mk的规则</h2><p>autoconf.mk文件是一个很重要的有关配置的文件。这个文件是在make过程中自动生成的。打开autoconf.mk文件看看，就会看到形如下的内容：</p>
+<pre><code>CONFIG_SYS_GBL_DATA_SIZE=128
+CONFIG_SYS_LONGHELP=y
+CONFIG_SYS_LOAD_ADDR=&quot;0x7fc0&quot;
+CONFIG_STACKSIZE=&quot;(128 * 1024)&quot;
+CONFIG_BOOTDELAY=2
+CONFIG_SYS_HELP_CMD_WIDTH=8
+CONFIG_SYS_TIMER_CTRL=&quot;0x84&quot;
+...
+</code></pre><p>这些以<code>CONFIG_</code>开头的宏就是一系列的配置开关，会影响后继的编译过程。</p>
+<p>根据Makefile文件下面的注释，autoconfig.mk文件会被所有的Makefile文件包含，具体说是因为所有子目录的Makefile都有这么一句话<code>include (TOPDIR)/config.mk</code>，即包含了顶层目录下的config.mk文件，而顶层目录下的config.mk文件里有这么一行<code>sinclude $(OBJTREE)/include/autoconf.mk</code>。。</p>
+<p>autoconfig.mk.dep文件的内容是autoconfig.mk文件产生时所依赖的文件的列表，这个列表中的任意一个头文件发生修改变化都会导致automake.mk文件重新生成一次，其内容如下所示：</p>
+<pre><code>include/autoconf.mk: include/common.h \
+ /home/fs/temp/u-boot-2009.11/include/config.h \
+ /home/fs/temp/u-boot-2009.11/include/configs/versatile.h \
+ /home/fs/temp/u-boot-2009.11/include/asm/config.h \
+ /home/fs/temp/u-boot-2009.11/include/linux/bitops.h \
+ /home/fs/temp/u-boot-2009.11/include/asm/types.h \
+</code></pre><p>至于autoconfig.mk和autoconfig.mk.dep里面的内容是哪里来的，让我们来仔细看一下下面这两条规则：</p>
+<pre><code>#
+# Auto-generate the autoconf.mk file (which is included by all makefiles)
+#
+# This target actually generates 2 files; autoconf.mk and autoconf.mk.dep.
+# the dep file is only include in this top level makefile to determine when
+# to regenerate the autoconf.mk file.
+$(obj)include/autoconf.mk.dep: $(obj)include/config.h include/common.h
+    @$(XECHO) Generating $@ ; \
+    set -e ; \
+    : Generate the dependancies ; \
+    $(CC) -x c -DDO_DEPS_ONLY -M $(CFLAGS) $(CPPFLAGS) \
+        -MQ $(obj)include/autoconf.mk include/common.h &gt; $@
+
+$(obj)include/autoconf.mk: $(obj)include/config.h
+    @$(XECHO) Generating $@ ; \
+    set -e ; \
+    : Extract the config macros ; \
+    $(CPP) $(CFLAGS) -DDO_DEPS_ONLY -dM include/common.h | \
+        sed -n -f tools/scripts/define2mk.sed &gt; $@.tmp &amp;&amp; \
+    mv $@.tmp $@
+</code></pre><p>在自动make过程中，这两条规则会先执行第二条规则，运行预处理命令，选项”-dM”的作用是提取include/common.h中定义的宏，然后输出给tools/scripts/define2mk.sed脚本处理，提取所有的config marcos，即配置宏，保存到autoconf.mk文件中。</p>
+<p>至于autoconf.mk的内容，因为include/common.h该文件又包含了$(obj)include/config.h，$(obj)include/config.h这个文件是我们执行<code>make xxx_config</code>生成的。以我操作的versatile开发板为例，执行<code>make versatile_config</code>后生成的’include/config.h’里面的内容如下：</p>
+<pre><code>#define CONFIG_ARCH_VERSATILE_PB
+
+/* Automatically generated - do not edit */
+#include &lt;configs/versatile.h&gt;
+#include &lt;asm/config.h&gt;
+</code></pre><p>所以autoconf.mk文件中出现的所有”CONFIG_”宏的来源就是来自于include/common.h，include/config.h，include/configs/versatile.h以及include/asm-arm/config.h等等一系列的头文件，由于头文件会嵌套包含，所以autoconf.mk里的这些宏究竟依赖与多少头文件，这就是列在autoconfig.mk.dep里的内容了。</p>
+<pre><code>$(obj)include/generated/generic-asm-offsets.h:    $(obj)include/autoconf.mk.dep \
+    $(obj)lib/asm-offsets.s
+    @$(XECHO) Generating $@
+    tools/scripts/make-asm-offsets $(obj)lib/asm-offsets.s $@
+
+$(obj)lib/asm-offsets.s:    $(obj)include/autoconf.mk.dep \
+    $(src)lib/asm-offsets.c
+    @mkdir -p $(obj)lib
+    $(CC) -DDO_DEPS_ONLY \
+        $(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR)) \
+        -o $@ $(src)lib/asm-offsets.c -c -S
+
+$(obj)include/generated/asm-offsets.h:    $(obj)include/autoconf.mk.dep \
+    $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
+    @$(XECHO) Generating $@
+    tools/scripts/make-asm-offsets $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s $@
+
+$(obj)$(CPUDIR)/$(SOC)/asm-offsets.s:    $(obj)include/autoconf.mk.dep
+    @mkdir -p $(obj)$(CPUDIR)/$(SOC)
+    if [ -f $(src)$(CPUDIR)/$(SOC)/asm-offsets.c ];then \
+        $(CC) -DDO_DEPS_ONLY \
+        $(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR)) \
+            -o $@ $(src)$(CPUDIR)/$(SOC)/asm-offsets.c -c -S; \
+    else \
+        touch $@; \
+    fi
+</code></pre><p><a name="line_719" id="line_719"></a>一个重要判断的else分支</p>
+<pre><code>#########################################################################
+else    # !config.mk
+all $(obj)u-boot.hex $(obj)u-boot.srec $(obj)u-boot.bin \
+$(obj)u-boot.img $(obj)u-boot.dis $(obj)u-boot \
+$(filter-out tools,$(SUBDIRS)) \
+updater depend dep tags ctags etags cscope $(obj)System.map:
+    @echo &quot;System not configured - see README&quot; &gt;&amp;2
+    @ exit 1
+
+tools: $(VERSION_FILE) $(TIMESTAMP_FILE)
+    $(MAKE) -C $@ all
+endif    # config.mk
+
+$(VERSION_FILE):
+        @mkdir -p $(dir $(VERSION_FILE))
+        @( localvers=&apos;$(shell $(TOPDIR)/tools/setlocalversion $(TOPDIR))&apos; ; \
+           printf &apos;#define PLAIN_VERSION &quot;%s%s&quot;\n&apos; \
+            &quot;$(U_BOOT_VERSION)&quot; &quot;$${localvers}&quot; ; \
+           printf &apos;#define U_BOOT_VERSION &quot;U-Boot %s%s&quot;\n&apos; \
+            &quot;$(U_BOOT_VERSION)&quot; &quot;$${localvers}&quot; ; \
+        ) &gt; $@.tmp
+        @( printf &apos;#define CC_VERSION_STRING &quot;%s&quot;\n&apos; \
+         &apos;$(shell $(CC) --version | head -n 1)&apos; )&gt;&gt;  $@.tmp
+        @( printf &apos;#define LD_VERSION_STRING &quot;%s&quot;\n&apos; \
+         &apos;$(shell $(LD) -v | head -n 1)&apos; )&gt;&gt;  $@.tmp
+        @cmp -s $@ $@.tmp &amp;&amp; rm -f $@.tmp || mv -f $@.tmp $@
+
+$(TIMESTAMP_FILE):
+        @mkdir -p $(dir $(TIMESTAMP_FILE))
+        @LC_ALL=C date +&apos;#define U_BOOT_DATE &quot;%b %d %C%y&quot;&apos; &gt; $@.tmp
+        @LC_ALL=C date +&apos;#define U_BOOT_TIME &quot;%T&quot;&apos; &gt;&gt; $@.tmp
+        @cmp -s $@ $@.tmp &amp;&amp; rm -f $@.tmp || mv -f $@.tmp $@
+
+easylogo env gdb:
+    $(MAKE) -C tools/$@ all MTD_VERSION=${MTD_VERSION}
+gdbtools: gdb
+
+xmldocs pdfdocs psdocs htmldocs mandocs: tools/kernel-doc/docproc
+    $(MAKE) U_BOOT_VERSION=$(U_BOOT_VERSION) -C doc/DocBook/ $@
+
+tools-all: easylogo env gdb $(VERSION_FILE) $(TIMESTAMP_FILE)
+    $(MAKE) -C tools HOST_TOOLS_ALL=y
+
+.PHONY : CHANGELOG
+CHANGELOG:
+    git log --no-merges U-Boot-1_1_5.. | \
+    unexpand -a | sed -e &apos;s/\s\s*$$//&apos; &gt; $@
+
+include/license.h: tools/bin2header COPYING
+    cat COPYING | gzip -9 -c | ./tools/bin2header license_gzip &gt; include/license.h
+#########################################################################
+</code></pre><p><a name="rules_board" id="rules_board"></a></p>
+<h1 id="所有U-boot支持的开发板的配置规则列表"><a href="#所有U-boot支持的开发板的配置规则列表" class="headerlink" title="所有U-boot支持的开发板的配置规则列表"></a>所有U-boot支持的开发板的配置规则列表</h1><p>没别的，unconfig就是删除生成的各种配置文件</p>
+<pre><code>unconfig:
+    @rm -f $(obj)include/config.h $(obj)include/config.mk \
+        $(obj)board/*/config.tmp $(obj)board/*/*/config.tmp \
+        $(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
+</code></pre><p>当<code>make xxxx_config</code>的时候，譬如<code>make versatilepb_conifg</code>，下面的为目标<code>%_config</code>会被执行，先执行unconfig删除上次的配置文件，然后<code>@$(MKCONFIG) -A $(@:_config=)</code>，第一个<code>@</code>作用是抑制回显，<code>$(MKCONFIG)</code>就是执行mkconfig脚本。具体执行该脚本发生了什么，参考<a href="../20150717-uboot-mkconfig-v2013-01">理解u-boot的make xxx_config机制和mkconfig(基于v2013.01)</a></p>
+<pre><code>%_config::    unconfig
+    @$(MKCONFIG) -A $(@:_config=)
+</code></pre><p>在2013.01版本里，相较于2009.11，这里做了较大的改进，本质思想就是把所有的xxxx_config规则定义在顶层目录下的boards.cfg文件里，然后在这里用awk抽取信息后展开而已。</p>
+<p>awk处理中，(NF &amp;&amp; $$1 !~ /^#/)，NF表示字段总数不为零，”&amp;&amp; $$1 !~ /^#/“表示而且第一个字段不是’#’开头的，总的意思是匹配不以’#’开头的行。{ print $$1 “: “ $$1 “_config; $$(MAKE)” }’，意思就是打印”$1 : $1_config; $$(MAKE)”, $&lt; &gt; $@意思就是把打印的字符串信息写入到目标$(obj).boards.depend中。<br>(补充知识   $@:表示规则的目标文件名  $&lt;:表示规则的第一个依赖文件名   ‘&gt;’为输出导向符)</p>
+<pre><code>sinclude $(obj).boards.depend
+$(obj).boards.depend:    boards.cfg
+    @awk &apos;(NF &amp;&amp; $$1 !~ /^#/) { print $$1 &quot;: &quot; $$1 &quot;_config; $$(MAKE)&quot; }&apos; $&lt; &gt; $@
+
+#
+# Functions to generate common board directory names
+#
+lcname    = $(shell echo $(1) | sed -e &apos;s/\(.*\)_config/\L\1/&apos;)
+ucname    = $(shell echo $(1) | sed -e &apos;s/\(.*\)_config/\U\1/&apos;)
+
+#########################################################################
+## ARM1176 Systems
+#########################################################################
+smdk6400_noUSB_config    \
+smdk6400_config    :    unconfig
+    @mkdir -p $(obj)include $(obj)board/samsung/smdk6400
+    @mkdir -p $(obj)nand_spl/board/samsung/smdk6400
+    @echo &quot;#define CONFIG_NAND_U_BOOT&quot; &gt; $(obj)include/config.h
+    @echo &quot;CONFIG_NAND_U_BOOT = y&quot; &gt;&gt; $(obj)include/config.mk
+    @if [ -z &quot;$(findstring smdk6400_noUSB_config,$@)&quot; ]; then            \
+        echo &quot;RAM_TEXT = 0x57e00000&quot; &gt;&gt; $(obj)board/samsung/smdk6400/config.tmp;\
+    else                                        \
+        echo &quot;RAM_TEXT = 0xc7e00000&quot; &gt;&gt; $(obj)board/samsung/smdk6400/config.tmp;\
+    fi
+    @$(MKCONFIG) smdk6400 arm arm1176 smdk6400 samsung s3c64xx
+    @echo &quot;CONFIG_NAND_U_BOOT = y&quot; &gt;&gt; $(obj)include/config.mk
+</code></pre><p><a name="rules_others" id="rules_others"></a></p>
+<h1 id="其他辅助规则"><a href="#其他辅助规则" class="headerlink" title="其他辅助规则"></a>其他辅助规则</h1><pre><code>#########################################################################
+#########################################################################
+
+clean:
+    @rm -f $(obj)examples/standalone/82559_eeprom              \
+           $(obj)examples/standalone/atmel_df_pow2              \
+           $(obj)examples/standalone/eepro100_eeprom          \
+           $(obj)examples/standalone/hello_world              \
+           $(obj)examples/standalone/interrupt              \
+           $(obj)examples/standalone/mem_to_mem_idma2intr          \
+           $(obj)examples/standalone/sched                  \
+           $(obj)examples/standalone/smc911{11,x}_eeprom          \
+           $(obj)examples/standalone/test_burst              \
+           $(obj)examples/standalone/timer
+    @rm -f $(obj)examples/api/demo{,.bin}
+    @rm -f $(obj)tools/bmp_logo       $(obj)tools/easylogo/easylogo  \
+           $(obj)tools/env/{fw_printenv,fw_setenv}              \
+           $(obj)tools/envcrc                      \
+           $(obj)tools/gdb/{astest,gdbcont,gdbsend}              \
+           $(obj)tools/gen_eth_addr    $(obj)tools/img2srec          \
+           $(obj)tools/mk{env,}image   $(obj)tools/mpc86x_clk      \
+           $(obj)tools/mk{smdk5250,}spl                  \
+           $(obj)tools/mxsboot                      \
+           $(obj)tools/ncb           $(obj)tools/ubsha1          \
+           $(obj)tools/kernel-doc/docproc
+    @rm -f $(obj)board/cray/L1/{bootscript.c,bootscript.image}      \
+           $(obj)board/matrix_vision/*/bootscript.img          \
+           $(obj)board/voiceblue/eeprom                   \
+           $(obj)u-boot.lds                          \
+           $(obj)include/u-boot.lst                        \
+           $(obj)arch/blackfin/cpu/bootrom-asm-offsets.[chs]      \
+           $(obj)arch/blackfin/cpu/init.{lds,elf}
+    @rm -f $(obj)include/bmp_logo.h
+    @rm -f $(obj)include/bmp_logo_data.h
+    @rm -f $(obj)lib/asm-offsets.s
+    @rm -f $(obj)include/generated/asm-offsets.h
+    @rm -f $(obj)$(CPUDIR)/$(SOC)/asm-offsets.s
+    @rm -f $(TIMESTAMP_FILE) $(VERSION_FILE)
+    @$(MAKE) -s -C doc/DocBook/ cleandocs
+    @find $(OBJTREE) -type f \
+        \( -name &apos;core&apos; -o -name &apos;*.bak&apos; -o -name &apos;*~&apos; -o -name &apos;*.su&apos; \
+        -o -name &apos;*.o&apos;    -o -name &apos;*.a&apos; -o -name &apos;*.exe&apos;    \) -print \
+        | xargs rm -f
+
+# Removes everything not needed for testing u-boot
+tidy:    clean
+    @find $(OBJTREE) -type f \( -name &apos;*.depend*&apos; \) -print | xargs rm -f
+
+clobber:    tidy
+    @find $(OBJTREE) -type f \( -name &apos;*.srec&apos; \
+        -o -name &apos;*.bin&apos; -o -name u-boot.img \) \
+        -print0 | xargs -0 rm -f
+    @rm -f $(OBJS) $(obj)*.bak $(obj)ctags $(obj)etags $(obj)TAGS \
+        $(obj)cscope.* $(obj)*.*~
+    @rm -f $(obj)u-boot $(obj)u-boot.map $(obj)u-boot.hex $(ALL-y)
+    @rm -f $(obj)u-boot.kwb
+    @rm -f $(obj)u-boot.pbl
+    @rm -f $(obj)u-boot.imx
+    @rm -f $(obj)u-boot.ubl
+    @rm -f $(obj)u-boot.ais
+    @rm -f $(obj)u-boot.dtb
+    @rm -f $(obj)u-boot.sb
+    @rm -f $(obj)u-boot.spr
+    @rm -f $(obj)nand_spl/{u-boot.{lds,lst},System.map}
+    @rm -f $(obj)nand_spl/{u-boot-nand_spl.lds,u-boot-spl,u-boot-spl.map}
+    @rm -f $(obj)spl/{u-boot-spl,u-boot-spl.bin,u-boot-spl.map}
+    @rm -f $(obj)spl/{u-boot-spl.lds,u-boot.lst}
+    @rm -f $(obj)MLO MLO.byteswap
+    @rm -f $(obj)SPL
+    @rm -f $(obj)tools/xway-swap-bytes
+    @rm -f $(obj)arch/powerpc/cpu/mpc824x/bedbug_603e.c
+    @rm -f $(obj)arch/powerpc/cpu/mpc83xx/ddr-gen?.c
+    @rm -fr $(obj)include/asm/proc $(obj)include/asm/arch $(obj)include/asm
+    @rm -fr $(obj)include/generated
+    @[ ! -d $(obj)nand_spl ] || find $(obj)nand_spl -name &quot;*&quot; -type l -print | xargs rm -f
+    @rm -f $(obj)dts/*.tmp
+    @rm -f $(obj)spl/u-boot-spl{,-pad}.ais
+
+mrproper \
+distclean:    clobber unconfig
+ifneq ($(OBJTREE),$(SRCTREE))
+    rm -rf $(obj)*
+endif
+
+backup:
+    F=`basename $(TOPDIR)` ; cd .. ; \
+    gtar --force-local -zcvf `LC_ALL=C date &quot;+$$F-%Y-%m-%d-%T.tar.gz&quot;` $$F
+
+#########################################################################
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/bootloader/" rel="tag">#bootloader</a>
+          
+            <a href="/tags/U-boot/" rel="tag">#U-boot</a>
+          
+            <a href="/tags/make/" rel="tag">#make</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/07/17/20150717-uboot-mkconfig-v2013-01/" rel="next" title="理解u-boot的make xxx_config机制和mkconfig(基于v2013.01)">
+                <i class="fa fa-chevron-left"></i> 理解u-boot的make xxx_config机制和mkconfig(基于v2013.01)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/17/20150717-uboot-config-mk-v2013-01/" rel="prev" title="理解u-boot的顶层config.mk(基于v2013.01)">
+                理解u-boot的顶层config.mk(基于v2013.01) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/07/17/20150717-uboot-makefile-v2013-01/"
+           data-title="理解u-boot的Makefile(基于v2013.01)" data-url="http://unicornx.github.io/2015/07/17/20150717-uboot-makefile-v2013-01/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#规则描述前的准备工作"><span class="nav-number">1.</span> <span class="nav-text">规则描述前的准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#设置版本"><span class="nav-number">1.1.</span> <span class="nav-text">设置版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置主机host的编译环境"><span class="nav-number">1.2.</span> <span class="nav-text">设置主机host的编译环境</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#处理make命令行的选项参数"><span class="nav-number">1.3.</span> <span class="nav-text">处理make命令行的选项参数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#s选项"><span class="nav-number">1.3.1.</span> <span class="nav-text">s选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#O选项"><span class="nav-number">1.3.2.</span> <span class="nav-text">O选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#C选项"><span class="nav-number">1.3.3.</span> <span class="nav-text">C选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义几个有用的环境变量："><span class="nav-number">1.4.</span> <span class="nav-text">定义几个有用的环境变量：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#生成u-boot最终img的主要规则"><span class="nav-number">2.</span> <span class="nav-text">生成u-boot最终img的主要规则</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#一个重要的判断"><span class="nav-number">2.1.</span> <span class="nav-text">一个重要的判断</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导入-include-重要的配置文件-mk"><span class="nav-number">2.2.</span> <span class="nav-text">导入(include)重要的配置文件(.mk)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#导入-obj-include-autoconf-mk"><span class="nav-number">2.2.1.</span> <span class="nav-text">导入$(obj)include/autoconf.mk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#导入-obj-include-config-mk"><span class="nav-number">2.2.2.</span> <span class="nav-text">导入$(obj)include/config.mk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#导入-TOPDIR-config-mk"><span class="nav-number">2.2.3.</span> <span class="nav-text">导入$(TOPDIR)/config.mk</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#搜索链接脚本文件"><span class="nav-number">2.2.4.</span> <span class="nav-text">搜索链接脚本文件</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#定义制作过程中需要的对象"><span class="nav-number">2.3.</span> <span class="nav-text">定义制作过程中需要的对象</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#定义目标变量OBJS"><span class="nav-number">2.3.1.</span> <span class="nav-text">定义目标变量OBJS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义库变量LIBS"><span class="nav-number">2.3.2.</span> <span class="nav-text">定义库变量LIBS</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义板级库变量LIBBOARD"><span class="nav-number">2.3.3.</span> <span class="nav-text">定义板级库变量LIBBOARD</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他的一些变量"><span class="nav-number">2.3.4.</span> <span class="nav-text">其他的一些变量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#终极规则-all-及其主要依赖规则"><span class="nav-number">2.4.</span> <span class="nav-text">终极规则(all)及其主要依赖规则</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#生成autoconf-mk的规则"><span class="nav-number">2.5.</span> <span class="nav-text">生成autoconf.mk的规则</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#所有U-boot支持的开发板的配置规则列表"><span class="nav-number">3.</span> <span class="nav-text">所有U-boot支持的开发板的配置规则列表</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他辅助规则"><span class="nav-number">4.</span> <span class="nav-text">其他辅助规则</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,859 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,调度,优先级," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-03
+主要参考文章：
+
+深入Linux内核架构 Wolfwang Mauerer
+Linux内核架构读书笔记 - 2.5.3 处理优先级 &amp;lt;==== look first
+窥探 kernel — 进程调度的目标，nice值，静态优先级">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux的任务调度中的优先级概念">
+<meta property="og:url" content="http://unicornx.github.io/2016/03/03/20160303-lk-task-prio/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-03
+主要参考文章：
+
+深入Linux内核架构 Wolfwang Mauerer
+Linux内核架构读书笔记 - 2.5.3 处理优先级 &amp;lt;==== look first
+窥探 kernel — 进程调度的目标，nice值，静态优先级">
+<meta property="og:image" content="http://images.cnitblog.com/i/131087/201404/292011477369916.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:47.943Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux的任务调度中的优先级概念">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-03
+主要参考文章：
+
+深入Linux内核架构 Wolfwang Mauerer
+Linux内核架构读书笔记 - 2.5.3 处理优先级 &amp;lt;==== look first
+窥探 kernel — 进程调度的目标，nice值，静态优先级">
+<meta name="twitter:image" content="http://images.cnitblog.com/i/131087/201404/292011477369916.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/03/03/20160303-lk-task-prio/"/>
+
+  <title> Linux的任务调度中的优先级概念 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux的任务调度中的优先级概念
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-03-03T17:24:12+08:00" content="2016-03-03">
+              2016-03-03
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/03/20160303-lk-task-prio/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/03/20160303-lk-task-prio/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-03</p>
+<p>主要参考文章：</p>
+<ul>
+<li>深入Linux内核架构 Wolfwang Mauerer</li>
+<li><a href="http://www.cnblogs.com/songbingyu/p/3700061.html" target="_blank" rel="external">Linux内核架构读书笔记 - 2.5.3 处理优先级</a> &lt;==== look first</li>
+<li><a href="http://blog.csdn.net/muge0913/article/details/7562133" target="_blank" rel="external">窥探 kernel — 进程调度的目标，nice值，静态优先级，动态优先级，实时优先级，时间片</a></li>
+<li><a href="http://blog.csdn.net/kickxxx/article/details/9663545" target="_blank" rel="external">linux进程调度 - 优先级处理</a></li>
+<li><a href="http://www.cnblogs.com/visayafan/archive/2011/12/08/2280459.html" target="_blank" rel="external">【内核】非实时进程、实时进程、静态优先级、动态优先级、实时优先级</a> 有一些基本概念的介绍，但基于的内核版本比较老，在CFS之前。</li>
+<li><a href="http://stackoverflow.com/questions/5770770/prio-static-prio-rt-priority-in-linux-kernel" target="_blank" rel="external">prio, static_prio, rt_priority in Linux Kernel</a></li>
+<li><a href="http://blog.csdn.net/armlinuxww/article/details/13168367" target="_blank" rel="external">进程优先级札记</a></li>
+<li><a href="http://www.cs.fsu.edu/~baker/devices/projects/rosenthal/" target="_blank" rel="external">COP 5641 - Kernel and Device Driver Programming</a></li>
+<li><a href="https://github.com/blindFS/blog-raw/blob/master/_posts/2013-10-17-plka-notes-1----scheduler.md" target="_blank" rel="external">blindFS</a></li>
+</ul>
+<p>纠结了快一个礼拜，对优先级的理解略懂一二，但最关键的是对ps命令中所看到的PRI，RTPRIO的值代表的含义与内核中维护的<code>task_struct</code>结构体中的优先级相关成员的关系没理清，继续专研吧。</p>
+<a id="more"></a>
+<h1 id="进程优先级"><a href="#进程优先级" class="headerlink" title="进程优先级"></a>进程优先级</h1><p>从用户的角度来看，优先级设置非常简单，可以通过<code>nice</code>命令或者<code>renice</code>命令设置进程的优先级，注意这里设置的进程仅仅是普通进程，不可以设置实时进程。而且nice的取值范围为[-20, 19]，值越小，优先级越高。至于说为什么选择这么一个诡异的范围，真相已经淹没在历史中了。其中<code>nice</code>用于在启动一个进程的同时设置其初始优先级值，而<code>renice</code>可以在一个进程运行过程中调整其优先级值。详细参考<a href="http://linux.vbird.org/linux_basic/0440processcontrol.php#priority" target="_blank" rel="external">Priority与Nice 值</a></p>
+<h1 id="内核中优先级"><a href="#内核中优先级" class="headerlink" title="内核中优先级"></a>内核中优先级</h1><p>在内核调度中使用另一套衡量进程优先级的标准，一个看起来正常得多的表示方法，内核中规定进程的优先级的值的范围为[0, 139]，一共140个档。其中实时任务的优先级范围是[0, 99]，非实时任务(SCHED_NORMAL/SCHED_BATCH)的优先级范围是[100, 139]。优先级值越小，意味着级别越高，任务优先被内核调度。</p>
+<p><img src="http://images.cnitblog.com/i/131087/201404/292011477369916.png" alt=""></p>
+<p>有关这些值的定义可以参考头文件sched.h中的宏定义。而且我们还可以看到缺省的优先级值是120。</p>
+<pre><code>/*
+ * Priority of a process goes from 0..MAX_PRIO-1, valid RT
+ * priority is 0..MAX_RT_PRIO-1, and SCHED_NORMAL/SCHED_BATCH
+ * tasks are in the range MAX_RT_PRIO..MAX_PRIO-1. Priority
+ * values are inverted: lower p-&gt;prio value means higher priority.
+ *
+ * The MAX_USER_RT_PRIO value allows the actual maximum
+ * RT priority to be separate from the value exported to
+ * user-space.  This allows kernel threads to set their
+ * priority to a value higher than any user task. Note:
+ * MAX_RT_PRIO must not be smaller than MAX_USER_RT_PRIO.
+ */
+
+#define MAX_USER_RT_PRIO    100
+#define MAX_RT_PRIO        MAX_USER_RT_PRIO
+
+#define MAX_PRIO        (MAX_RT_PRIO + 40)
+#define DEFAULT_PRIO        (MAX_RT_PRIO + 20)
+</code></pre><h1 id="内核中进程优先级的数据结构"><a href="#内核中进程优先级的数据结构" class="headerlink" title="内核中进程优先级的数据结构"></a>内核中进程优先级的数据结构</h1><pre><code>struct task_struct {
+    ...
+    int prio, static_prio, normal_prio;
+    unsigned int rt_priority;
+    ...
+};
+</code></pre><ul>
+<li><p><code>static_prio</code>: 按照字面上翻译为”静态优先级”，由普通进程(非实时进程)使用，静态优先级是进程启动时分配的优先级。可以用<code>nice()</code>和<code>sched_setscheduler()</code>系统调用修改，否则在进程运行过程中一直保持恒定。注意，实时进程没有用到该参数。</p>
+<p>  该字段的取值范围为<code>[100,139]</code>([<code>MAX_RT_PRIO</code>,<code>MAX_PRIO-1</code>])，值越小优先级越高。</p>
+<p>  但我们知道当我们调用<code>nice()</code>函数的时候，传入的nice的值的范围是[-20,19]，所以在<code>nice()</code>函数内部该系统调用函数对应内核级别的系统调用<code>sys_nice()</code>，并进而调用<code>set_user_nice()</code>函数，该函数内部会将<code>nice()</code>函数传入的[-20,19]范围的值映射为[100,139]之间的值。nice值和<code>static_prio</code>之间存在以下映射关系：</p>
+<pre><code>static_prio = nice + 20 + MAX_RT_PRIO
+</code></pre><p>  内核定义两个宏来实现此转化：</p>
+<pre><code>/*
+ * Convert user-nice values [ -20 ... 0 ... 19 ]
+ * to static priority [ MAX_RT_PRIO..MAX_PRIO-1 ],
+ * and back.
+ */
+#define NICE_TO_PRIO(nice)    (MAX_RT_PRIO + (nice) + 20)
+#define PRIO_TO_NICE(prio)    ((prio) - MAX_RT_PRIO - 20)
+</code></pre><p>  有关nice处理参考<code>Documentation/scheduler/sched-nice-design.txt in the kernel source tree (since Linux 2.6.23).</code></p>
+</li>
+</ul>
+<ul>
+<li><p><code>rt_priority</code>: 实时优先级，由实时进程使用，普通进程没有用到该参数。</p>
+<p>  取值范围为[0,99]。注意：<code>rt_priority</code>是值越大优先级越高。</p>
+<p>  用户层可以通过系统调用函数<code>sched_setscheduler()</code>对其进行设置，该函数最终调用<code>__setscheduler()</code>。<br>  用户层可以通过系统调用函数<code>sched_getparam()</code>获取<code>rt_priority</code>的值。</p>
+</li>
+<li><p><code>normal_prio</code>: <code>normal_prio</code>是基于前两个参数<code>static_prio</code>或<code>rt_priority</code>计算出来的。可以这样理解：<code>static_prio</code>和<code>rt_priority</code>分别代表<strong>普通进程</strong>和<strong>实时进程</strong>的”静态优先级”，代表进程的固有属性。由于他们两的表达方式不同，一个是值越小优先级越高，另一个是值越大优先级越高。有必要用<code>normal_prio</code>统一下。统一成值越小优先级越高，因此，<code>normal_prio</code>也可以理解为:统一了单位的”静态优先级”。</p>
+</li>
+</ul>
+<pre><code>    /*
+     * Calculate the expected normal priority: i.e. priority
+     * without taking RT-inheritance into account. Might be
+     * boosted by interactivity modifiers. Changes upon fork,
+     * setprio syscalls, and whenever the interactivity
+     * estimator recalculates.
+     */
+    static inline int normal_prio(struct task_struct *p)
+    {
+        int prio;
+        if (task_has_rt_policy(p))
+            prio = MAX_RT_PRIO-1 - p-&gt;rt_priority;
+        else
+            prio = __normal_prio(p);
+        return prio;
+    }
+    /*
+     * __normal_prio - return the priority that is based on the static prio
+     */
+    static inline int __normal_prio(struct task_struct *p)
+    {
+        return p-&gt;static_prio;
+    }
+
+`MAX_RT_PRIO`的值是100（也就是实时进程的优先级的最大数值加1），`normal_prio()`函数实际上就是了单位统一的过程。它的执行流程是这样的：通过调用函数`task_has_rt_policy`根据一个进程的调度策略policy是不是`SCHED_FIFO`和`SCHED_RR`中的一种来判断它是不是实时进程，如果是实时进程，那么就返回`99-rt_priority`，如果是普通进程,不需要统一&quot;单位&quot;,那么直接返回它的静态优先级`static_prio`。
+
+至于为何要专门写个函数`__normal_prio`来返回`static_prio`，“深入Linux内核架构”说这是历史原因。
+
+
+从上面的处理我们得到的结论是：
+对实时进程，其`normal_prio`会被统一为按照值越小，优先级越高。值的范围依然在[0,99]。
+对普通进程，其`normal_prio`取的就是它的`static_prio`。
+</code></pre><ul>
+<li><p><code>prio</code>: 它表示进程的有效优先级(effective priority)，顾名思义，在内核中判断进程优先级时用的便是该参数，调度器考虑的优先级也就是它。其取值范围为[0,139]，值越小，优先级越低。该优先级又叫”动态优先级”。</p>
+<p>  注意在调度过程中调度器会修改普通进程的<code>prio</code>的值。参考“深入Linux内核架构”，说非实时进程有时会被临时提高到实时进程的优先级，说什么发生在实时互斥量(RT-Mutex)啥的，目前不懂，有待研究。道听途说：prio的值在使用实时互斥量时会暂时提升，释放后恢复成normal_prio。</p>
+<p>  所以当内核在获取一个进程的有效优先级时采用了比较复杂的方法，通过函数<code>effective_prio()</code>计算出来的，搜索内核代码，可以看到唯一一处调用，在<code>set_user_nice</code>函数里。</p>
+<pre><code>p-&gt;prio = effective_prio(p);
+</code></pre><p>  具体看<code>effective_prio()</code>函数的定义：</p>
+<pre><code>/*
+ * Calculate the current priority, i.e. the priority
+ * taken into account by the scheduler. This value might
+ * be boosted by RT tasks, or might be boosted by
+ * interactivity modifiers. Will be RT if the task got
+ * RT-boosted. If not then it returns p-&gt;normal_prio.
+ */
+static int effective_prio(struct task_struct *p)
+{
+    p-&gt;normal_prio = normal_prio(p);
+    /*
+     * If we are RT tasks or we were boosted to RT priority,
+     * keep the priority unchanged. Otherwise, update priority
+     * to the normal priority:
+     */
+    if (!rt_prio(p-&gt;prio))
+        return p-&gt;normal_prio;
+    return p-&gt;prio;
+}
+</code></pre></li>
+</ul>
+<pre><code>该函数有两个作用：1.设置了进程p的`normal_prio`。2.返回了进程的有效优先级。
+第一句话是`effective_prio()`函数产生的副作用，它设置了进程p的`normal_prio`。
+
+在设置了`normal_prio`的值后，调用`rt_prio()`判断进程的有效优先级的数值是否达到实时进程的标准，具体参考`rt_prio()`的代码，标准是判断该进程的有效优先级的值是否小于`100(MAX_RT_PRIO)`。如果一个进程的有效优先级不是小于100则返回它的普通优先级。如果小于100，则返回它的动态优先级（有两种情况它的值会小于100：它是实时进程;或者它是普通进程，但是动态优先级prio被临时提高到100以内了）。
+`rt_prio()`的定义如下，注意它和`task_has_policy()`的区别，`task_has_policy()`用于判断进程是否是实时进程，而`rt_prio()`仅仅是判断它的优先等级的值是不是落在实时进程的范围内。
+
+    static inline int rt_prio(int prio)
+    {
+        if (unlikely(prio &lt; MAX_RT_PRIO))
+            return 1;
+        return 0;
+    }
+
+最后针对进程获取当前有效优先级的计算得到如下三种情况：
+
+![](http://images.cnitblog.com/i/131087/201404/292026179556006.png)
+</code></pre><h1 id="ps命令中显示的PRI，RTPRIO，NICE的含义"><a href="#ps命令中显示的PRI，RTPRIO，NICE的含义" class="headerlink" title="ps命令中显示的PRI，RTPRIO，NICE的含义"></a>ps命令中显示的PRI，RTPRIO，NICE的含义</h1><p>这个ps的显示我感觉和前面内核的结构体成员找不到对应关系，目前参考<a href="http://stackoverflow.com/questions/5770770/prio-static-prio-rt-priority-in-linux-kernel" target="_blank" rel="external">prio, static_prio, rt_priority in Linux Kernel</a>，我知道ps命令是通过解析<code>/proc/pid/stat</code>文件来获得某个进程的详细信息的，其中pid要被替换为具体的进程号。其中<code>/proc/pid/stat</code>文件的格式，可以参考<a href="http://blog.csdn.net/zyboy2000/article/details/50456764" target="_blank" rel="external">/proc/pid/stat</a>，或者<code>Documentation/filesystems/proc.txt</code>。</p>
+<pre><code>$ ps -eo class,rtprio,pri,nice,command
+CLS RTPRIO PRI  NI COMMAND
+TS       -  19   0 /sbin/init
+TS       -  19   0 [kthreadd]
+TS       -  19   0 [ksoftirqd/0]
+TS       -  19   0 [kworker/u:0]
+FF      99 139   - [migration/0]
+FF      99 139   - [watchdog/0]
+FF      99 139   - [migration/1]
+TS       -  19   0 [ksoftirqd/1]
+...
+</code></pre><p>CLS对应内核的调度算法，RTPRIO对应实时优先级，PRI对应静态优先级，NICE对应静态优先级的指定级别，COMMAND对应进程的命令。<code>[]</code>括起来的表示是内核线程。</p>
+<p>而且问题是采用<code>ps -el</code>看到的PRI的值和前面<code>ps -eo</code>看到的值还不一致，目前也不知道是为什么。</p>
+<pre><code>$ ps -el
+F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY          TIME CMD
+4 S     0     1     0  0  80   0 -   911 poll_s ?        00:00:01 init
+1 S     0     2     0  0  80   0 -     0 kthrea ?        00:00:00 kthreadd
+1 S     0     3     2  0  80   0 -     0 run_ks ?        00:00:00 ksoftirqd/0
+5 S     0     5     2  0  80   0 -     0 worker ?        00:00:04 kworker/u:0
+1 S     0     6     2  0 -40   - -     0 cpu_st ?        00:00:00 migration/0
+5 S     0     7     2  0 -40   - -     0 watchd ?        00:00:02 watchdog/0
+1 S     0     8     2  0 -40   - -     0 cpu_st ?        00:00:00 migration/1
+1 S     0    10     2  0  80   0 -     0 run_ks ?        00:00:00 ksoftirqd/1
+...
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/调度/" rel="tag">#调度</a>
+          
+            <a href="/tags/优先级/" rel="tag">#优先级</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/25/20160225-lk-time/" rel="next" title="Linux的时间管理">
+                <i class="fa fa-chevron-left"></i> Linux的时间管理
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/09/20160309-usb-camera/" rel="prev" title="嵌入式Linux中摄像头使用简要整理">
+                嵌入式Linux中摄像头使用简要整理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/03/03/20160303-lk-task-prio/"
+           data-title="Linux的任务调度中的优先级概念" data-url="http://unicornx.github.io/2016/03/03/20160303-lk-task-prio/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#进程优先级"><span class="nav-number">1.</span> <span class="nav-text">进程优先级</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核中优先级"><span class="nav-number">2.</span> <span class="nav-text">内核中优先级</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核中进程优先级的数据结构"><span class="nav-number">3.</span> <span class="nav-text">内核中进程优先级的数据结构</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#ps命令中显示的PRI，RTPRIO，NICE的含义"><span class="nav-number">4.</span> <span class="nav-text">ps命令中显示的PRI，RTPRIO，NICE的含义</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

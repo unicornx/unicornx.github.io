@@ -1,0 +1,827 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="mini2440,s3c2440,mmu," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-25
+1. 前言本文的主要目的是结合S3C2440芯片使用的ARM920T处理器来学习虚拟存储的概念，在虚拟存储器实现的过程中除了涉及MMU外，还涉及TLB，Cache的概念，在这里也一并描述。
+首先提一下我的这篇文章的主要参考，首先当然是技">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MMU学习笔记(基于ARM920T)">
+<meta property="og:url" content="http://unicornx.github.io/2015/12/16/20151216-s3c2440-mmu/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-25
+1. 前言本文的主要目的是结合S3C2440芯片使用的ARM920T处理器来学习虚拟存储的概念，在虚拟存储器实现的过程中除了涉及MMU外，还涉及TLB，Cache的概念，在这里也一并描述。
+首先提一下我的这篇文章的主要参考，首先当然是技">
+<meta property="og:image" content="http://www.dzkf.cn/upimg/allimg/0807/1_17090952.gif">
+<meta property="og:image" content="http://www.linuxidc.com/upload/2014_10/141006100421031.jpg">
+<meta property="og:image" content="http://unicornx.github.io/img/20151216-s3c2440-mmu/arm920t-mmu.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20151216-s3c2440-mmu/arm920t-mmu-tpt.png">
+<meta property="og:updated_time" content="2016-03-24T20:55:17.287Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MMU学习笔记(基于ARM920T)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-25
+1. 前言本文的主要目的是结合S3C2440芯片使用的ARM920T处理器来学习虚拟存储的概念，在虚拟存储器实现的过程中除了涉及MMU外，还涉及TLB，Cache的概念，在这里也一并描述。
+首先提一下我的这篇文章的主要参考，首先当然是技">
+<meta name="twitter:image" content="http://www.dzkf.cn/upimg/allimg/0807/1_17090952.gif">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/12/16/20151216-s3c2440-mmu/"/>
+
+  <title> MMU学习笔记(基于ARM920T) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                MMU学习笔记(基于ARM920T)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-12-16T16:20:17+08:00" content="2015-12-16">
+              2015-12-16
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ARM裸机接口/" itemprop="url" rel="index">
+                    <span itemprop="name">ARM裸机接口</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/12/16/20151216-s3c2440-mmu/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/16/20151216-s3c2440-mmu/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-25</p>
+<h1 id="1-前言"><a href="#1-前言" class="headerlink" title="1. 前言"></a>1. 前言</h1><p>本文的主要目的是结合S3C2440芯片使用的ARM920T处理器来学习虚拟存储的概念，在虚拟存储器实现的过程中除了涉及MMU外，还涉及TLB，Cache的概念，在这里也一并描述。</p>
+<p>首先提一下我的这篇文章的主要参考，首先当然是技术手册：</p>
+<ul>
+<li><a href="">ARM920T Technical Reference Manual (Rev 1)</a>  </li>
+<li><a href="">S3C2440A User Manual (Revision 1)</a></li>
+</ul>
+<p>网上的文章包括： </p>
+<ul>
+<li><p><a href="http://www.linuxidc.com/Linux/2014-10/107654.htm" target="_blank" rel="external">S3C2410 MMU（存储器管理单元）详述</a> 这篇文章对MMU的有关物理地址到虚拟地址的映射的工作原理讲得非常好，值得一读, 理解了MMU实现地址映射的工作原理后再结合ARM920T手册中的实际芯片的工作机制，特别是section机制再想想应该就明白了。</p>
+</li>
+<li><p><a href="http://blog.chinaunix.net/uid-24189228-id-34985.html" target="_blank" rel="external">（六）、MMU的使用 </a> 这篇文章对一些基本概念讲的不错，特别地有一张总结的表格很好，但对地址映射问题这篇文章讲得并不是很明白。</p>
+</li>
+<li><p><a href="http://liacs.leidenuniv.nl/~rietveldkfd/courses/aca2011/arm-mmu.pdf" target="_blank" rel="external">Advanced Compilers and Architectures - ARM MMU Overview</a> 这篇文章应该是从一个更高的层次在介绍内存管理技术，而不仅仅是MMU，其中提到了一些概念值得以后深入思考。譬如：</p>
+<ul>
+<li>内存管理的两种技术：<code>Two Major Technologies</code>，包括<code>Segmentation</code>和<code>Paging</code>。本文讨论的实现方式应该就是对应的<code>Paging</code>方式。</li>
+<li>内核里VM的处理方式，参考<code>Page Allocation</code>。</li>
+<li><p>ARMv7架构的内存管理方式：</p>
+<pre><code>ARMv7 comes in 3 variants:
+• ARMv7-A with MMU (paging).
+• ARMv7-R for hard realtime applications with MPU (segmentation).
+• ARMv7-M micro-controller version, no memory protection.
+</code></pre></li>
+</ul>
+</li>
+</ul>
+<a id="more"></a>
+<h1 id="2-虚拟存储的由来"><a href="#2-虚拟存储的由来" class="headerlink" title="2. 虚拟存储的由来"></a>2. 虚拟存储的由来</h1><p>许多年以前，当人们还在使用DOS或是更古老的操作系统的时候，计算机的内存还非常小，一般都是以K为单位进行计算，相应的，当时的程序规模也不大，所以内存容量虽然小，但还是可以容纳当时的程序。但随着图形界面的兴起以及用户需求的不断增大，应用程序的规模也随之膨胀起来，终于一个难题出现在程序员的面前，那就是应用程序太大以至于物理内存容纳不下该程序，譬如：</p>
+<ul>
+<li><font color="red">1. 有的程序很大，它所要求的运行空间大于了物理内存的容量，不可能一次性装入；</font>  </li>
+<li><font color="red">2. 多任务系统中需要同时执行多个程序，它们要求的内存空间超过了物理内存总容量，也不能把所有程序全部装入内存；</font>
+
+</li>
+</ul>
+<p>通常解决的办法是在编译时把程序分割成许多称为覆盖块（overlay）的片段。执行程序时覆盖块0首先运行，结束时他将调用另一个覆盖块。虽然覆盖块的交换是由OS完成的，但是必须先由程序员把程序先进行分割，这是一个费时费力的工作，而且相当枯燥。人们必须找到更好的办法从根本上解决这个问题。不久人们找到了一个办法，这就是虚拟存储器(virtual memory)。</p>
+<p>虚拟存储器的思想要解决的主要问题就是：允许程序运行时，指令、数据以及堆和栈的总的大小可以超过物理存储器的大小。基于程序运行局部性的原理，操作系统只需要把当前使用的部分保留在内存中，而把其他未被使用的部分保存在磁盘上。比如对一个16MB的程序和一个内存只有4MB的机器，OS通过选择，可以决定各个时刻将哪4M的内容保留在内存中，并在需要时在内存和磁盘间执行交换动作，将不用的内容从内存交换出去到磁盘上，同时把需要使用又缺少的从磁盘上交换进来到内存中。这样就可以把这个16M的程序运行在一个只具有4M内存机器上了。而这个16M的程序在运行前不必由程序员进行分割。<br>（TBD我目前还未完全理解的问题在于，虚拟存储的问题实现是否要依赖于OS，还是对OS来说这个概念也是透明的，一旦开启MMU后，操作系统也是运行在虚拟地址空间上。换页的动作是谁完成的，MMU还是OS）</p>
+<p>虚拟存储器概念的引入需要理解以下两个概念，即虚拟地址和物理地址的概念。</p>
+<p>任何时候，可以在计算机上运行的程序都存在一个能够访问的地址集合，我们称之为地址范围。这个范围的大小由CPU的位数决定，例如一个在32位的CPU上运行的程序，它的指令可以访问的地址范围是0~(2^32 - 1)，即0~0xFFFFFFFF (4G)；而对于一个在64位的CPU上运行的程序，其指令可以访问的地址范围为0~(2^64 - 1)，即0~0xFFFFFFFFFFFFFFFF (64T)。这个范围就是我们的程序能够产生的地址范围，我们把这个地址范围称为虚拟地址空间，该空间中的某一个地址我们称之为虚拟地址，形象地可以将这个范围(地址空间)认为是一个账面上的数字，或者理想上的数字，因为实际运行该程序的机器上一般不可能有这么大的物理内存与之对应，而且即使真配备了这么大的物理内存，考虑一下多任务的环境，也不可能被一个程序独占，所以理想和现实之间的差距总是存在的。与虚拟地址空间和虚拟地址相对应的则是物理地址空间和物理地址，大多数时候我们的系统所具备的物理地址空间只是虚拟地址空间的一个子集，这里举一个最简单的例子直观地说明这两者，对于一台内存为256MB的32bit x86主机来说，它的虚拟地址空间范围是0~0xFFFFFFFF（4G）,而物理地址空间范围是0x000000000~0x0FFFFFFF（256MB）。</p>
+<h1 id="3-MMU"><a href="#3-MMU" class="headerlink" title="3. MMU"></a>3. MMU</h1><p>在没有使用虚拟存储器的机器上，程序指令发出的地址，即前述的虚拟地址被直接送到内存总线上，使具有相同地址的物理存储器被读写。而在使用了虚拟存储器的情况下，虚拟地址不是被直接送到内存地址总线上，而是送到一个特殊的电路单元上，这个特殊的电路单元就是MMU，MMU,全称Memory Manage Unit，中文名-存储管理单元。（主角终于出现了：)）。他由一个或一组芯片组成，一般存在于处理器中，其主要的功能有两个：“地址映射”（把虚拟地址映射为物理地址）和“权限管理”（对内存的访问权限进行检查）。</p>
+<h2 id="3-1-地址映射"><a href="#3-1-地址映射" class="headerlink" title="3.1 地址映射"></a>3.1 地址映射</h2><h3 id="MMU工作的基本原理"><a href="#MMU工作的基本原理" class="headerlink" title="MMU工作的基本原理"></a>MMU工作的基本原理</h3><p>大多数使用虚拟存储器的系统都使用一种称为分页（paging）。虚拟地址空间划分成称为页（page）的单位,而相应的物理地址空间也被进行划分，单位是页框(frame)，页和页框的大小必须相同。接下来配合图片以一个例子说明页与页框之间在MMU的调度下是如何进行映射的</p>
+<p><img src="http://www.dzkf.cn/upimg/allimg/0807/1_17090952.gif" alt=""></p>
+<p>在这个例子中我们有一台16位地址的机器，它的虚拟地址范围从0x0000~0xFFFF(64K),而这台机器只有32K的物理地址，因此它虽然可以运行最大64K的程序，但该程序不能一次性调入内存运行。这台机器必须有一个达到可以存放64K程序的外部存储器（例如磁盘或是FLASH）,以保证程序片段在需要时可以被调用。在这个例子中，页的大小为4K,页框大小与页相同（这点是必须保证的，内存和外围存储器之间的传输总是以页为单位的），对应64K的虚拟地址和32K的物理存储器，他们分别包含了16个页和8个页框。</p>
+<p>我们先根据上图解释一下分页后要用到的几个术语，在上面我们已经接触了页和页框，上图中绿色部分是物理空间，其中每一格表示一个物理页框。橘黄色部分是虚拟空间，每一格表示一个页，它由两部分组成，分别是Frame Index(页框索引)和位p（present 存在位），Frame Index的意义很明显，它指出本页是往哪个物理页框进行映射的，位p的意义则是指出本页的映射是否有效，如上图，当某个页并没有被映射时（或称“映射无效”，Frame Index部分为X），该位为0，映射有效则该位为1。</p>
+<p>我们执行下面这些指令（本例子的指令不针对任何特定机型，都是伪指令）</p>
+<p>例1：</p>
+<pre><code>MOVE REG,0 //将0号地址的值传递进寄存器REG.
+</code></pre><p>虚拟地址0将被送往MMU，MMU看到该虚地址落在页0范围内（页0范围是0到4095），从上图我们看到页0所对应（映射）的页框为2（页框2的地址范围是8192到12287），因此MMU将该虚拟地址转化为物理地址8192，并把地址8192送到地址总线上。内存对MMU的映射一无所知，它只看到一个对地址8192的读请求并执行它。MMU从而把0到4096的虚拟地址映射到8192到12287的物理地址。</p>
+<p>例2：</p>
+<pre><code>MOVE REG,8192
+</code></pre><p>虚拟地址被转换为物理地址24576，因为虚拟地址8192在页2中，而页2被映射到页框6（物理地址从24576到28671）</p>
+<p>例3：</p>
+<pre><code>MOVE REG,20500
+</code></pre><p>虚拟地址20500被转换为物理地址12308，因为虚拟地址20500在虚页5（虚拟地址范围是20480到24575）距开头20个字节处，虚页5映射到页框3（页框3的地址范围是 12288到16383），于是被映射到物理地址12288+20=12308。</p>
+<p>通过适当的设置MMU，可以把16个虚页映射到8个页框中的任何一个，但是这个方法并没有有效的解决虚拟地址空间比物理地址空间大的问题。从上图中我们可以看到，我们只有8个页框（物理地址），但我们有16个页（虚拟地址），所以我们只能把16个页中的8个进行有效的映射。我们看看例4会发生什么情况</p>
+<pre><code>MOV REG,32780
+</code></pre><p>虚拟地址32780落在页8的范围内，从上图总我们看到页8没有被有效的进行映射（该页被打上X），这是又会发生什么？MMU注意到这个页没有被映射，于是通知CPU发生一个缺页故障（page fault）.这种情况下操作系统必须处理这个页故障，它必须从8个物理页框中找到1个当前很少被使用的页框并把该页框的内容写入外围存储器（这个动作被称为page copy），随后把需要引用的页（例4中是页8）映射到刚才释放的页框中（这个动作称为修改映射关系），然后从新执行产生故障的指令<code>MOV REG,32780</code>。假设操作系统决定释放页框1，那么它将把虚页8装入物理地址的4-8K,并做两处修改：首先把标记虚页1未被映射（原来虚页1是被影射到页框1的），以使以后任何对虚拟地址4K到8K的访问都引起页故障而使操作系统做出适当的动作（这个动作正是我们现在在讨论的），其次他把虚页8对应的页框号由X变为1，因此重新执行<code>MOV REG,32780</code>时，MMU将把32780映射为4108。</p>
+<p>虚拟地址到物理地址的具体映射方法如下：</p>
+<p>我们已经知道，大多数使用虚拟存储器的系统都使用一种称为分页（paging）的技术，就象我们刚才所举的例子，虚拟地址空间被分成大小相同的一组页，每个页有一个用来标示它的页号（这个页号一般是它在该组中的索引，这点和C/C++中的数组相似）。在上面的例子中0~4K的页号为0，4~8K的页号为1，8~12K的页号为2，以此类推。而虚拟地址（注意：是一个确定的地址，不是一个空间）被MMU分为2个部分，第一部分是页号索引（page Index），第二部分则是相对该页首地址的偏移量（offset）。我们还是以刚才那个16位机器结合下图进行一个实例说明，对于一个16位的系统来说，总共能产生的地址范围是0~64K，如果按照每页4K字节来计算，该空间必须被分成16个页。而我们的虚拟地址第一部分所能够表达的范围也必须等于16（这样才能索引到该页组中的每一个页），也就是说这个部分至少需要4个bit。一个页的大小是4K(4096)，也就是说偏移部分必须使用12个bit来表示(2^12=4096，这样才能访问到一个页中的所有地址。譬如，虚拟地址8196被送进MMU的二进制码如下图所示：</p>
+<p><img src="http://www.linuxidc.com/upload/2014_10/141006100421031.jpg" alt=""></p>
+<p>该地址的页号索引为0010（二进制码，注意上图这里似乎写错了），既索引的页为页2，第二部分为000000000100（二进制），偏移量为4。页2中的页框号为6（页2映射在页框6，见上图），我们看到页框6的物理地址是24~28K。于是MMU计算出虚拟地址8196应该被映射成物理地址24580（页框首地址+偏移量=24576+4=24580）。同样的，若我们对虚拟地址1026进行读取，1026的二进制码为0000010000000010，page index=0000=0,offset=010000000010=1026。页号为0，该页映射的页框号为2，页框2的物理地址范围是8192~12287，故MMU将虚拟地址1026映射为物理地址9218（页框首地址+偏移量=8192+1026=9218）</p>
+<h3 id="ARM920T的MMU（存储器管理单元）"><a href="#ARM920T的MMU（存储器管理单元）" class="headerlink" title="ARM920T的MMU（存储器管理单元）"></a>ARM920T的MMU（存储器管理单元）</h3><p>首先理解ARM920T中的地址转换过程中引入了三种地址概念，这个可以参考<a href="">ARM920T Technical Reference Manual (Rev 1)</a>的<code>2.3.1 Addresses in ARM920T</code>。</p>
+<ul>
+<li>虚拟地址（VA，Virtual Address）：虚拟地址空间的范围一般和CPU的字长有关，S3C2440是32位CPU，因此，对应的虚拟地址范围是0—-0xFFFFFFFF，这部分被称为虚拟地址空间，其中的某个地址被称为虚拟地址。</li>
+<li>变换后的虚拟地址（MVA，Modified Virtual Address）</li>
+<li>物理地址（PA，Physical Address），对于S3C2440来说，它有27条地址线，再加上它有nGCS0—nGCS7，8个片选，实际上它的寻址能力可以达到1GB（0—0x40000000）。这里的寻址能力指的是物理地址的寻址能力。</li>
+</ul>
+<p>其中虚拟地址和物理地址的概念在前面已经介绍过，这里本质上没有什么区别，主要是多了一个MVA，为何要引入这个概念，以及要理解上述三种地址的用途，首先要理解ARM架构里处理器寻址的基本过程。见下图：</p>
+<p><img src="/img/20151216-s3c2440-mmu/arm920t-mmu.png" alt=""></p>
+<p>该图参考了<a href="">ARM920T Technical Reference Manual (Rev 1)</a>的<code>Figure 1-1 ARM920T functional block diagram</code>和<a href="">S3C2440A User Manual (Revision 1)</a>的<code>Figure 1-1. S3C2440A Block Diagram</code>，但做了简化，主要集中于地址转化的主要单元。<br>S3C2440严格意义上是一种SOC，其内部使用的处理器型号是ARM920T，而ARM920T则是ARM9TDMI系列中一款，其内部主要由三部分组成，ARM9TDMI核心单元(core)，Cache单元(因为是基于哈佛架构，指令和数据总线分离，所以包括”指令Cache”和”数据Cache”)和MMU单元(相应地也包括”指令MMU”和”数据MMU”)。  </p>
+<p>一次典型的寻址过程由以下步骤组成：</p>
+<ul>
+<li>ARM9TDMI核心发起寻址操作时给出的地址是VA。</li>
+<li><p>通过处理器内部硬件机制处理，VA被转化为MVA，转换公式如下：</p>
+<pre><code>if (VA &lt; 32M) then
+    MVA = VA | (PID &lt;&lt; 25) // MVA = VA + (PID * 32M)
+else
+    MVA = VA
+</code></pre><p>其中，如果VA &lt; 32M，则需要使用进程标识号PID将其修改为MVA，该PID值可以通过读CP15协处理器寄存器组中的R13(FCSE PID)获得。否则如果VA &gt;= 32M，则不做修改，直接映射为MVA。<br>引入MVA的目的是为了减少切换进程时的代价。直接使用VA的话，当两个进程所用的虚拟地址空间（VA）有重叠时，在切换进程时为了把重叠的VA映射到不同的PA上去，需要重建页表、使无效CACHE和TLB等，代价非常大。考虑到在32位系统上大部分进程处理的地址范围都在32M以内，所以对&lt;32M的VA，采用了特殊的优化，利用其PID将VA转化为MVA，这样当有重叠的VA时，转换后的MVA地址并不重叠，使用MVA后，进程切换就不必进行重建页表等工作，减小了转换为PA的代价。比如两个进程PID分别为1和2，VA都是0~（32M-1），则转化后的MVA分别为0x02000000~0x03ffffff和0x04000000~0x05ffffff。<br>VA转化为MVA后，对于ARM920T中的Cache和MMU单元，就只关心MVA了。</p>
+</li>
+<li>如果发现转化后MVA对应的数据或者指令在Cache中存在并有效，则认为命中并直接返回给ARM9TDMI核心使用。</li>
+<li>如果在Cache中没有命中，则由MMU单元执行翻译过程(translation)，将MVA转化为PA，转化成功后，经由AMBA总线通知给ARM920T外部的设备。在这里就是通知给S3C2440处理器内部的存储控制器模块(Memory Controller)，再由其分发给S3C2440连接的外设，这里是SDRAM。</li>
+</ul>
+<p>可见引入MVA的目的仅仅是一种优化手段，并没有引入什么新的概念，我们后面在讨论ARM芯片上的虚拟地址映射问题的时候，就把MVA当作VA来对待也没什么关系，总之，在没有启动MMU的时候，所有的部件（CPU、Cache、MMU、外设）都使用的是物理地址，访问的是物理内存空间。启动MMU后，CPU发出的是VA，ARM芯片将VA自动转化为MVA供Cache、MMU使用，所以MMU看到的是MVA，最后经过翻译，变成PA，用PA来访问实际的外部设备。</p>
+<p>由此产生一个疑问，linux内核代码中处理的是虚拟地址吗？<br><a href="http://my.oschina.net/u/1770090/blog/263326" target="_blank" rel="external">Linux虚拟地址空间概述</a><br><a href="http://blog.csdn.net/williamwanglei/article/details/8643770" target="_blank" rel="external">转载_Linux驱动虚拟地址和物理地址的映射</a></p>
+<h3 id="ARM920T的地址映射的方式"><a href="#ARM920T的地址映射的方式" class="headerlink" title="ARM920T的地址映射的方式"></a>ARM920T的地址映射的方式</h3><p>ARM920T采用页表（Page Table）的方法进行地址映射，最多支持两级页表以对应不同的映射方式：<br>所谓页表（Page Table），是指在虚拟地址转换到物理地址时，通常是用表格来存储虚拟地址所对应的物理地址和访问权限，这个表格就称为页表，页表是由的一个个条目（在ARM的手册里称为Descriptor，即描述符）组成的。根据<a href="">ARM920T Technical Reference Manual (Rev 1)</a>的原话，参考<code>2.1 About the programmer’s model</code>:<code>The MMU page tables that reside in main memory describe the virtual to physical address mapping, access permissions, and cache and write buffer configuration.These are created by the operating system software and accessed automatically by the ARM920T MMU hardware whenever an access causes a TLB miss.</code></p>
+<ul>
+<li>段（Section）的方式映射：就是只采用一级页表进行映射。段大小为1MB。</li>
+<li>页（Page）的方式映射：就要采用二级页表。页大小分为三种：大页（Large Page）64KB，小页（Small Page）4KB，极小页（Tiny Page）1KB。</li>
+</ul>
+<p>具体可以参考<a href="">ARM920T Technical Reference Manual (Rev 1)</a>的<code>Figure 3-2 Translating page tables</code><br><img src="/img/20151216-s3c2440-mmu/arm920t-mmu-tpt.png" alt=""></p>
+<p>以段方式为例，一级页表映射比较简单，和前面我们讨论MMU映射原理时比较接近，但二级页表其基本原理还是不变的。有关二级页表的例子分析，可以参考<a href="http://liacs.leidenuniv.nl/~rietveldkfd/courses/aca2011/arm-mmu.pdf" target="_blank" rel="external">Advanced Compilers and Architectures - ARM MMU Overview</a>的<code>Paging</code>章节的<code>Table Walk</code>描述。在二级页表工作方式下，VM将不再是被分为<code>page-index</code>和<code>offset</code>两部分，应该是被分为<code>L1-page-index</code>，<code>L2-page-index</code>和<code>offset</code>三部分。</p>
+<p>现在让我们集中看一下一级页表的映射方式。我们知道在一级页表方式下VA分成两部分，<code>page-index</code>和<code>offset</code>。ARM920T是32位的CPU，其虚拟地址空间为0~(2^32-1)，段方式中每个page的大小是1M字节，所以整个虚拟地址空间由4096个page构成，则<code>page-index</code>部分需要占12个bit宽，<code>offset</code>需要占20bit宽。所以我们看到一级页表就是包含了4096个描述符的表，这个一级页表保存在物理内存里，其物理地址由TTB寄存器保存。</p>
+<p>对段方式，从MVA到PA的映射过程如下：</p>
+<ul>
+<li>MMU得到<code>MVA</code>后(这里的MVA就认为是VA好了)，取其高12位<code>MVA[31:20]</code>得到<code>page-index</code>，低20位<code>MVA[19:0]</code>得到<code>offset</code></li>
+<li>根据TTB寄存器得到一级页表在内存中的首地址，再根据<code>page-index</code>找到一级页表中对应的<code>descriptor</code>。</li>
+<li>定位到对应的<code>descrptor</code>项后，每个<code>descriptor</code>项占4个字节，其中存放了该页对应的物理页框的首地址，这个可以参考<a href="">ARM920T Technical Reference Manual (Rev 1)</a>的<code>Figure 3-4 Level one descriptor</code>，就是图上对应section的<code>Section_base_address</code>。</li>
+<li>根据<code>Section_base_address + offset</code>就得到最终映射的物理地址<code>PA</code>。</li>
+</ul>
+<p>整个过程由MMU硬件完成，CPU并不介入。</p>
+<p>这个过程的描述可以先参考<a href="http://www.cnblogs.com/stardream/articles/1758289.html" target="_blank" rel="external">1-3、ARM开发步步深入之MMU初窥</a> </p>
+<p>更详细的也可以参考<a href="http://www.linuxidc.com/Linux/2014-10/107654p2.htm" target="_blank" rel="external">S3C2410 MMU（存储器管理单元）详述</a>，虽然这篇文章是针对S3C2410的，但应该和S3C2440的差不多，因为S3C2410里面用的也是ARM920T的核，而MMU这套东西是在ARM920T里面的。 </p>
+<h2 id="3-2-权限管理"><a href="#3-2-权限管理" class="headerlink" title="3.2 权限管理"></a>3.2 权限管理</h2><p>MMU除了进行地址映射外，还有一项重要的工作就是：内存访问权限的检查。简单的说就是检查一块内存是否可读、可写。这也是带MMU的CPU的“高级”之处，大家都知道INTEL的CPU有实地址模式和保护模式，其功能与此处类似，这样就可以使我们的代码更“安全”的运行。</p>
+<p>权限检查是由CP15寄存器C3（域访问控制）、描述符(Descriptor)的域（Domain）、CP15的C1寄存器的<code>R/S/A</code>位以及描述符的AP位联合作用。其中CP15的C1寄存器A位决定是否进行对齐检查。无论MMU是否开启，都可以进行对齐检查。CPU读取指令前不进行对齐检查，以字节为单位访问时也不进行对齐检查。对齐检查在MMU的权限检查、地址映射之前进行。</p>
+<p>ARM920T共有16个域，CP15的C3寄存器每两位对应一个域，用来表示这个域是否进行权限检查。</p>
+<p>在段描述符中，有4位的Domain用来表示该段属于哪个域，如0b0000表示属于域0，如果此时域0的权限设置为00，即不可访问，这时如果访问该段内存就会产生“domain fault”；如果域访问权限设为01，则代表使用描述符中的AP位为进行检查。其中AP位要联合CP15的C1寄存器中的R/S位一起来设置。具体内容见<a href="">ARM920T Technical Reference Manual (Rev 1)</a>的<code>3.2</code>~3.8`章节，在此就不再赘述了。</p>
+<h1 id="4-TLB的使用"><a href="#4-TLB的使用" class="headerlink" title="4. TLB的使用"></a>4. TLB的使用</h1><p>CPU有了MMU的部件后，可以使我们从用户的角度上看，内存空间大了许多，同时也可以进行访问权限的检查，这样也安全了许多。但是，访问物理内存的过程也复杂了，如：使用一级页表进行映射时，对内存需进行两次访问，第一次访问一级页表以得到物理页的首地址，第二次才能根据页内偏移量访问实际物理地址，进行读、写数据；如果使用二级页表进行映射，那么需要三次访问才可以。这样就大大降低了CPU的使用效率。</p>
+<p>出现了以上问题后，人们开发研究，后发现：程序中所用的指令、数据大多数都局限在一个很小的范围内，其中的地址、数据经常多次使用，这也称为“程序的局限性”。因此，我们可以把近期使用描述符(一级页表）条目缓存在一个很小的、高速的存储器中（在ARM920T上这个表的条目数为64），以避免每次都到主内存（物理内存）中去查找，这样就可以大幅度的提高CPU的性能，而这个存储器就是TLB（Translation Lookaside Buffers）。</p>
+<p>这样CPU访问内存空间的过程就变成：CPU首先发出虚拟地址，MMU首先访问TLB，如果TLB中有所需要的虚拟地址描述符，则直接利用此描述符进行地址转换和检查；如果TLB中没有找到该描述符，MMU则访问页表找到该描述符进行地址转换和权限检查，并将此描述符填入TLB中以备下次使用，如果TLB已满，则利用round-robin算法找到一个条目，覆盖它。</p>
+<p>可以编程将一些常用描述符锁定在TLB中，这种操作成为<code>lockdown</code>。</p>
+<p>用法注意：使用TLB时，一定要注意保证TLB中的内容与页表一致。因此，在启动MMU之前，使无效整个TLB，改变页表时，使无效所无改的虚拟地址所对应的TLB中的条目。</p>
+<p>相关的描述可以参考<a href="">ARM920T Technical Reference Manual (Rev 1)</a>的<code>3.1.2 Translated entries</code>。</p>
+<h1 id="5-Cache和Write-Buffer"><a href="#5-Cache和Write-Buffer" class="headerlink" title="5. Cache和Write Buffer"></a>5. Cache和Write Buffer</h1><h2 id="1、Cache的整体介绍"><a href="#1、Cache的整体介绍" class="headerlink" title="1、Cache的整体介绍"></a>1、Cache的整体介绍</h2><p>正如上面所说，程序是有局限性的，因此利用TLB缓存一些页表中的条目，可以大大增加CPU的使用效率。同样基于程序访问的局限性，在CPU和内存之前增加一个高速、容量相对较小的存储器，把正在执行的指令附近的一些指令和数据从主存调入这个存储器，供CPU在一段时间内使用，这也可以大大提高程序的运行速度。这个介于内存和CPU之间的高速存储器就称为“cache”。</p>
+<p>启动Cache后，如果在Cache中找到想要的数据或指令，则直接返回使用；如果没能在Cache中找到，则从内存中读取，并将其存放Cache中，以便下次使用时能在Cache中使用。</p>
+<p>启用Cache后，CPU“写”数据时有写穿式（Write Through）和写回式（Write Back）两种：</p>
+<ol>
+<li>写穿式：从CPU发出写信号送到Cache的同时，也写入内存，以确保数据同步的更新。其优点是操作简单，但由于主存的速度较慢，降低了系统的效率和占用总线的时间。</li>
+</ol>
+<p>2.写回式：当CPU写数据时，只是将写信号发送到Cache一级，只更新Cache，并在Cache中设置一标志地址及数据的新旧信息，当Cache的数据换出或清空时，再将数据一次性的写入主存。</p>
+<p>S3C2440　CPU内置了16KB的指令Cache（ICache）和16KB的数据Cache（DCache）。</p>
+<h2 id="2、Write-Buffer"><a href="#2、Write-Buffer" class="headerlink" title="2、Write Buffer"></a>2、Write Buffer</h2><p>　　ARM920T内置了16-word的数据Buffer和4-address的地址Buffer。可以通过软件设置使其有效。其功能主要是和DCache配合使用。</p>
+<h2 id="3、Cache的操作"><a href="#3、Cache的操作" class="headerlink" title="3、Cache的操作"></a>3、Cache的操作</h2><p>1.清空：把Cache或者Write Buffer中已将修改的但并未写入内存中的数据写入内存。<br>2.使无效：使其不能再使用，但不将数据同步到内存中。</p>
+<h2 id="4、ICache"><a href="#4、ICache" class="headerlink" title="4、ICache"></a>4、ICache</h2><p>ICache和DCache部分我只把需要注意的地方强调一下，具体的操作步骤详见手册。</p>
+<p>系统刚上电的时候ICache默认为无效状态，内容为无效，功能是关闭的。向CP15的C1的第12位写1可以启动ICache，ICache一般在MMU启动后开启（MMU未启动也可以开启ICache）。应尽早开启ICache以提高性能。</p>
+<h2 id="5、DCache和Write-Buffer"><a href="#5、DCache和Write-Buffer" class="headerlink" title="5、DCache和Write Buffer"></a>5、DCache和Write Buffer</h2><p>与ICache一样，刚上电时，DCache的内容也是无效，功能也是关闭的，Write Buffer内容也是无效的。向CP15的C1的第2位写1可以开启DCache，而Write Buffer是配合DCache使用的，自动开启、关闭，无需程序员手动设置。</p>
+<p>与TLB类似，使用Cache时需要保证DCache、Write Buffer中的内容和内存中数据的一致性，需要遵循以下两原则：</p>
+<ul>
+<li>1.清空DCache，使得内存中的数据和DCache和Write Buffer中一致。</li>
+<li>2.使无效DCache，使CPU取指时重新读取内存。</li>
+</ul>
+<p>使用方法注意：</p>
+<ul>
+<li>1.开启MMU之前，使无效ICache、DCache和Write Buffer。</li>
+<li>2.关闭MMU之前，清空ICache和DCache。</li>
+<li>3.如果代码有变，使无效ICache，以保证CPU取指时重新读取内存。</li>
+<li>4.使用DMA操作可以被Cache的内存时，将内存的数据发送出去时，要清空Cache；将内存的数据读入时，使无效Cache。</li>
+<li>5.改变页表的映射关系时，要重新考虑内存是否被Cache。</li>
+<li>6.开启Cache时要保持Cache和内存的数据一致性。</li>
+<li>7.对于I/O地址空间，不能用Cache，可以使用volatite关键字。</li>
+</ul>
+<p>参考 <a href="http://blog.chinaunix.net/uid-26833883-id-3348379.html" target="_blank" rel="external">裸奔之指令cache操作</a>  </p>
+<h1 id="其他参考"><a href="#其他参考" class="headerlink" title="其他参考"></a>其他参考</h1><p><a href="http://blog.csdn.net/kangear/article/details/8797533" target="_blank" rel="external">MMU的通俗理解</a>  </p>
+<p><a href="http://www.cnblogs.com/dudu1990/p/3406265.html" target="_blank" rel="external">S3C2440的MMU</a>，个人的总结，虽然不多但也精彩。<br><a href="http://www.iblo.info/id:152.html" target="_blank" rel="external">MMU 内存管理</a>,个人的总结，虽然不多但也精彩。但有关段，页的映射问题这篇文章讲的不是很明白<br><a href="http://www.linuxidc.com/Linux/2011-09/43529.htm" target="_blank" rel="external">s3c2440 内存管理单元MMU学习笔记</a>, 总入口。<br><a href="http://blog.csdn.net/jianchi88/article/details/6988145" target="_blank" rel="external">s3c2440硬件学习笔记—-内存管理单元MMU</a><br><a href="http://www.linuxidc.com/Linux/2011-09/43529.htm" target="_blank" rel="external">s3c2440 内存管理单元MMU学习笔记</a><br><a href="http://blog.chinaunix.net/uid-23193900-id-3187782.html" target="_blank" rel="external">S3C2440的内存管理单元MMU</a>，图还可以。<br><a href="http://www.linuxidc.com/Linux/2011-09/43526p4.htm" target="_blank" rel="external">嵌入式Linux学习笔记-内存管理单元mmu</a>,好像有重复。<br><a href="http://www.linuxidc.com/Linux/2011-09/43529.htm" target="_blank" rel="external">S3C2410 MMU（存储器管理单元）详述</a>   </p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+            <a href="/tags/s3c2440/" rel="tag">#s3c2440</a>
+          
+            <a href="/tags/mmu/" rel="tag">#mmu</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/29/20151129-game-lol/" rel="next" title="游戏开发-扫盲帖">
+                <i class="fa fa-chevron-left"></i> 游戏开发-扫盲帖
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/12/20/20151220-lk-drv-questions/" rel="prev" title="常见的Linux驱动面试题">
+                常见的Linux驱动面试题 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/12/16/20151216-s3c2440-mmu/"
+           data-title="MMU学习笔记(基于ARM920T)" data-url="http://unicornx.github.io/2015/12/16/20151216-s3c2440-mmu/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#1-前言"><span class="nav-number">1.</span> <span class="nav-text">1. 前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#2-虚拟存储的由来"><span class="nav-number">2.</span> <span class="nav-text">2. 虚拟存储的由来</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#3-MMU"><span class="nav-number">3.</span> <span class="nav-text">3. MMU</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#3-1-地址映射"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 地址映射</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#MMU工作的基本原理"><span class="nav-number">3.1.1.</span> <span class="nav-text">MMU工作的基本原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ARM920T的MMU（存储器管理单元）"><span class="nav-number">3.1.2.</span> <span class="nav-text">ARM920T的MMU（存储器管理单元）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ARM920T的地址映射的方式"><span class="nav-number">3.1.3.</span> <span class="nav-text">ARM920T的地址映射的方式</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-2-权限管理"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 权限管理</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#4-TLB的使用"><span class="nav-number">4.</span> <span class="nav-text">4. TLB的使用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#5-Cache和Write-Buffer"><span class="nav-number">5.</span> <span class="nav-text">5. Cache和Write Buffer</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1、Cache的整体介绍"><span class="nav-number">5.1.</span> <span class="nav-text">1、Cache的整体介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2、Write-Buffer"><span class="nav-number">5.2.</span> <span class="nav-text">2、Write Buffer</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3、Cache的操作"><span class="nav-number">5.3.</span> <span class="nav-text">3、Cache的操作</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4、ICache"><span class="nav-number">5.4.</span> <span class="nav-text">4、ICache</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5、DCache和Write-Buffer"><span class="nav-number">5.5.</span> <span class="nav-text">5、DCache和Write Buffer</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他参考"><span class="nav-number">6.</span> <span class="nav-text">其他参考</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

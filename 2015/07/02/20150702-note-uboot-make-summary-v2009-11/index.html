@@ -1,0 +1,915 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="bootloader,U-boot,make," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+分析完uboot的Makefile，以及相关的重要文件后，需要来个大结局。不然总感觉知识点没有连贯起来，处于分散的状态。有关单个的Make分析，请参考：
+理解u-boot的Makefile(基于v2009.11)理解u-boot的顶层co">
+<meta property="og:type" content="article">
+<meta property="og:title" content="对U-boot的平台定制机制的理解(基于v2009.11)">
+<meta property="og:url" content="http://unicornx.github.io/2015/07/02/20150702-note-uboot-make-summary-v2009-11/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+分析完uboot的Makefile，以及相关的重要文件后，需要来个大结局。不然总感觉知识点没有连贯起来，处于分散的状态。有关单个的Make分析，请参考：
+理解u-boot的Makefile(基于v2009.11)理解u-boot的顶层co">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/1.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/a.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/a1.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/build-procedure.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/b1.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/b.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/c.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/e1.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/e.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/d.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:49.097Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="对U-boot的平台定制机制的理解(基于v2009.11)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+分析完uboot的Makefile，以及相关的重要文件后，需要来个大结局。不然总感觉知识点没有连贯起来，处于分散的状态。有关单个的Make分析，请参考：
+理解u-boot的Makefile(基于v2009.11)理解u-boot的顶层co">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20150702-note-uboot-make-summary-v2009-11/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/07/02/20150702-note-uboot-make-summary-v2009-11/"/>
+
+  <title> 对U-boot的平台定制机制的理解(基于v2009.11) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                对U-boot的平台定制机制的理解(基于v2009.11)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-07-02T05:33:51+08:00" content="2015-07-02">
+              2015-07-02
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Bootloader/" itemprop="url" rel="index">
+                    <span itemprop="name">Bootloader</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/07/02/20150702-note-uboot-make-summary-v2009-11/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/02/20150702-note-uboot-make-summary-v2009-11/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-7-20</p>
+<p>分析完uboot的Makefile，以及相关的重要文件后，需要来个大结局。不然总感觉知识点没有连贯起来，处于分散的状态。有关单个的Make分析，请参考：</p>
+<p><a href="/2015/06/28/20150628-learning-u-boot-notes-for-makefile-v2009-11">理解u-boot的Makefile(基于v2009.11)</a><br><a href="/2015/06/28/20150628-notes-uboot-config-mk-v2009-11">理解u-boot的顶层config.mk(基于v2009.11)</a><br><a href="/2015/06/28/20150628-notes-uboot-config-v2009-11">理解u-boot的make xxx_config机制(基于v2009.11)</a>  </p>
+<p>首先明确一个概念，就是u-boot的平台定制化的问题。u-boot的最大的一个特色就是支持多种体系架构，以及多种体系架构下的开发板。这里所说的不同体系架构等等在u-boot里统称为平台(platform)。不同的平台在编译时有些东西是共用的，有些是不一样的，这就需要在制作时考虑到他们的差异性并可以支持定制。u-boot的Makefile的设计就是要支持这种平台定制并提供一定程度的灵活性，这一点和内核有相似性。</p>
+<p>在这里也谈一点我对u-boot在Makefile上支持平台定制的体会。首先让我们从整体上看看。</p>
+<h1 id="Overview-for-u-boot的Makefile"><a href="#Overview-for-u-boot的Makefile" class="headerlink" title="Overview for u-boot的Makefile"></a>Overview for u-boot的Makefile</h1><p>画这张图的时候借鉴了一些UML的表达方法，虽然我们这里不是在做OOP设计。有关图上一些连线和符号的含义，可以参考<a href="http://www.cnblogs.com/kittywei/archive/2013/05/15/3079536.html" target="_blank" rel="external">UML 中关系详解以及在visio中的表示</a></p>
+<p><img src="/img/20150702-note-uboot-make-summary-v2009-11/1.png" alt=""><br><a id="more"></a></p>
+<p>首先我们知道执行uboot的make分两步，<code>make xxx_config</code>和<code>make all</code>，也就是对应图上的<code>versatile_config</code>和<code>all</code>两个方框，表示我这里以versatilepb开发板为例。它们是两个规则，和Makefile之间是组成关系。</p>
+<h1 id="第一阶段make-xxx-config主要做的两件事情："><a href="#第一阶段make-xxx-config主要做的两件事情：" class="headerlink" title="第一阶段make xxx_config主要做的两件事情："></a>第一阶段<code>make xxx_config</code>主要做的两件事情：</h1><ul>
+<li><p>创建”include/config.h”,该文件中include如下两个文件的内容：</p>
+<p>  include/config/$1.h<br>  include/asm/config.h</p>
+</li>
+<li><p>调用mkconifg脚本并传入参数$1，$2…$6，mkconfig根据这6个参数做两件事，参考图上的<img src="/img/20150702-note-uboot-make-summary-v2009-11/a.png" alt=""></p>
+<ul>
+<li>设置ARCH,CPU等多个变量的值并新建”include/config.mk”文件将这些变量的值记录在该文件中；</li>
+<li>创建符号链接asm，指向asm-&gt;$2，具体的，这里就是指向”asm-arm”</li>
+</ul>
+</li>
+</ul>
+<p>在图上我把所有在make过程中动态创建出来的文件用蓝色线条标识出来了，所以第一阶段<code>make xxx_config</code>创建了两个重要的文件，一个是”include/config.h”，一个是”include/config.mk”。<br><img src="/img/20150702-note-uboot-make-summary-v2009-11/a1.png" alt=""><br>这两个文件可不是等闲之辈，他们在第二阶段，即<code>make all</code>过程中扮演了举足轻重的作用，换句话说，为什么我们make的时候知道制作的image是针对的这种开发板，而不是那种，就是由第一阶段产生的这两个文件决定的。另外”include/config.mk”还有一个很重要的作用，就是在Makefuke中辅助我们判断是否已经做过第一阶段，参考<a href="../20150628-learning-u-boot-notes-for-makefile-v2009-11">理解u-boot的Makefile(基于v2009.11)</a>的”一个重要的判断”章节。</p>
+<p>下面我们来看看在第二阶段中这两个文件是如何支持平台的定制工作的。</p>
+<h1 id="第二阶段make-all中平台定制化的实现"><a href="#第二阶段make-all中平台定制化的实现" class="headerlink" title="第二阶段make all中平台定制化的实现"></a>第二阶段<code>make all</code>中平台定制化的实现</h1><p>平台的定制主要体现在两个方面：</p>
+<ul>
+<li>编译工具命令行运行参数的平台定制化</li>
+<li>编译目标内容的平台定制化</li>
+</ul>
+<h2 id="编译工具命令行运行参数的平台定制化"><a href="#编译工具命令行运行参数的平台定制化" class="headerlink" title="编译工具命令行运行参数的平台定制化"></a>编译工具命令行运行参数的平台定制化</h2><p>基本的制作程序过程，也就是我们俗称的”编译过程”，其本质无非就是以下四步：<br><img src="/img/20150702-note-uboot-make-summary-v2009-11/build-procedure.png" alt=""></p>
+<p>每一步过程中在命令行中调用相应的处理工具，对大部分平台，有一些通用的命令行参数，但对具有特定的架构，目标板硬件的平台可能需要在通用的命令行参数上添加一些特定的命令参数，这一类的定制工作，就是这里所谓的编译工具命令行运行参数的定制化。</p>
+<p>编译工具命令行的参数设置定义在顶层目录下的”config.mk”文件中，该文件会被顶层目录下的Makefile文件所包含。<br><img src="/img/20150702-note-uboot-make-summary-v2009-11/b1.png" alt=""><br>那么这个顶层目录下的”config.mk”文件是如何实现对编译工具命令行的参数设置的定制化的呢。让我们先来看看执行<code>make all</code>的时候，和这个文件有关的内容。</p>
+<p>以第一次干净的make为例，其实增量make过程也差不多，无非就是有些步骤已经创建过不用再做了。<br>参考<a href="../20150628-learning-u-boot-notes-for-makefile-v2009-11">理解u-boot的Makefile(基于v2009.11)</a>，在”生成u-boot最终img的主要规则”那一步中，首先导入了$(obj)include/config.mk，即我们在第一阶段创建的那个”include/config.mk”，Makefile里有这么几行和它相关：</p>
+<pre><code># load ARCH, BOARD, and CPU configuration
+include $(obj)include/config.mk
+export    ARCH CPU BOARD VENDOR SOC
+</code></pre><p>可见该文件被导入后，记录在”include/config.mk”里的这些变量的值被导出了，导出了是要发挥作用的。接着Makefile就导入了”$(TOPDIR)/config.mk”，即我们前述的顶层目录下的”config.mk”，仔细看一下这个文件，具体的参考<a href="../20150628-notes-uboot-config-mk-v2009-11">理解u-boot的顶层config.mk(基于v2009.11)</a>。该文件中的内容整体上主要可以分为以下四步：</p>
+<ul>
+<li>第一步：配置工具运行环境</li>
+<li>第二步：导入平台定制化配置文件(.mk)</li>
+<li>第三步：定义编译工具命令行运行参数</li>
+<li>第四步：导出这些运行参数</li>
+</ul>
+<p>其中，还记得第二步中的这些语句吧：</p>
+<pre><code>ifdef    ARCH
+sinclude $(TOPDIR)/lib_$(ARCH)/config.mk    # include architecture dependend rules
+endif
+ifdef    CPU
+sinclude $(TOPDIR)/cpu/$(CPU)/config.mk        # include  CPU    specific rules
+endif
+ifdef    SOC
+sinclude $(TOPDIR)/cpu/$(CPU)/$(SOC)/config.mk    # include  SoC    specific rules
+endif
+ifdef    VENDOR
+BOARDDIR = $(VENDOR)/$(BOARD)
+else
+BOARDDIR = $(BOARD)
+endif
+ifdef    BOARD
+sinclude $(TOPDIR)/board/$(BOARDDIR)/config.mk    # include board specific rules
+endif
+</code></pre><p>在这里实际的意思，就是根据”include/config.mk”里定义和导出的ARCH，CPU，BOARD，VENDOR，SOC变量的值继续判断是否要导入其他的一些各个级别的配置文件，在这里相应的变量的值被替换后就对应到了我们具体需要操作的开发板相关的那些配置文件上去了。以我操作的versatilepb开发板为例，实际被顶层目录的”config.mk”文件包含的各个级别的配置文件是：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">级别</th>
+<th style="text-align:left">对应的配置文件                     </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ARCH</td>
+<td style="text-align:left">lib_arm/config.mk                 </td>
+</tr>
+<tr>
+<td style="text-align:left">CPU</td>
+<td style="text-align:left">cpu/arm926ejs/config.mk           </td>
+</tr>
+<tr>
+<td style="text-align:left">SOC</td>
+<td style="text-align:left">cpu/arm926ejs/versatile/config.mk </td>
+</tr>
+<tr>
+<td style="text-align:left">BOARD</td>
+<td style="text-align:left">board/armltd/versatile/config.mk </td>
+</tr>
+</tbody>
+</table>
+<p>在这些配置文件中可以根据自己平台的需要定制如下变量：</p>
+<ul>
+<li>PLATFORM_RELFLAGS，PLATFORM_CPPFLAGS和PLATFORM_LDFLAGS，这三个变量会被添加到顶层目录的”config.mk”的第三步中定义的CPPFLAGS，CFLAGS和LDFLAGS中。</li>
+<li>还可以定义如下变量，譬如：<br>– CROSS_COMPILE， 交叉编译的工具链的前缀，在mk文件中定义了，就不用在执行make时再定义<br>– TEXT_BASE，这个很重要的，会直接影响最终生成的u-boot镜像的运行起始地址</li>
+<li>甚至覆盖一些变量，譬如LDSCRIPT </li>
+</ul>
+<p>所以我们说</p>
+<ul>
+<li>首先，顶层目录的”config.mk”包含了各个级别的配置文件，在图上我们标识为：<img src="/img/20150702-note-uboot-make-summary-v2009-11/b.png" alt="">，注意”autoconf.mk”也被包含了，但有点特殊，它是<code>sinclude</code>，第一次make，执行到导入config.mk时此时还不存在，所以先忽略它。</li>
+<li>其次，根据我们前面的的分析，第一阶段创建的”include/config.mk”里的内容决定了顶层目录的”config.mk”里对平台的命令行参数的定制化工作，换句话说：顶层目录的”config.mk”绝对<strong>依赖于</strong>第一阶段创建的”include/config.mk”，这就是为何在图上我们标识如下：<img src="/img/20150702-note-uboot-make-summary-v2009-11/c.png" alt=""></li>
+</ul>
+<h2 id="编译目标内容的平台定制化"><a href="#编译目标内容的平台定制化" class="headerlink" title="编译目标内容的平台定制化"></a>编译目标内容的平台定制化</h2><p>运行规则<code>all</code>会导致如下的编译目标被生成：<br><img src="/img/20150702-note-uboot-make-summary-v2009-11/e1.png" alt=""><br>通过对顶层Makefile的分析，我们可以大致得到如下所示这些生成的编译目标的制作依赖关系：<br><img src="/img/20150702-note-uboot-make-summary-v2009-11/e.png" alt=""><br>即：终极目标是包括了u-boot，u-boot.bin的几个可执行文件，要生成这些可执行文件，必然依赖于中间的目标文件，这里用OBJS和LIBS表达，这也是顶层Makefile中定义的相关的变量名，当然最终镜像还依赖于tools等，但这里仅仅列出，不是我们关心的重点。<br>接着再往上，OBJS和LIBS的生成和两个文件有关，</p>
+<h3 id="一个是”include-config-h”"><a href="#一个是”include-config-h”" class="headerlink" title="一个是”include/config.h”"></a>一个是”include/config.h”</h3><p>autoconf.mk这个文件里定义了一系列宏开关，这些开关会直接影响源代码中哪些代码会参与编译。autoconf.mk里的开关怎么来的，下面我们来分析一下：</p>
+<p>在执行<code>make all</code>中，有一个很重要的规则就是要创建一个autoconf.mk文件，具体参考<a href="2015/06/28/20150628-learning-u-boot-notes-for-makefile-v2009-11">理解u-boot的Makefile(基于v2009.11)</a>中的”生成autoconf.mk的规则”章节。</p>
+<p>当时我们分析过，autoconf.mk的内容是通过分析众多头文件的内容，提取其定义的”CONFIG_”开头的宏来达到的，规则中其首先分析的就是”include/common.h”文件，而”include/common.h”文件又包含了”$(obj)include/config.h”，”$(obj)include/config.h”文件中又include了”include/configs/$1.h”和”include/asm/config.h”这两个可定制的头文件，以versatilepb开发板配置为例，在第一阶段中”include/configs/$1.h”被替换为include/configs/versatile.h，”include/asm/config.h”被替换为”include/asm-arm/config.h”，这样就达到引入特定开发板以及架构相关的一些配置宏的作用。具体依赖关系如下：<br><img src="/img/20150702-note-uboot-make-summary-v2009-11/d.png" alt=""></p>
+<p>绕了一圈，才发现我们在第一阶段<code>make xxx_config</code>里创建的”include/config.h”原来在这里等着我们呢。</p>
+<h3 id="一个是”include-config-mk”"><a href="#一个是”include-config-mk”" class="headerlink" title="一个是”include/config.mk”"></a>一个是”include/config.mk”</h3><p>通过观察顶层目录下的Makefile，我们发现OBJS和LIBS中的定义的编译目标具体有哪些其实和”include/config.mk”也有很直接的关系。顶层Makefile导入”include/config.mk”并导出ARCH，CPU等变量后会直接影响编译的目标和库的内容，譬如顶层Makefile中有如下语句：</p>
+<p>对目标变量OBJS的影响:</p>
+<pre><code>OBJS  = cpu/$(CPU)/start.o
+...
+</code></pre><p>对库变量LIBS的影响</p>
+<pre><code>...
+LIBS += $(shell if [ -f board/$(VENDOR)/common/Makefile ]; then echo \
+    &quot;board/$(VENDOR)/common/lib$(VENDOR).a&quot;; fi)
+LIBS += cpu/$(CPU)/lib$(CPU).a
+ifdef SOC
+LIBS += cpu/$(CPU)/$(SOC)/lib$(SOC).a
+endif
+...
+LIBS += lib_$(ARCH)/lib$(ARCH).a
+...
+</code></pre><p>板级库变量LIBBOARD</p>
+<pre><code>LIBBOARD = board/$(BOARDDIR)/lib$(BOARD).a
+LIBBOARD := $(addprefix $(obj),$(LIBBOARD))
+</code></pre><p>这样在制作时就会导致编译进入平台相关的子目录进行编译，所以这也是u-boot的代码树看上去目录和文件很多，但真正编译时除了一些共用的目录每个平台都会用到外，对特定的平台只会包含对特定的平台目录的编译。</p>
+<p>以我目前实验所用的verstatilepb开发板为例，以下是每个平台都会涉及的公共目录：</p>
+<table>
+<thead>
+<tr>
+<th>目录</th>
+<th>制作的目标</th>
+<th>注释     </th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>common</td>
+<td>libcommon.a</td>
+<td>与处理器体系结构无关的通用代码，U-boot的命令解析代码,U-boot环境变量处理代码</td>
+</tr>
+<tr>
+<td>lib_generic</td>
+<td>libgeneric.a</td>
+<td>与处理器体系相关的通用代码</td>
+</tr>
+<tr>
+<td>lib_generic/*</td>
+<td>lib*.a</td>
+<td>与处理器体系相关的lzma，lzo部分</td>
+</tr>
+<tr>
+<td>post</td>
+<td>libpost.a</td>
+<td>一些特殊构架需要的启动代码和上电自检程序代码</td>
+</tr>
+<tr>
+<td>fs/*</td>
+<td>lib*.a</td>
+<td>U-boot支持的文件系统</td>
+</tr>
+<tr>
+<td>disk</td>
+<td>libdisk.a</td>
+<td>U-boot支持的磁盘驱动的分区处理代码</td>
+</tr>
+<tr>
+<td>net</td>
+<td>libnet.a</td>
+<td>U-boot支持的网络协议相关代码</td>
+</tr>
+<tr>
+<td>libfdt</td>
+<td>libfdt.a</td>
+<td>支持平坦设备树(flattened device trees)的库</td>
+</tr>
+<tr>
+<td>drivers</td>
+<td>lib*.a</td>
+<td>包含几乎所有外围芯片的驱动，网卡、USB、串口、LCD、Nand Flash 等等</td>
+</tr>
+<tr>
+<td>api</td>
+<td>libapi.a</td>
+<td>U-boot自己的syscall API，可以用于外部扩展应用程序</td>
+</tr>
+<tr>
+<td>examples/standalone</td>
+<td>hello_world …</td>
+<td>演示API的例子</td>
+</tr>
+<tr>
+<td>tools</td>
+<td>envcrc<br>mkimage</td>
+<td>编译S-Record 或U-Boot 映像等相关工具，制作bootm引导的内核映像文件工具mkimage 源码就在此</td>
+</tr>
+</tbody>
+</table>
+<p>以下是只和我的开发板平台versatilepb相关的目录：</p>
+<table>
+<thead>
+<tr>
+<th>目录</th>
+<th>制作的目标</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>lib_arm</td>
+<td>libarm.a</td>
+<td>架构级别-ARM</td>
+</tr>
+<tr>
+<td>cpu/arm926ejs</td>
+<td>start.o<br>cpu.o<br>libarm926ejs.a</td>
+<td>CPU级别</td>
+</tr>
+<tr>
+<td>cpu/arm926ejs/versatile</td>
+<td>libversatile.a</td>
+<td>芯片SOC级别</td>
+</tr>
+<tr>
+<td>board/armltd/versatile/</td>
+<td>libversatile.a</td>
+<td>板级别</td>
+</tr>
+</tbody>
+</table>
+<h1 id="尾声"><a href="#尾声" class="headerlink" title="尾声"></a>尾声</h1><p>分析到这里，我觉得差不多把U-boot的Make过程中的平台定制的实现方案给搞清楚了，了解这些的重要意义在于这也为我们以后把U-boot移植到一种新的开发板平台打下基础。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/bootloader/" rel="tag">#bootloader</a>
+          
+            <a href="/tags/U-boot/" rel="tag">#U-boot</a>
+          
+            <a href="/tags/make/" rel="tag">#make</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/06/28/20150628-notes-uboot-config-mk-v2009-11/" rel="next" title="理解u-boot的顶层config.mk(基于v2009.11)">
+                <i class="fa fa-chevron-left"></i> 理解u-boot的顶层config.mk(基于v2009.11)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/06/20150706-how-to-add-comments-duoshuo-in-my-hexo/" rel="prev" title="在Hexo搭建的blog上增加"多说"评论">
+                在Hexo搭建的blog上增加"多说"评论 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/07/02/20150702-note-uboot-make-summary-v2009-11/"
+           data-title="对U-boot的平台定制机制的理解(基于v2009.11)" data-url="http://unicornx.github.io/2015/07/02/20150702-note-uboot-make-summary-v2009-11/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Overview-for-u-boot的Makefile"><span class="nav-number">1.</span> <span class="nav-text">Overview for u-boot的Makefile</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第一阶段make-xxx-config主要做的两件事情："><span class="nav-number">2.</span> <span class="nav-text">第一阶段make xxx_config主要做的两件事情：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#第二阶段make-all中平台定制化的实现"><span class="nav-number">3.</span> <span class="nav-text">第二阶段make all中平台定制化的实现</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编译工具命令行运行参数的平台定制化"><span class="nav-number">3.1.</span> <span class="nav-text">编译工具命令行运行参数的平台定制化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#编译目标内容的平台定制化"><span class="nav-number">3.2.</span> <span class="nav-text">编译目标内容的平台定制化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#一个是”include-config-h”"><span class="nav-number">3.2.1.</span> <span class="nav-text">一个是”include/config.h”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一个是”include-config-mk”"><span class="nav-number">3.2.2.</span> <span class="nav-text">一个是”include/config.mk”</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#尾声"><span class="nav-number">4.</span> <span class="nav-text">尾声</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

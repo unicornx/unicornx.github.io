@@ -1,0 +1,935 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="S5PC100,SPI," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-04
+参考文章
+
+SPI BUS SPEC V4.01
+USER’S MANUAL S5PC100 REV 1.02
+M25P10-A serial Flash memory数据手册(Rev12，2008-12)
+
+s5pc100之SPI S">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于S5PC100学习SPI">
+<meta property="og:url" content="http://unicornx.github.io/2016/05/04/20160504-spi-s5pc100/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-04
+参考文章
+
+SPI BUS SPEC V4.01
+USER’S MANUAL S5PC100 REV 1.02
+M25P10-A serial Flash memory数据手册(Rev12，2008-12)
+
+s5pc100之SPI S">
+<meta property="og:image" content="http://p.blog.csdn.net/images/p_blog_csdn_net/force_eagle/n4.bmp">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column715-2.jpg">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column715-3.jpg">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column715-4.jpg">
+<meta property="og:image" content="http://unicornx.github.io/img/20160504-spi-s5pc100/spi-1.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160504-spi-s5pc100/spi-2.png">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column884-4.jpg">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column715-5.jpg">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column715-6.jpg">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column715-7.jpg">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column715-8.jpg">
+<meta property="og:image" content="http://unicornx.github.io/img/20160504-spi-s5pc100/m25p10a.png">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column715-9.jpg">
+<meta property="og:updated_time" content="2016-05-04T02:58:58.241Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于S5PC100学习SPI">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-04
+参考文章
+
+SPI BUS SPEC V4.01
+USER’S MANUAL S5PC100 REV 1.02
+M25P10-A serial Flash memory数据手册(Rev12，2008-12)
+
+s5pc100之SPI S">
+<meta name="twitter:image" content="http://p.blog.csdn.net/images/p_blog_csdn_net/force_eagle/n4.bmp">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/05/04/20160504-spi-s5pc100/"/>
+
+  <title> 基于S5PC100学习SPI | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                基于S5PC100学习SPI
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-04T16:52:19+08:00" content="2016-05-04">
+              2016-05-04
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ARM裸机接口/" itemprop="url" rel="index">
+                    <span itemprop="name">ARM裸机接口</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/04/20160504-spi-s5pc100/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/04/20160504-spi-s5pc100/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-05-04</p>
+<p>参考文章</p>
+<ul>
+<li><a href="http://wenku.baidu.com/link?url=VL_f7VifrB8dy_qrBlA5BzeghDbI-fzCImJsGUKvEi2AMeDOV-3IMWvNAXO5XgcNfCe4vAShJhb2YHl97Jkl3h_UX3U0u-bHBpkruvJ9sKS" target="_blank" rel="external">SPI BUS SPEC V4.01</a></li>
+<li><a href="">USER’S MANUAL S5PC100 REV 1.02</a></li>
+<li><p><a href="">M25P10-A serial Flash memory数据手册(Rev12，2008-12)</a></p>
+</li>
+<li><p><a href="http://www.embedu.org/Column/Column715.htm" target="_blank" rel="external">s5pc100之SPI</a> SPI的原理讲解得非常详细，图例也很好。</p>
+</li>
+<li><a href="http://www.embedu.org/Column/Column884.htm" target="_blank" rel="external">基于S5PC100裸机程序之SPI(上)</a></li>
+<li><p><a href="http://www.embedu.org/Column/Column898.htm" target="_blank" rel="external">基于S5PC100裸机程序之SPI(下)</a></p>
+</li>
+<li><p><a href="http://wenku.baidu.com/link?url=YmGQUf-EptKSoqi2m9IRQMbGST4LZEjVkO4BjAMpSYS74lBp1vpA-Wq0XzIGnqglVg-0vlAV2YYCNKzyS1FSsIcwoSVIbl39ZysLpa6VLsm###" target="_blank" rel="external">SPI/I2C总线</a> 一篇比较专业的I2C和SPI总线之间的对比，其最后的总结指出I2C将比SPI有更大的市场。</p>
+</li>
+<li><a href="http://wenku.baidu.com/link?url=dtpvKxMyCwg_A4KjAcEGA3IOUnODAsEAKtvc9O02RqLcEwniMjqEnA_dKaOngu7cRx6-O_-aJ9OXDb3SWQWVpU5boQ2_JHkcI9g4cI8DDPK" target="_blank" rel="external">I2C和SPI,UART的区别</a></li>
+<li><a href="http://blog.csdn.net/skyflying2012/article/details/8237881/" target="_blank" rel="external">I2C和SPI总线对比</a> </li>
+</ul>
+<a id="more"></a>
+<h1 id="SPI总线介绍"><a href="#SPI总线介绍" class="headerlink" title="SPI总线介绍"></a>SPI总线介绍</h1><h2 id="协议简介"><a href="#协议简介" class="headerlink" title="协议简介"></a>协议简介</h2><p>SPI英文名叫Serial Peripheral Interface,中文名叫串行外围设备接口。是由Motorola公司开发，用来在微控制器和外围设备芯片之间提供一个低成本、易使用的接口。这种接口可以用来连接存储器(EEPROM、FLASH)、AD转换器、DA转换器、实时时钟、LCD驱动器、传感器、音频芯片、甚至其他处理器。</p>
+<p>SPI是一种高速的全双工、同步的通信总线，并且在芯片的引脚上只占用四根线，节约了芯片的引脚，同时为PCB的布局上节省空间，提供方便，正是出于这种简单易用的特性，现在越来越多的芯片集成了这种通信协议。</p>
+<h2 id="协议内容"><a href="#协议内容" class="headerlink" title="协议内容"></a>协议内容</h2><h3 id="信号线定义："><a href="#信号线定义：" class="headerlink" title="信号线定义："></a>信号线定义：</h3><p>与标准的串行端口不同，SPI是一个同步协议接口，所有的传输都参照一个共同的时钟，这个同步时钟信号由主机(处理器)产生。接收数据的外设(从设备)使用时钟对串行比特流的接收进行同步化。可能会有许多芯片连接到主机的同一个SPI接口上，这时主机通过触发从设备的芯片的片选输入引脚来选择接收数据的从设备，没有被选中的外设将不会参与SPI传输。</p>
+<p>SPI的通信原理很简单，它以主从方式工作，这种模式通常有一个主设备和一个或多个从设备，需要至少4根线，事实上3根也可以（单向传输时）。也是所有基于SPI的设备共有的</p>
+<p>4个信号线的定义如下:</p>
+<ul>
+<li>主机输输出/从机输入(MOSI: Master Output Save Input)：MOSI信号由主机产生、从机接收。在有些外围芯片上，MOSI只被简单标为串行输入(SI),或者串行数据输入(SDI)。</li>
+<li>主机输入/从机输出(MISO:Master Input Save Output)：MISO信号由从机产生，不过还是在主机的控制下产生。在一些外围芯片上，MISO有时被称为串行输出(SO),或者串行数据输出(SDO)。</li>
+<li>串行时钟(SCLK或SCK)：时钟信号，由主设备产生。</li>
+<li>外设片选(CS)：从设备使能信号，由主设备控制，通常由主机的备用I/O引脚产生，也叫SS，即SlaveSelect的意思。用于控制外设芯片是否被选中的，也就是说只有片选信号为预先规定的使能信号时（高电位或低电位），对此芯片的操作才有效。这就使在同一总线上连接多个SPI设备成为可能。</li>
+</ul>
+<p>例如下图所示的主机（SPI Master）通过SPI和从机（SPI Slave）进行连接的示意图:</p>
+<p><img src="http://p.blog.csdn.net/images/p_blog_csdn_net/force_eagle/n4.bmp" alt=""></p>
+<h3 id="数据的传输"><a href="#数据的传输" class="headerlink" title="数据的传输"></a>数据的传输</h3><p>接下来我们在来看看，SPI主机和从机之间是怎么传输数据的?</p>
+<p>主机和从机都包含一个串行移位寄存器，主机通过向它的SPI串行寄存器写入一个字节发起一次传输。寄存器通过MOSI信号线将字节传送给从机，从机也将自己的移位寄存器中的内容通过MISO信号线返回给主机。这样两个移位寄存器中的内容就被交换了。从机的写操作和读操作时同步完成的，因此SPI成为一个很有效的协议。</p>
+<p><img src="http://www.embedu.org/Column/images/Column715-2.jpg" alt=""></p>
+<p>注意:如果只是进行写操作，主机只需忽略收到的字节；反过来，如果主机要读取从机的一个字节，就必须发送一个空字节来引发从机的传输。</p>
+<p>SPI是串行通信协议，也就是说数据是一位一位地传输的。这就是SCLK时钟线存在的原因，由SCLK提供时钟脉冲，MISO、MOSI则基于此脉冲完成数据传输。数据在时钟上升沿或下降沿时改变，在紧接着的下降沿或上升沿被读取，完成一位数据传输，输入也使用同样原理。这样，在至少8次时钟信号的改变 （上沿和下沿为一次）后，就可以完成8位数据的传输。</p>
+<p>为了保证以上所述完成一位数据传输，必须保证主机发出的时序和从机所要求的时序一致才可以。在这里，常常我们会说到两个概念：时钟极性和时钟相位。</p>
+<ul>
+<li>时钟极性：Clock Polarity,简称CPOL或POL,指SPICLK空闲时的电平，是0还是1</li>
+<li>时钟相位：Clock Phase，简称CPHA或PHA，指数据采样的时候，是CLK的第一个边沿还是第二个边沿。CPHA=0，CLK的第一个边沿采样，CPHA=1时，时钟的第二个边沿采样。具体什么叫第一个边沿，第二个边沿，参考下面的时序图。</li>
+</ul>
+<p>将CPOL和CPHA进行组合，可以得到SPI主要有四种模式的时序。常用的是第一个和第三个。</p>
+<p><img src="http://www.embedu.org/Column/images/Column715-3.jpg" alt=""></p>
+<p>对应到时序图的关系如下:</p>
+<p><img src="http://www.embedu.org/Column/images/Column715-4.jpg" alt=""></p>
+<p>总结来说：CPOL和CPHA一起决定在传输一位数据过程中，主从两端配合的方式，即在什么时间点上开始读写该位数据，什么时候停止读写该位数据。具体参考S5PC100的UM的“Figure 8.3-2 SPI Transfer Format”。以及本文后面“主机侧 - S5PC100下的SPI控制器介绍”章节的总结。</p>
+<p><font color="red">CPOL和CPHA的时序一般由从端外设所决定，对于主设备控制器来说，SPI主控制器和与之通信的外设时钟相位和极性应该一致，所以需要根据从端的CPOL和CPHA时序配置好最终采取的时序工作方式以决定每一位数据的读取。</font>下面具体例子中会看到相应寄存器的设置。</p>
+<h3 id="SPI总线的工作特点"><a href="#SPI总线的工作特点" class="headerlink" title="SPI总线的工作特点"></a>SPI总线的工作特点</h3><p>要注意的是，SPICLK信号线只由主设备控制，从设备不能控制信号线。同样在一个基于SPI的设备中，至少有一个主控设备。这样传输的特点：这样的传输方式有一个优点，即其与普通的串行通信不同，普通的串行通信一次连续传送至少8位数据，而SPI允许数据一位一位地传送，甚至允许暂停，因为SPICLK时钟线由主控设备控制，当没有时钟跳变时，从设备不采集或传送数据。也就是说，主设备通过对SPICLK时钟线的控制可以完成对通信的控制。SPI还是一个数据交换协议：因为SPI的数据输入和输出线独立，所以允许同时完成数据的输入和输出。不同的SPI设备的实现方式不尽相同，主要是数据改变和采集的时间不同，在时钟信号上沿或下沿采集有不同定义。</p>
+<p>在点对点的通信中，SPI接口不需要进行寻址操作，且为全双工通信，显得简单高效。在多个从设备的系统中，每个从设备需要独立地使能信号，在硬件上要比I2C总线控制稍微复杂一些。</p>
+<p>SPI的一个缺点是没有指定的流控制，没有应答机制确认是否接收到数据。</p>
+<h1 id="SPI的应用-基于SPI总线操作M25P10-一个FLASH型的存储器件"><a href="#SPI的应用-基于SPI总线操作M25P10-一个FLASH型的存储器件" class="headerlink" title="SPI的应用 - 基于SPI总线操作M25P10(一个FLASH型的存储器件)"></a>SPI的应用 - 基于SPI总线操作M25P10(一个FLASH型的存储器件)</h1><p>结合上面已经提到的SPI理论基础，将以一个例子来进行实际讲解，利用S5PC100微型处理器上的第一个SPI接口SPI0控制外围电路上的支持SPI接口的串行Flash内存芯片M25P10A，发送读取芯片ID的RDID命令，并将获取的ID信息通过串口COM1打印在控制终端上。</p>
+<p>我使用的开发板的主控芯片是S5PC100，其SPI控制器支持三路SPI接口，本实验利用第一个SPI0接口。外围电路上支持SPI总线接口的设备是一款原Numonyx(现已被Micron收购)生产的型号为M25P10-A的flash存储芯片。有关M25P10-A的详细内容参考M25P10A。M25P10-A和S5P100的连接参考DEV第9页，电路如下:</p>
+<p><img src="/img/20160504-spi-s5pc100/spi-1.png" alt=""></p>
+<p>参考M25P10A数据手册的第6页描述，以及核心板电路图第1页如下，可知M25P10-A的管脚D(MOSI)，Q(MISO)，S(SS)，C(SCLK)分别连接S5PC100的GPB2，GPB0，GPB3和GPB1。</p>
+<p><img src="/img/20160504-spi-s5pc100/spi-2.png" alt=""></p>
+<p>下面分别来看一下作为主机的S5PC100和作为从机的M25P10-A的SPI的操作接口，以及最终如何通过这些接口在主机和从机之间读写数据。</p>
+<h1 id="主机侧-S5PC100下的SPI控制器介绍"><a href="#主机侧-S5PC100下的SPI控制器介绍" class="headerlink" title="主机侧 - S5PC100下的SPI控制器介绍"></a>主机侧 - S5PC100下的SPI控制器介绍</h1><p>具体参考<a href="">USER’S MANUAL S5PC100 REV 1.02</a>的8.3章节<code>SPI CONTROLLER</code>。重点关注以下章节，因为以下内容会涉及到主机侧的设置。</p>
+<h2 id="操作模式"><a href="#操作模式" class="headerlink" title="操作模式"></a>操作模式</h2><p>S5PC100的SPI控制器可以工作在两种模式下，Master或者Slave。在我们的实验中当然是工作在Master模式下。需要涉及寄存器配置。</p>
+<h2 id="数据传输"><a href="#数据传输" class="headerlink" title="数据传输"></a>数据传输</h2><p>SPI控制器的数据传输支持两种方式，CPU直接访问或者DMA访问。在我们的实验中采用缺省的CPU直接访问。</p>
+<p>通道和总线宽度，通道宽度即控制器支持的移位寄存器的宽度，S5PC100的SPI控制器支持8位、16位、32位移位寄存器，以及支持8位、16位、32位总线接口。具体采用多大的宽度，需要参考从设备器件的参数进行设置。</p>
+<p>数据传输中的相关参数也需要通过相关寄存器进行配置。</p>
+<h2 id="片选控制"><a href="#片选控制" class="headerlink" title="片选控制"></a>片选控制</h2><p>支持两种控制方式，自动控制和手动控制。在我们的实验中选择手动控制。</p>
+<h2 id="时钟源"><a href="#时钟源" class="headerlink" title="时钟源"></a>时钟源</h2><p>对每路SPI控制器，S5PC100提供三种时钟输入选项，可以通过相关寄存器进行选择。</p>
+<p><img src="http://www.embedu.org/Column/images/Column884-4.jpg" alt=""></p>
+<h2 id="传输格式"><a href="#传输格式" class="headerlink" title="传输格式"></a>传输格式</h2><p>S5PC100处理器上内置SPI控制器，支持四种数据传输格式，也就是前面描述的CPOL和CPHA的组合方式，如下所示，具体参考UM的“Figure 8.3-2 SPI Transfer Format”。具体操作时可以根据从设备器件支持的情况对应设置相关寄存器以选择合适的Mode。</p>
+<p>Mode0: CPOL=0，CPHA=0，SPICLK空闲时为低电平，SPICLK第一个上升沿，即电平从0到1时，Master开始采样，Slave开始读写，紧接着第一个下降沿，即电平从1到0时，Master停止采样，Slave停止读写。</p>
+<p><img src="http://www.embedu.org/Column/images/Column715-5.jpg" alt=""></p>
+<p>Mode1: CPOL=0，CPHA=0，SPICLK空闲时为低电平，SPICLK第一个下降沿，即电平从1到0时，Master开始采样，Slave开始读写，紧接着第一个上升沿，即电平从0到1时，Master停止采样，Slave停止读写。</p>
+<p><img src="http://www.embedu.org/Column/images/Column715-6.jpg" alt=""></p>
+<p>Mode2: CPOL=1，CPHA=0，SPICLK空闲时为高电平，SPICLK第一个下降沿，即电平从1到0时，Master开始采样，Slave开始读写，紧接着的第一个上升沿，即电平从0到1时，Master停止采样，Slave停止读写。</p>
+<p><img src="http://www.embedu.org/Column/images/Column715-7.jpg" alt=""></p>
+<p>Mode3: CPOL=1，CPHA=1，SPICLK空闲时为高电平，SPICLK第一个上升沿，即电平从0到1时，Master开始采样，Slave开始读写，紧接着的第一个下降沿，即电平从0到1时，Master停止采样，Slave停止读写。</p>
+<p><img src="http://www.embedu.org/Column/images/Column715-8.jpg" alt=""></p>
+<p>细心的读者会发现，怎么CLK空闲的时候，有高有低呀?呵呵，这就表示它支持的CPOL可以是0也可以是1呀。为了偷懒，将两个时序图放在一起画了。</p>
+<h1 id="从机侧-M25P10型FLASH存储器对SPI总线的支持"><a href="#从机侧-M25P10型FLASH存储器对SPI总线的支持" class="headerlink" title="从机侧 - M25P10型FLASH存储器对SPI总线的支持"></a>从机侧 - M25P10型FLASH存储器对SPI总线的支持</h1><p>从机侧设备是一款原Numonyx(现已被Micron收购)生产的型号为M25P10-A的flash存储芯片。数据宽度为8位。</p>
+<p>这一款芯片内部集成了12条指令，包括了通用的读、写、配置等命令，还有一个内置的状态寄存器，可以通过该寄存器获取芯片当前状态。如下表所示为该芯片支持的指令集。</p>
+<p><img src="/img/20160504-spi-s5pc100/m25p10a.png" alt=""></p>
+<p>本实验只使用其中的RDID命令，获取设备信息并通过串口COM1打印在控制终端上。</p>
+<p>具体实现该命令时需要参考该RDID命令的时序图：</p>
+<p><img src="http://www.embedu.org/Column/images/Column715-9.jpg" alt=""></p>
+<h1 id="实验例子："><a href="#实验例子：" class="headerlink" title="实验例子："></a>实验例子：</h1><p>利用S5PC100微型处理器上的第一个SPI接口SPI0控制外围电路上的支持SPI接口的串行Flash内存芯片M25P10A，发送读取芯片ID的RDID命令，并将获取的ID信息通过串口COM1打印在控制终端上。</p>
+<h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><p>在实行实际的读写操作之前对S5PC100的SPI控制器的第0号端口进行初始化，对应函数<code>spi0_init()</code>。</p>
+<pre><code>/*
+ * 配置相应GPIO口的工作模式为S5PC100的SPI控制器的Master端。
+ * 根据前面硬件的描述，参考M25P10A第6页描述，以及CORE第1页，
+ * 可知有如下对应关系：
+ * S5PC100的GPB0对应M25P10-A的输入Q，SPI0_MISO
+ * S5PC100的GPB1对应M25P10-A的时钟C，SPI0_CLK
+ * S5PC100的GPB2对应M25P10-A的输出D，SPI0_MOSI
+ * S5PC100的GPB3对应M25P10-A的片选S，SPI0_CSn
+ * 
+ * 具体做如下设置：
+ * GPBCON[0] &lt;-&gt; SPI_0_MISO (0b0010)
+ * GPBCON[1] &lt;-&gt; SPI_0_CLK  (0b0010)
+ * GPBCON[2] &lt;-&gt; SPI_0_MOSI (0b0010)
+ * GPBCON[3] &lt;-&gt; SPI_0_nSS  (0b0010)
+ */
+GPB.GPBCON = (GPB.GPBCON  &amp; 0xffff0000) | 0x2222;
+
+/* 
+ * 开启SPI0的门控时钟，S5PC100内部的SPI主控制器(master)需要引入时钟
+ * 驱动其工作。参考UM第197页10.5.9，需要打开CLK_SPI0。
+ * 注：该步骤可选，因为根据UM手册，该gate位缺省情况为开启。
+ */
+CLK_GATE_D1.CLK_GATE_D1_4 |= (1&lt;&lt;6);
+
+/* 
+ * 对功能寄存器的设置顺序可以参考UM Page-679, 4.1
+ * 但也没有那么严格。
+ */
+
+/*
+ * 配置SPI0控制器工作选项，参考UM第680页4.2.1 
+ * HIGH_SPEED_EN: 工作为主机Master模式不需要，关闭。
+ * SW_RST    : 通过调用spi0_reset()函数实现，软复位，清空SPI的缓存。
+ * SLAVE    : 工作为主机模式：MASTER-&gt;CH_CFG0 bit4：0
+ * CPOL        : 参考M25P10A 第9页SPI modes的描述，作为slave设备方可以
+ *                设置为两种模式都可以接受，CPOL=0, CPHA=0或者CPOL=1, 
+ *                CPHA=1，这里我们选择CPOL=0, CPHA=0即可。
+ * CPHA        : 参考CPOL的设置。选择Format A
+ * RX_CH_ON    : 初始状态下关闭接收
+ * TX_CH_ON    : 初始状态下关闭发送
+ */
+spi0_reset();                                               //
+SPI0.CH_CFG &amp;= ~(
+    (0x1 &lt;&lt; 4) | 
+    (0x1 &lt;&lt; 3) | 
+    (0x1 &lt;&lt; 2) | 
+    (0x1 &lt;&lt; 1) | 
+    (0x1 &lt;&lt; 0) );
+
+/*
+ * 配置SPI0控制器的工作时钟选项，参考UM第680页4.2.2。 
+ * SPI_CLKSEL    = 时钟源选择, SPI0的工作时钟源设为 PCLK
+ * ENCLK    = Disable，先关闭时钟，在所有配置完成后最后再打开时钟。
+ * SPI_SCALER    = N/A，无需配置分频值
+ */
+SPI0.CLK_CFG &amp;= 0x0;
+
+/*
+ * 配置数据传输选项，参考UM第681页4.2.3。
+ * CH_WIDTH    : 通道宽度，以slave器件的数据宽度为准，参考M25P10A，
+ *                其指令和数据宽度都是8位，所以我们设置通道宽度也为8位。
+ * BUS_WIDTH    : 总线宽度，master器件的寄存器宽度，S5PC100的SPI控制器
+ *                寄存器为32位，我们可以设置BUS_WIDTH &gt;= CH_WIDTH即可，
+ *                也为8位。
+ * 其他选项和中断和DMA工作方式相关，我们不涉及，采用默认值即可。
+ */
+SPI0.MODE_CFG = (SPI0.MODE_CFG &amp; ~((0x3 &lt;&lt; 29) | (0x3 &lt;&lt; 17))) 
+        | (0x0 &lt;&lt; 29) | (0x0 &lt;&lt; 17);
+
+/* 设置手动片选，参考UM第681页4.2.4。*/
+SPI0.CS_REG &amp;= ~(0x1 &lt;&lt; 1);
+
+/* 使能SPI0 clock，此时SPI时钟开始工作，参考UM第680页4.2.2。*/
+SPI0.CLK_CFG |= (1 &lt;&lt; 8);
+</code></pre><h2 id="发送（写）数据"><a href="#发送（写）数据" class="headerlink" title="发送（写）数据"></a>发送（写）数据</h2><p>SPI0作为Master的“写”操作的实现对应函数<code>spi0_tx()</code>，注意事项如下：</p>
+<ul>
+<li>根据前面数据传输选项的配置，这里需要按照以8位为宽度来读写。</li>
+<li>发送操作逻辑之前相应打开TX通道，关闭RX通道，使用完后要关闭TX通道。参考UM第680页4.2.1的RX_CH_ON和TX_CH_ON位。</li>
+<li>发送数据寄存器，参考UM第684页4.2.7</li>
+<li><p>发送完毕后通过检测发送执行状态判断发送完成，参考UM第683页4.2.6的TX_DONE位。</p>
+<pre><code>void spi0_tx(unsigned char *data, int count)
+{
+    int i;
+
+    SPI0.CH_CFG &amp;= ~(0x1 &lt;&lt; 1);    /* 关闭RX */
+    SPI0.CH_CFG |= 0x1;        /* 打开TX */
+
+    for (i = 0; i &lt; count; i++) {
+        SPI0.SPI_TX_DATA = data[i];
+        while (!(SPI0.SPI_STATUS &amp; (0x1 &lt;&lt; 21)));
+    }
+
+    SPI0.CH_CFG &amp;= ~0x1;        /* 关闭TX */
+}
+</code></pre></li>
+</ul>
+<h2 id="接收（读）数据"><a href="#接收（读）数据" class="headerlink" title="接收（读）数据"></a>接收（读）数据</h2><p>接收数据的逻辑封装在spi0_rx()中。注意事项如下：</p>
+<ul>
+<li>根据前面数据传输选项的配置，这里需要按照以8位为宽度来读写。</li>
+<li>发送操作逻辑之前相应打开RX通道，关闭TX通道，使用完后要关闭RX通道。参考UM第680页4.2.1的RX_CH_ON和TX_CH_ON位。</li>
+<li><p>接收数据寄存器，参考UM第684页4.2.8</p>
+<pre><code>void spi0_rx(unsigned char *buf, int count)
+{
+    int i;
+
+    SPI0.CH_CFG &amp;= ~0x1;        /* 关闭TX */
+    SPI0.CH_CFG |= 0x1 &lt;&lt; 1;    /* 打开RX */
+
+    for (i = 0; i &lt; count; i++) {
+        buf[i] = SPI0.SPI_RX_DATA;
+    }
+
+    SPI0.CH_CFG &amp;= ~(0x1 &lt;&lt; 1);    /* 关闭RX */
+}
+</code></pre></li>
+</ul>
+<h2 id="执行RDID命令"><a href="#执行RDID命令" class="headerlink" title="执行RDID命令"></a>执行RDID命令</h2><pre><code>/*
+ *  Read Identification 结构体定义，参考M25P10A的第19页Table 5。
+ */
+struct RDID {
+    unsigned char mi; /* Manufacturer identification */
+    unsigned char mt; /* Memory type */
+    unsigned char mc; /* Memory capacity */
+};
+
+void m25p10a_rdid(struct RDID *output)
+{
+    unsigned char opcode;
+
+    /* 先清缓存FIFO */
+    spi0_reset();
+
+    /* 在执行命令，即发送命令之前需要执行片选动作 */
+    spi0_chip_select();
+
+    /* 以下执行命令过程参考UM第674页2.1.1和M25P10A的第19页Figure9。*/
+
+    /* 发送instruction code */
+    opcode = OPCODE_RDID;
+    spi0_tx(&amp;opcode, 1);
+
+    /* 接收返回数据 */
+    spi0_rx((unsigned char *)output, 3);
+
+    /* 执行完后再把片选取消 */
+    spi0_chip_unselect();
+}
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/S5PC100/" rel="tag">#S5PC100</a>
+          
+            <a href="/tags/SPI/" rel="tag">#SPI</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/28/20160428-i2c-s5pc100/" rel="next" title="基于S5PC100学习I2C">
+                <i class="fa fa-chevron-left"></i> 基于S5PC100学习I2C
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/05/05/20160505-lk-platform-drv/" rel="prev" title="Linux的platform设备">
+                Linux的platform设备 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/05/04/20160504-spi-s5pc100/"
+           data-title="基于S5PC100学习SPI" data-url="http://unicornx.github.io/2016/05/04/20160504-spi-s5pc100/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#SPI总线介绍"><span class="nav-number">1.</span> <span class="nav-text">SPI总线介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#协议简介"><span class="nav-number">1.1.</span> <span class="nav-text">协议简介</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#协议内容"><span class="nav-number">1.2.</span> <span class="nav-text">协议内容</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#信号线定义："><span class="nav-number">1.2.1.</span> <span class="nav-text">信号线定义：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#数据的传输"><span class="nav-number">1.2.2.</span> <span class="nav-text">数据的传输</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SPI总线的工作特点"><span class="nav-number">1.2.3.</span> <span class="nav-text">SPI总线的工作特点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SPI的应用-基于SPI总线操作M25P10-一个FLASH型的存储器件"><span class="nav-number">2.</span> <span class="nav-text">SPI的应用 - 基于SPI总线操作M25P10(一个FLASH型的存储器件)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#主机侧-S5PC100下的SPI控制器介绍"><span class="nav-number">3.</span> <span class="nav-text">主机侧 - S5PC100下的SPI控制器介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#操作模式"><span class="nav-number">3.1.</span> <span class="nav-text">操作模式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#数据传输"><span class="nav-number">3.2.</span> <span class="nav-text">数据传输</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#片选控制"><span class="nav-number">3.3.</span> <span class="nav-text">片选控制</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#时钟源"><span class="nav-number">3.4.</span> <span class="nav-text">时钟源</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#传输格式"><span class="nav-number">3.5.</span> <span class="nav-text">传输格式</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#从机侧-M25P10型FLASH存储器对SPI总线的支持"><span class="nav-number">4.</span> <span class="nav-text">从机侧 - M25P10型FLASH存储器对SPI总线的支持</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实验例子："><span class="nav-number">5.</span> <span class="nav-text">实验例子：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#初始化"><span class="nav-number">5.1.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送（写）数据"><span class="nav-number">5.2.</span> <span class="nav-text">发送（写）数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接收（读）数据"><span class="nav-number">5.3.</span> <span class="nav-text">接收（读）数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#执行RDID命令"><span class="nav-number">5.4.</span> <span class="nav-text">执行RDID命令</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,781 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,platform device," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-05
+参考文档：
+
+Linux设备模型(8)_platform设备 非常好，最好再结合设备驱动模型再看看。
+
+蜗窝科技-设备模型
+
+linux设备模型与内核中的面向对象思想">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux的platform设备">
+<meta property="og:url" content="http://unicornx.github.io/2016/05/05/20160505-lk-platform-drv/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-05
+参考文档：
+
+Linux设备模型(8)_platform设备 非常好，最好再结合设备驱动模型再看看。
+
+蜗窝科技-设备模型
+
+linux设备模型与内核中的面向对象思想">
+<meta property="og:image" content="http://www.wowotech.net/content/uploadfile/201405/8cf2e12b367205a9c1c7888e2dcb818520140507093250.gif">
+<meta property="og:updated_time" content="2016-05-04T21:20:29.161Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux的platform设备">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-05
+参考文档：
+
+Linux设备模型(8)_platform设备 非常好，最好再结合设备驱动模型再看看。
+
+蜗窝科技-设备模型
+
+linux设备模型与内核中的面向对象思想">
+<meta name="twitter:image" content="http://www.wowotech.net/content/uploadfile/201405/8cf2e12b367205a9c1c7888e2dcb818520140507093250.gif">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/05/05/20160505-lk-platform-drv/"/>
+
+  <title> Linux的platform设备 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux的platform设备
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-05T05:18:12+08:00" content="2016-05-05">
+              2016-05-05
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux驱动开发/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux驱动开发</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/05/20160505-lk-platform-drv/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/05/20160505-lk-platform-drv/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-05-05</p>
+<p>参考文档：</p>
+<ul>
+<li><p><a href="http://www.wowotech.net/device_model/platform_device.html" target="_blank" rel="external">Linux设备模型(8)_platform设备</a> 非常好，最好再结合设备驱动模型再看看。</p>
+</li>
+<li><p><a href="http://www.wowotech.net/sort/device_model" target="_blank" rel="external">蜗窝科技-设备模型</a></p>
+</li>
+<li><p><a href="http://blog.csdn.net/duqi_2009/article/details/17164095" target="_blank" rel="external">linux设备模型与内核中的面向对象思想</a></p>
+</li>
+</ul>
+<a id="more"></a>
+<h1 id="Platform设备的概念"><a href="#Platform设备的概念" class="headerlink" title="Platform设备的概念"></a>Platform设备的概念</h1><p>Platform设备并不是与字符设备、块设备并列的概念，而是Linux系统提供的一种管理设备的手段，所有SOC系统中集成的独立的外设控制器、挂接在SOC内存空间的外设等都属Platform设备。如ARM S3C6410处理器中，把内部集成的I2C、PTC、SPI、LCD、看门狗控制器都归纳为Platform设备，而这些设备本身就是字符设备。由此可见Platform中的设备是不分字符设备还是块设备。 </p>
+<p>字符设备和块设备的区别在于前者只能被顺序读写，后者可以随机访问。大多数设备为字符设备，以字节为单位，实现<code>file_operations</code>结构体中的回调函数。而如磁盘为块设备，以块为单位接受输入和返回输出。实现<code>block_device_operations</code>结构体中的回调函数。</p>
+<h1 id="Platform子系统"><a href="#Platform子系统" class="headerlink" title="Platform子系统"></a>Platform子系统</h1><p>内核中对Platform设备的支持由Platform子系统实现。有关的实现位于<code>include/linux/platform_device.h</code>和<code>drivers/base/platform.c</code>两个文件中，它的软件架构如下：</p>
+<p><img src="http://www.wowotech.net/content/uploadfile/201405/8cf2e12b367205a9c1c7888e2dcb818520140507093250.gif" alt=""></p>
+<p>由图可知，Platform子系统框架在内核中的实现主要包括三个部分：</p>
+<ul>
+<li>Platform Bus，基于底层<code>bus_type</code>类，抽象出一个虚拟的Platform bus，用于挂载Platform设备； </li>
+<li>Platform Device，基于底层<code>device</code>类，抽象出Platform Device类，用结构体类型<code>struct platform_device</code>表示，用于表示Platform设备。驱动模块可以定义该类的设备对象然后将其添加到系统的Platform bus上去。 </li>
+<li>Platform Driver，基于底层<code>device_driver</code>类，抽象出Platform Driver类，用结构体类型<code>struct platform_driver</code>表示，用于表示Platform驱动。驱动模块可以定义该类的驱动对象然后将其注册到系统的Platform bus上去。</li>
+</ul>
+<p>其中Platform Device和Platform Driver这两个新的类会向其它Driver模块提供封装好的API。</p>
+<h1 id="Platform子系统的初始化"><a href="#Platform子系统的初始化" class="headerlink" title="Platform子系统的初始化"></a>Platform子系统的初始化</h1><p>Platform子系统的初始化是由<code>drivers/base/platform.c</code>中的<code>platform_bus_init()</code>完成的，该接口的实现和动作如下：</p>
+<pre><code>int __init platform_bus_init(void)
+{
+    int error;
+
+    early_platform_cleanup();
+
+    error = device_register(&amp;platform_bus);
+    if (error)
+        return error;
+    error =  bus_register(&amp;platform_bus_type);
+    if (error)
+        device_unregister(&amp;platform_bus);
+    return error;
+}
+</code></pre><p><code>early_platform_cleanup()</code>清除所有和Early device/driver相关的代码。因为执行到这里的时候，证明系统已经完成了Early阶段的启动，转而进行正常的设备初始化、启动操作，所以不再需要Early Platform相关的东西。</p>
+<p><code>device_register()</code>注册一个名称为<code>platform_bus</code>的设备，该设备是一个虚拟设备。该步骤会在sysfs中创建<code>/sys/devices/platform/</code>目录，所有的Platform设备，一旦被添加后都会出现在此目录下。</p>
+<pre><code>fs@ubuntu$ ls /sys/devices/platform/ -l
+total 0
+drwxr-xr-x 3 root root    0 Apr 10 15:45 alarmtimer
+drwxr-xr-x 3 root root    0 Apr 10 15:45 eisa.0
+drwxr-xr-x 4 root root    0 Apr 10 15:45 Fixed MDIO bus.0
+drwxr-xr-x 4 root root    0 Apr 10 15:45 floppy.0
+drwxr-xr-x 5 root root    0 Apr 10 15:45 i8042
+drwxr-xr-x 3 root root    0 Apr 10 15:45 pcspkr
+drwxr-xr-x 2 root root    0 May  4 15:46 power
+drwxr-xr-x 3 root root    0 Apr 10 15:45 reg-dummy
+drwxr-xr-x 4 root root    0 Apr 10 15:45 serial8250
+-rw-r--r-- 1 root root 4096 Apr 10 15:45 uevent
+</code></pre><p><code>bus_register()</code>会注册一个名称为<code>platform_bus_type</code>的bus，该步骤会在sysfs中创建<code>/sys/bus/platform/</code>目录并在该目录下创建devices和drivers两个目录以及一些attribute(以文件的形式)。</p>
+<pre><code>fs@ubuntu$ ls /sys/bus/platform/ -l
+total 0
+drwxr-xr-x  2 root root    0 Apr 10 15:45 devices
+drwxr-xr-x 18 root root    0 Apr 10 15:45 drivers
+-rw-r--r--  1 root root 4096 May  4 15:47 drivers_autoprobe
+--w-------  1 root root 4096 May  4 15:47 drivers_probe
+--w-------  1 root root 4096 May  4 15:47 uevent
+</code></pre><h1 id="platform-device和platform-driver的注册"><a href="#platform-device和platform-driver的注册" class="headerlink" title="platform device和platform driver的注册"></a>platform device和platform driver的注册</h1><p>platform总线建立好后，其他子模块（包括我们的驱动模块）就可以在该总线上添加设备，以及注册驱动。</p>
+<h2 id="添加platform-device"><a href="#添加platform-device" class="headerlink" title="添加platform device"></a>添加platform device</h2><p>使用<code>platform_device_add()</code></p>
+<p>例子：</p>
+<pre><code>static struct platform_device *tb0219_platform_device;
+
+...
+
+tb0219_platform_device = platform_device_alloc(&quot;TB0219&quot;, -1);
+
+...
+
+retval = platform_device_add(tb0219_platform_device);
+</code></pre><h2 id="注册platform-driver"><a href="#注册platform-driver" class="headerlink" title="注册platform driver"></a>注册platform driver</h2><p>使用<code>platform_driver_register()</code></p>
+<pre><code>static struct platform_driver dm9000_driver = {
+    .driver    = {
+        .name    = &quot;dm9000&quot;,
+        .owner     = THIS_MODULE,
+        .pm     = &amp;dm9000_drv_pm_ops,
+    },
+    .probe   = dm9000_probe,
+    .remove  = __devexit_p(dm9000_drv_remove),
+};
+
+...
+
+retval = platform_driver_register(&amp;dm9000_driver);
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/platform-device/" rel="tag">#platform device</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/05/04/20160504-spi-s5pc100/" rel="next" title="基于S5PC100学习SPI">
+                <i class="fa fa-chevron-left"></i> 基于S5PC100学习SPI
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/05/12/20160512-machine_desc/" rel="prev" title="machine_desc结构体">
+                machine_desc结构体 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/05/05/20160505-lk-platform-drv/"
+           data-title="Linux的platform设备" data-url="http://unicornx.github.io/2016/05/05/20160505-lk-platform-drv/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#Platform设备的概念"><span class="nav-number">1.</span> <span class="nav-text">Platform设备的概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Platform子系统"><span class="nav-number">2.</span> <span class="nav-text">Platform子系统</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Platform子系统的初始化"><span class="nav-number">3.</span> <span class="nav-text">Platform子系统的初始化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#platform-device和platform-driver的注册"><span class="nav-number">4.</span> <span class="nav-text">platform device和platform driver的注册</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#添加platform-device"><span class="nav-number">4.1.</span> <span class="nav-text">添加platform device</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#注册platform-driver"><span class="nav-number">4.2.</span> <span class="nav-text">注册platform driver</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

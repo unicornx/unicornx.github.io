@@ -1,0 +1,988 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,mini2440,U-boot," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-12-24
+使用的U-boot是tekkaman提供的基于u-boot-2009.11所做的修改，具体参考“Mini2440 之U-boot 使用及移植详细手册 2010-4-16”。使用的linux kernel镜像和rootfs都是mini24">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在mini2440上实验U-boot的USB下载到nandflash并通过nandflash引导Linux内核">
+<meta property="og:url" content="http://unicornx.github.io/2015/12/24/20150808-bootup-linux/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-12-24
+使用的U-boot是tekkaman提供的基于u-boot-2009.11所做的修改，具体参考“Mini2440 之U-boot 使用及移植详细手册 2010-4-16”。使用的linux kernel镜像和rootfs都是mini24">
+<meta property="og:image" content="http://unicornx.github.io/img/20150808-bootup-linux/flashmap.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150808-bootup-linux/sdrammap.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:50.127Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在mini2440上实验U-boot的USB下载到nandflash并通过nandflash引导Linux内核">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-12-24
+使用的U-boot是tekkaman提供的基于u-boot-2009.11所做的修改，具体参考“Mini2440 之U-boot 使用及移植详细手册 2010-4-16”。使用的linux kernel镜像和rootfs都是mini24">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20150808-bootup-linux/flashmap.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/12/24/20150808-bootup-linux/"/>
+
+  <title> 在mini2440上实验U-boot的USB下载到nandflash并通过nandflash引导Linux内核 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                在mini2440上实验U-boot的USB下载到nandflash并通过nandflash引导Linux内核
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-12-24T21:31:25+08:00" content="2015-12-24">
+              2015-12-24
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Bootloader/" itemprop="url" rel="index">
+                    <span itemprop="name">Bootloader</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/12/24/20150808-bootup-linux/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/24/20150808-bootup-linux/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-12-24</p>
+<p>使用的U-boot是tekkaman提供的基于u-boot-2009.11所做的修改，具体参考“Mini2440 之U-boot 使用及移植详细手册 2010-4-16”。<br>使用的linux kernel镜像和rootfs都是mini2440提供的预制版本，无修改。</p>
+<h1 id="预备知识，两张表"><a href="#预备知识，两张表" class="headerlink" title="预备知识，两张表"></a>预备知识，两张表</h1><p>涉及到U-boot通过nandflash引导Linux内核，所以需要先了解一下mini2440的两张表。</p>
+<h2 id="第一张是nandflash的分区表"><a href="#第一张是nandflash的分区表" class="headerlink" title="第一张是nandflash的分区表"></a>第一张是nandflash的分区表</h2><p>该表定义了nandflash的分区情况，类似PC机上硬盘的分区一样，如下图所示，注我的mini2440配置的是一片NAND flash，型号是SAMSUNG的K9F2G08U0B，容量大小为256MB(Byte)。<br><img src="/img/20150808-bootup-linux/flashmap.png" alt=""><br><a id="more"></a><br>具体可以参考mini2440提供的Linux内核部分代码，在<code>arch/arm/mach-s3c2440/mach-mini2440.c</code>中有以下代码注明了mini2440上的nand flash的分区表信息，添加注释如下；</p>
+<pre><code>static struct mtd_partition mini2440_default_nand_part[] = {
+    [0] = {
+        .name = &quot;supervivi&quot;,
+        .size = 0x00040000,
+        .offset = 0,
+    },
+    [1] = {
+        .name = &quot;param&quot;,
+        .offset = 0x00040000,
+        .size = 0x00020000,
+    },
+    [2] = {
+        .name = &quot;Kernel&quot;,
+        .offset = 0x00060000,
+        .size = 0x00500000,
+    },
+    [3] = {
+        .name = &quot;root&quot;,
+        .offset = 0x00560000,
+        .size = 1024 * 1024 * 1024,
+    },
+    [4] = {
+        .name = &quot;nand&quot;,
+        .offset = 0x00000000,
+        .size = 1024 * 1024 * 1024, //
+    }
+};
+</code></pre><p>这个结构体的定义说明了如下信息：</p>
+<table>
+<thead>
+<tr>
+<th>Offset(Hex)</th>
+<th>Size(Hex)</th>
+<th>分区说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>0x40000</td>
+<td><code>bootloader分区</code>，可以放置u-boot, supervivi 等内容，对应/dev/mtdblock0</td>
+</tr>
+<tr>
+<td>0x40000</td>
+<td>0x20000</td>
+<td><code>param分区</code>，其实也属于bootloader的一部分，用于存放bootloader如u-boot的参数，环境变量等。如果u-boot 比较大，可以把此区域覆盖掉，不会影响系统启动，对应/dev/mtdblock1</td>
+</tr>
+<tr>
+<td>0x60000</td>
+<td>0x500000</td>
+<td><code>kernel分区</code>，大小为5M，足够放下大部分自己定制的巨型内核了，比如内核使用了更大的Linux Logo 图片等，对应/dev/mtdblock2</td>
+</tr>
+<tr>
+<td>0x560000</td>
+<td>rest</td>
+<td><code>root文件系统分区</code>，友善之臂主要用来存放yaffs2文件系统内容，对应/dev/mtdblock3</td>
+</tr>
+<tr>
+<td>0</td>
+<td>whole</td>
+<td>此区域代表了整片的nand flash，主要是预留使用，比如以后可以通过应用程序访问读取/dev/mtdblock4就能实现备份整片nand flash了。</td>
+</tr>
+</tbody>
+</table>
+<p>注：<br>supervivi里和分区表有关的命令：</p>
+<ul>
+<li>功能[x]：就是根据以上分区表对nandflash进行分区，而且该分区表只对Linux有效。</li>
+<li>功能[v]：通过USB下载bootloader到Nand Flash 的<code>bootloader分区</code></li>
+<li>功能[k]：通过USB下载Linux内核到Nand Flash 的<code>kernel分区</code></li>
+<li>功能[y]：通过USB下载yaffs文件系统映象到Nand Flash 的<code>root文件系统分区</code></li>
+</ul>
+<h2 id="第二张是SDRAM里放置运行期间程序指令和数据的分区表："><a href="#第二张是SDRAM里放置运行期间程序指令和数据的分区表：" class="headerlink" title="第二张是SDRAM里放置运行期间程序指令和数据的分区表："></a>第二张是SDRAM里放置运行期间程序指令和数据的分区表：</h2><p><img src="/img/20150808-bootup-linux/sdrammap.png" alt=""></p>
+<p>主要参考了源代码的如下文件：</p>
+<pre><code>cpu/arm920t/u-boot.lds
+cpu/arm920t/start.S
+board/tekkamanninja/mini2440/config.mk //&lt;-- TEXT_BASE
+lib_arm/board.c
+</code></pre><p>特别地<code>board/tekkamanninja/mini2440/config.mk</code>有这么一段注释</p>
+<pre><code># SMDK2410 has 1 bank of 64 MB DRAM
+#
+# 3000&apos;0000 to 3400&apos;0000
+#
+# Linux-Kernel is expected to be at 3000&apos;8000, entry 3000&apos;8000
+# optionally with a ramdisk at 3080&apos;0000
+#
+# we load ourself to 33F8&apos;0000
+#
+# download area is 3300&apos;0000
+
+TEXT_BASE = 0x33F80000
+</code></pre><p>根据上文我们知道了U-boot的运行期地址，也是第一阶段从nandflash搬移到SDRAM的目标起始地址就是TEXT_BASE(0x33F80000)，linux内核在SDRAM的起始地址是0x30008000。</p>
+<p>红色方框所标识的范围是SDRAM在mini2440上对应的物理地址范围。我们知道对于mini2440，SDRAM是分配的bank6，总范围是0x30000000~0x3800000，总共128M字节，但物理上SDRAM芯片只有64M，所以实际物理地址范围：0x30000000~0x3400000，共64M字节。具体可以参考<a href="/2015/07/28/20150728-mini2440-sdram">基于mini2440开发板学习S3C2440的内存控制器</a>  </p>
+<p>对U-boot下方蓝色的区域的理解可以参考<code>lib_arm/board.c</code>文件中的start_armboot()函数的前面部分初始化数据区的代码</p>
+<p>部分宏定义参考<code>include/configs/mini2440.h</code></p>
+<pre><code>#define CONFIG_SYS_MALLOC_LEN        (CONFIG_ENV_SIZE + 128*1024)
+#define CONFIG_ENV_SIZE        0x10000
+#define CONFIG_SYS_GBL_DATA_SIZE    128    /* size in bytes reserved for initial data */
+</code></pre><table>
+<thead>
+<tr>
+<th>Section Name</th>
+<th>起始地址</th>
+<th>结束地址</th>
+<th>大小(字节)</th>
+<th>相关代码</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>未分配区域</td>
+<td>0x30000000</td>
+<td></td>
+<td></td>
+<td>PHYS_SDRAM_1</td>
+</tr>
+<tr>
+<td>Linux Kernel</td>
+<td>0x30008000</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>ramdisk</td>
+<td>0x30800000</td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>stack user</td>
+<td>0x33F00000</td>
+<td></td>
+<td></td>
+<td>参考<code>cpu/arm920t/start.S</code>中stack_setup标号后的代码，感觉应该将<code>ldr    r0, _TEXT_BASE</code>改为<code>ldr    r0, _start_armboot</code>更符合第二阶段中start_armboot()对内存的划分使用</td>
+</tr>
+<tr>
+<td>starck abort</td>
+<td></td>
+<td></td>
+<td>12</td>
+<td>参考<code>cpu/arm920t/start.S</code>中stack_setup标号后的代码</td>
+</tr>
+<tr>
+<td>stack fiq</td>
+<td>动态计算</td>
+<td>FIQ_STACK_START</td>
+<td>4K</td>
+<td>可选，使能了中断才有效。参考<code>lib_arm/interrupts.c</code>中的interrupt_init()</td>
+</tr>
+<tr>
+<td>stack irq</td>
+<td>动态计算</td>
+<td>IRQ_STACK_START</td>
+<td>4K</td>
+<td>可选，使能了中断才有效。参考<code>lib_arm/interrupts.c</code>中的interrupt_init()</td>
+</tr>
+<tr>
+<td>reserved</td>
+<td></td>
+<td></td>
+<td>4</td>
+<td>参考<code>lib_arm/interrupts.c</code>中的interrupt_init()</td>
+</tr>
+<tr>
+<td>global data</td>
+<td></td>
+<td></td>
+<td>&lt;128</td>
+<td>全局数据，低地址部分还包括了bd_t结构。总大小sizeof(gd_t)，不超过CONFIG_SYS_GBL_DATA_SIZE<br>参考board.c@lib_arm下start_armboot()代码<code>gd = (gd_t*)(_armboot_start - CONFIG_SYS_MALLOC_LEN - sizeof(gd_t));</code></td>
+</tr>
+<tr>
+<td>malloc area</td>
+<td></td>
+<td></td>
+<td>128K</td>
+<td>malloc和env两块的总大小由<code>CONFIG_SYS_MALLOC_LEN</code>定义</td>
+</tr>
+<tr>
+<td>enviroment area</td>
+<td></td>
+<td></td>
+<td>64K</td>
+<td><code>CONFIG_ENV_SIZE</code>，注意board.c@lib_arm下start_armboot()代码里是从_armboot_start开始往下计算的，所以在mem_malloc_init()中实际env area覆盖了一部分U-boot的代码区域，譬如异常向量表部分</td>
+</tr>
+<tr>
+<td>U-boot/monitor</td>
+<td>_armboot_start</td>
+<td></td>
+<td></td>
+<td>U-boot代码在_armboot_start之后的部分</td>
+</tr>
+<tr>
+<td>BSS</td>
+<td>__bss_start</td>
+<td>_end</td>
+<td></td>
+<td>参考<code>cpu/arm920t/u-boot.lds</code></td>
+</tr>
+</tbody>
+</table>
+<p>部分参考文件：<br><a href="http://wenku.baidu.com/link?url=zkof-GWWDAd30acLmZjD4Frp0tbV7laVpFpVih5tHIrDcuLyiiVhYYKVQEcHnkI8nRLlwGS0whGLlIFy7ZzHC0NhZzgPCmG7f3iO8veobEa" target="_blank" rel="external">http://wenku.baidu.com/link?url=zkof-GWWDAd30acLmZjD4Frp0tbV7laVpFpVih5tHIrDcuLyiiVhYYKVQEcHnkI8nRLlwGS0whGLlIFy7ZzHC0NhZzgPCmG7f3iO8veobEa</a><br><a href="http://blog.sina.com.cn/s/blog_751b91460102uzd7.html" target="_blank" rel="external">http://blog.sina.com.cn/s/blog_751b91460102uzd7.html</a><br><a href="http://blog.csdn.net/yaozhenguo2006/article/details/6930633" target="_blank" rel="external">http://blog.csdn.net/yaozhenguo2006/article/details/6930633</a><br><a href="http://blog.chinaunix.net/uid-28236237-id-3865045.html" target="_blank" rel="external">http://blog.chinaunix.net/uid-28236237-id-3865045.html</a></p>
+<h1 id="实验步骤陈述"><a href="#实验步骤陈述" class="headerlink" title="实验步骤陈述"></a>实验步骤陈述</h1><p>实验的目的是测试tekkaman的U-boot的USB下载功能，即从主机PC下载文件（譬如bootloader，Linux kernel等）并烧写到nandflash中，以及从nandfalsh中读出原先烧写好的kernel，实现引导启动。<br>实验过程记录如下</p>
+<h2 id="mkimage"><a href="#mkimage" class="headerlink" title="mkimage"></a>mkimage</h2><p>首先为确保Linux kernel能够被U-boot引导启动，必须要按照U-boot的要求用U-boot的mkimage工具处理内核映像zImage，具体参考“mini2440之U-boot移植详细手册”，4.4章节部分。<br>mkimage这个工具在我们运行<code>make</code>制作u-boot.bin的时候就会附带也制作出来，生成在U-boot源码的顶层目录的<code>tools</code>路径下。</p>
+<pre><code>$ mkimage -n &apos;tekkaman&apos; -A arm -O linux -T kernel -C none -a 0x30008000 -e 0x30008040 -d zImage_X35 uImage_X35
+</code></pre><p>这里指定生成的文件为uImage_X35，zImage_X35是直接使用了mini2440预先提供的内核镜像文件即可。</p>
+<h2 id="修改tekkaman提供的2009-11版本的U-boot里的一个bug。"><a href="#修改tekkaman提供的2009-11版本的U-boot里的一个bug。" class="headerlink" title="修改tekkaman提供的2009.11版本的U-boot里的一个bug。"></a>修改tekkaman提供的2009.11版本的U-boot里的一个bug。</h2><p>如果不修改这个问题，则后面引导启动kernel时会发现一旦使用<code>saveenv</code>命令保存环境变量后kernel就会被破环，导致引导失败，即运行<code>bootm</code>命令后串口终端上会输出：</p>
+<pre><code>Wrong Image Format for bootm command
+ERROR: can&apos;t get kernel image!
+</code></pre><p>同时还有一个副作用就是重启后上次设置的环境变量全部丢失，启动流程又会显示</p>
+<pre><code>*** Warning - bad CRC, using default environment
+</code></pre><p>具体原因和解决方法参考<a href="http://blog.sina.com.cn/s/blog_751b91460102uzd7.html" target="_blank" rel="external">记录一下自己在mini2440上面 使用uboot的曲折的经历</a>，摘录关键描述如下：<br>在tekkaman提供的U-boot源码文件include/configs/mini2440.h中有这么一行宏定义：</p>
+<pre><code>#define CONFIG_ENV_OFFSET 0x60000
+</code></pre><p>这个宏定义了U-boot的环境变量在nandflash中保存区域的起始地址，参考前述mini2440的nandflash分区表，我们可以看到该地址与kernel分区位置重叠了，一旦我们更新保存了环境变量到nandflash上就会覆盖kernel的内容，反之亦然。</p>
+<p>修改方法，将环境变量保存到param分区去：</p>
+<pre><code>#define CONFIG_ENV_OFFSET 0x40000。
+</code></pre><h2 id="usb下载和烧写nandflash"><a href="#usb下载和烧写nandflash" class="headerlink" title="usb下载和烧写nandflash"></a>usb下载和烧写nandflash</h2><h3 id="step1-确保supervivi"><a href="#step1-确保supervivi" class="headerlink" title="step1 确保supervivi"></a>step1 确保supervivi</h3><p>先确保mini2440的norflash里已经有supervivi，一个原因是万一后面操作过程中有误，nandflash里的内容被破坏，我们还有补救的办法，还有一个原因是我们仍然需要用supervivi下载rootfs。实验里同样直接使用了mini2440原生提供的rootfs。但由于FriendlyARM提供的rootfs太大，不可能通过uboot一次性下载到SDRAM中再烧写到nandflash中(否则会覆盖SDRAM中高端地址部分的uboot内容)。所以至少rootfs我们仍然必须要通过supervivi来烧写，除非我们可以改进uboot，将usb下载和烧写nandflash集成起来，采用分片的方式，这里暂且表过不提。<br>往norflash里烧写supervivi可以使用HJTAG。烧写方法参考<a href="/2015/08/03/20150803-write-flash-hjtag">使用HJTAG对mini2440的flash进行烧写和擦除</a></p>
+<h3 id="step2-通过supervivi烧写U-boot和rootfs。"><a href="#step2-通过supervivi烧写U-boot和rootfs。" class="headerlink" title="step2 通过supervivi烧写U-boot和rootfs。"></a>step2 通过supervivi烧写U-boot和rootfs。</h3><p>如前所示，先用Norflash方式启动mini2440，进入supervivi后依次执行如下操作</p>
+<ul>
+<li>通过命令选项<code>f</code>擦除整片nandflash</li>
+<li>通过命令选项<code>v</code>下载U-boot，这里是第一次烧写U-boot，仍然需要用supervivi或者通过JTAG。</li>
+<li>通过命令选项<code>y</code>下载rootfs。</li>
+</ul>
+<h3 id="step3-烧写U-boot和Kernel"><a href="#step3-烧写U-boot和Kernel" class="headerlink" title="step3 烧写U-boot和Kernel"></a>step3 烧写U-boot和Kernel</h3><p>此时可以波动开关将mini2440设置为从nandflash方式启动了。确保U-boot可以启动后，快按回车进入U-boot界面。<br>如果需要通过uboot的usb方式更新U-boot，可以如下执行, 在执行的命令后面我添加了注释：</p>
+<pre><code>[u-boot@MINI2440]# nand erase 0x0 0x60000 /* 擦除nandflash上的bootloader分区和param分区，参考前述mini2440的nandflash分区表 */
+
+NAND erase: device 0 offset 0x0, size 0x60000
+Erasing at 0x4000000300000 --   0% complete.
+OK
+[u-boot@MINI2440]# usbslave 1 0x30000000 /* 从PC机上通过usb下载文件到SDRAM的0x30000000处， 注意下载的文件大小千万不可覆盖U-Boot所在区域，参考前述mini2440的SDRAM分区表 */
+USB host is connected. Waiting a download.
+
+Now, Downloading [ADDRESS:30000000h,TOTAL:258262]
+RECEIVED FILE SIZE:  258262 (252KB/S, 1S)
+[u-boot@MINI2440]# nand write 0x30000000 0x0 0x40000 /* 将SDRAM上地址0x30000000开始的内容写到nandflash的地址为0处，大小为256K字节，注意不要越界param区域 */
+
+NAND write: device 0 offset 0x0, size 0x40000
+Writing at 0x2000000020000 -- 100% is complete. 262144 bytes written: OK
+</code></pre><p>如果需要通过uboot的usb方式更新kernel，可以如下执行, 在执行的命令后面我添加了注释：</p>
+<pre><code>[u-boot@MINI2440]# nand erase 0x60000 0x500000 /* 擦除nandflash上的kernel分区，参考前述mini2440的nandflash分区表 */
+
+NAND erase: device 0 offset 0x60000, size 0x500000
+Erasing at 0x54000002800000 --   0% complete.
+OK
+[u-boot@MINI2440]# usbslave 1 0x30000000 /* 从PC机上通过usb下载文件到SDRAM的0x30000000处， 注意下载的文件大小千万不可覆盖U-Boot所在区域，参考前述mini2440的SDRAM分区表 */
+USB host is connected. Waiting a download.
+
+Now, Downloading [ADDRESS:30000000h,TOTAL:2288382]
+RECEIVED FILE SIZE: 2288382 (446KB/S, 5S)
+[u-boot@MINI2440]# nand write 0x30000000 0x60000 0x300000 /* 将SDRAM上地址0x30000000开始的内容写到nandflash的地址为0处，大小为3M字节，这里不需要指定5M字节，因为可以观察得到我们的kernel镜像uImage_X35没那么大 */
+
+NAND write: device 0 offset 0x60000, size 0x300000
+Writing at 0x34000000020000 -- 100% is complete. 3145728 bytes written: OK
+</code></pre><h3 id="step4-从nandflah启动kernel"><a href="#step4-从nandflah启动kernel" class="headerlink" title="step4 从nandflah启动kernel"></a>step4 从nandflah启动kernel</h3><p>首先将nandflash的kernel分区内容读出并写到SDRAM的0x30008000起始地址处，注意这里SDRAM的地址不可以填低于0x30008000的地址，比如0x30000000，虽然根据<a href="http://blog.csdn.net/zjt289198457/article/details/6789680" target="_blank" rel="external">简要分析Uboot是如何启动内核</a>一文的分析，nandflash中的kernel读出来的时候是可以放在内核的任何地方的，但实际想想，不管你放哪里，由于当我们用<code>bootm</code>加载kernel的时候，do_bootm这个函数会先去读uImage的头部以获取该uImage的加载地址和入口地址，当发现该uImage目前所处的内存地址不等于它的加载地址时，该函数会将该uImage移动到它的加载地址上，则如果我们把kernel放在0x30000000处，则在上述移动的过程中，会自己覆盖自己，导致移动后kernel的内容发生错误。</p>
+<pre><code>[u-boot@MINI2440]# nand read 0x30008000 0x60000 0x300000
+NAND read: device 0 offset 0x60000, size 0x300000
+3145728 bytes read: OK
+</code></pre><p>调用<code>bootm</code> 从SDRAM里加载kernel开始运行</p>
+<pre><code>[u-boot@MINI2440]# bootm 0x30008000
+</code></pre><p>小技巧，U-boot有一个命令<code>md</code>可以用来看指定地址的内存信息。</p>
+<h3 id="step5-优化，自动从nandflah启动kernel"><a href="#step5-优化，自动从nandflah启动kernel" class="headerlink" title="step5 优化，自动从nandflah启动kernel"></a>step5 优化，自动从nandflah启动kernel</h3><p>step4中会发现内核会启动，但结果执行失败，主要原因是tekkaman提供的内核启动环境变量<code>bootargs</code>和FriendlyARM的内核不匹配导致。</p>
+<p>查看supervivi的boot启动参数，norlfash方式启动后输入<code>s</code>，看到如下子菜单后继续输入<code>v</code></p>
+<pre><code>##### Parameter Menu #####
+[r] Reset parameter table to default table
+[s] Set parameter
+[v] View the parameter table
+[w] Write the parameter table to flash memeory
+[q] Quit
+Enter your selection: v
+</code></pre><p>supervivi会打印出所有参数，包括最后一行显示的kernel启动参数如下：</p>
+<pre><code>Number of parameters: 9
+name                    :          hex             integer
+-------------------------------------------------------------
+mach_type               :       000007cf                 1999
+media_type              :       00000003                    3
+boot_mem_base           :       30000000            805306368
+baudrate                :       0001c200               115200
+xmodem                  :       00000001                    1
+xmodem_one_nak          :       00000000                    0
+xmodem_initial_timeout  :       000493e0               300000
+xmodem_timeout          :       000f4240              1000000
+boot_delay              :       01000000             16777216
+Linux command line: noinitrd root=/dev/mtdblock3 init=/linuxrc console=ttySAC0
+</code></pre><p>因此相应修改U-boot的环境变量<code>bootargs</code>和<code>bootcmd</code>如下：</p>
+<pre><code>[u-boot@MINI2440]# printenv
+bootargs=noinitrd root=/dev/nfs rw nfsroot=192.168.0.1:/home/tekkaman/working/nfs/rootfs ip=192.168.0.2:192.168.0.1::255.255.255.0 console=ttySAC0,115200 init=/linuxrc mem=64M
+bootcmd=nfs 0x30008000 192.168.0.1:/home/tekkaman/working/nfs/zImage.img;bootm
+bootdelay=1
+baudrate=115200
+...
+
+[u-boot@MINI2440]# setenv bootargs noinitrd root=/dev/mtdblock3 init=/linuxrc console=ttySAC0
+[u-boot@MINI2440]# setenv bootcmd &quot;nand read 0x30008000 0x60000 0x300000;bootm 0x30008000&quot;
+[u-boot@MINI2440]# saveenv
+Saving Environment to NAND...
+Erasing Nand...
+Erasing at 0x6000000000002 --   0% complete.
+Writing to Nand... done
+</code></pre><p>再重启如果不在设定时间内有键盘输入，则U-boot自动引导kernel并进入Linux的控制台。</p>
+<h1 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h1><ul>
+<li>Mini2440 之U-boot 使用及移植详细手册 2010-4-16</li>
+<li><a href="http://blog.chinaunix.net/uid-29261327-id-3992474.html" target="_blank" rel="external">mini2440 Nand分区表</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_751b91460102uzd7.html" target="_blank" rel="external">记录一下自己在mini2440上面 使用uboot的曲折的经历</a>(注，该文中提到了怎么样关闭uboot启动时，蜂鸣器发出声音的问题，留着以后再看。)</li>
+<li><a href="http://blog.csdn.net/zjt289198457/article/details/6789680" target="_blank" rel="external">简要分析Uboot是如何启动内核</a></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+            <a href="/tags/U-boot/" rel="tag">#U-boot</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/21/20151203-lk-v26322-makefiles/" rel="next" title="Linux 2.6.32.2内核的Documentation/kbuild/makefiles.txt">
+                <i class="fa fa-chevron-left"></i> Linux 2.6.32.2内核的Documentation/kbuild/makefiles.txt
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/12/26/20151226-transfer-params-btw-uboot-and-kernel/" rel="prev" title="U-boot和内核之间传递复杂参数的TAG方式">
+                U-boot和内核之间传递复杂参数的TAG方式 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/12/24/20150808-bootup-linux/"
+           data-title="在mini2440上实验U-boot的USB下载到nandflash并通过nandflash引导Linux内核" data-url="http://unicornx.github.io/2015/12/24/20150808-bootup-linux/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#预备知识，两张表"><span class="nav-number">1.</span> <span class="nav-text">预备知识，两张表</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#第一张是nandflash的分区表"><span class="nav-number">1.1.</span> <span class="nav-text">第一张是nandflash的分区表</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二张是SDRAM里放置运行期间程序指令和数据的分区表："><span class="nav-number">1.2.</span> <span class="nav-text">第二张是SDRAM里放置运行期间程序指令和数据的分区表：</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实验步骤陈述"><span class="nav-number">2.</span> <span class="nav-text">实验步骤陈述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#mkimage"><span class="nav-number">2.1.</span> <span class="nav-text">mkimage</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改tekkaman提供的2009-11版本的U-boot里的一个bug。"><span class="nav-number">2.2.</span> <span class="nav-text">修改tekkaman提供的2009.11版本的U-boot里的一个bug。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#usb下载和烧写nandflash"><span class="nav-number">2.3.</span> <span class="nav-text">usb下载和烧写nandflash</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#step1-确保supervivi"><span class="nav-number">2.3.1.</span> <span class="nav-text">step1 确保supervivi</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#step2-通过supervivi烧写U-boot和rootfs。"><span class="nav-number">2.3.2.</span> <span class="nav-text">step2 通过supervivi烧写U-boot和rootfs。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#step3-烧写U-boot和Kernel"><span class="nav-number">2.3.3.</span> <span class="nav-text">step3 烧写U-boot和Kernel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#step4-从nandflah启动kernel"><span class="nav-number">2.3.4.</span> <span class="nav-text">step4 从nandflah启动kernel</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#step5-优化，自动从nandflah启动kernel"><span class="nav-number">2.3.5.</span> <span class="nav-text">step5 优化，自动从nandflah启动kernel</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考："><span class="nav-number">3.</span> <span class="nav-text">参考：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

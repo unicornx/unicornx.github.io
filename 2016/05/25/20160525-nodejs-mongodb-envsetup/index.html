@@ -1,0 +1,756 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="Node.js,MongoDB," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-25">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Node.js + MongoDB 开发环境搭建">
+<meta property="og:url" content="http://unicornx.github.io/2016/05/25/20160525-nodejs-mongodb-envsetup/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-25">
+<meta property="og:updated_time" content="2016-05-25T06:36:02.568Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Node.js + MongoDB 开发环境搭建">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-25">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/05/25/20160525-nodejs-mongodb-envsetup/"/>
+
+  <title> Node.js + MongoDB 开发环境搭建 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Node.js + MongoDB 开发环境搭建
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-25T06:04:12+08:00" content="2016-05-25">
+              2016-05-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/internet/" itemprop="url" rel="index">
+                    <span itemprop="name">internet</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/25/20160525-nodejs-mongodb-envsetup/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/25/20160525-nodejs-mongodb-envsetup/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-05-25</p>
+<a id="more"></a>
+<h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><h1 id="Windows下环境搭建"><a href="#Windows下环境搭建" class="headerlink" title="Windows下环境搭建"></a>Windows下环境搭建</h1><h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="http://jingyan.baidu.com/article/f3e34a12ac10cef5eb653583.html" target="_blank" rel="external">Win7下MongoDB的安装和部署测试</a></li>
+<li><a href="http://blog.163.com/lei_xu/blog/static/357343502014233469737/" target="_blank" rel="external">Easy web - node.js + mongodb (1): 环境搭建</a></li>
+</ul>
+<p>注：这里使用的Windows系统为Windows7 64位版本。</p>
+<h2 id="安装Node-js"><a href="#安装Node-js" class="headerlink" title="安装Node.js"></a>安装Node.js</h2><ul>
+<li><p>进入<a href="http://nodejs.org/" target="_blank" rel="external">Node.js的官网</a> 下载<code>for Windows</code>的安装包，建议使用LTS的版本。我下载的是<code>v4.4.4 LTS</code>的版本，与之对应的最新的版本已经到<code>v6.2.0</code>，但如果不是为了尝试最新的功能，不建议下载最新的开发版本。</p>
+</li>
+<li><p>下载后是一个后缀名为<code>msi</code>的安装包，譬如<code>node-v4.4.4-x64.msi</code>，这里我的Windows系统是64位。双击后直接安装。缺省安装在<code>C:\Program Files\nodejs</code>目录下。查看<code>C:\Program Files\nodejs\node_modules</code>目录下只有一个干净的<code>npm</code>。因为我们的开发工程已经自带了所有必须的package，所以这里并不需要再额外安装其他的packages。</p>
+</li>
+<li><p>测试一下是否安装成功</p>
+<p>  <code>win + r</code>，输入cmd后回车，打开命令窗口，在命令窗口中输入: <code>node -v</code>, 回车. 若安装成功, 则会显示 node 的版本号。</p>
+</li>
+</ul>
+<h2 id="安装MongoDB"><a href="#安装MongoDB" class="headerlink" title="安装MongoDB"></a>安装MongoDB</h2><p>官方安装指导可以参考<a href="https://docs.mongodb.com/manual/tutorial/install-mongodb-on-windows/" target="_blank" rel="external">Install MongoDB Community Edition on Windows</a>。</p>
+<ul>
+<li><p>进入<a href="https://www.mongodb.com/download-center" target="_blank" rel="external">MongoDB官网的下载中心</a>。根据系统版本选择对应的MongoDB版本下载，譬如系统为Windows7 64bit，则选择Windows的64bit版本，选择”Community Server”系列就好了。</p>
+</li>
+<li><p>下载后是一个后缀名为<code>msi</code>的安装包，譬如<code>mongodb-win32-x86_64-3.2.4-signed.msi</code>。双击后直接安装。步骤参考<a href="http://jingyan.baidu.com/article/f3e34a12ac10cef5eb653583.html" target="_blank" rel="external">Win7下MongoDB的安装和部署测试</a>一直走到第5步为止。缺省安装在<code>C:\Program Files\MongoDB\</code>目录下。同时</p>
+</li>
+<li><p>我们会发现所有的可执行程序都放在<code>C:\Program Files\MongoDB\Server\3.2\bin</code>下。为方便后面命令的执行，将这个目录添加到系统路径中。方法参考<a href="http://jingyan.baidu.com/article/15622f241a597afdfdbea561.html" target="_blank" rel="external">怎样打开并设置win7系统环境变量</a>。把上述<code>C:\Program Files\MongoDB\Server\3.2\bin</code>路径添加到系统变量的Path中。</p>
+</li>
+<li><p>安装MongoDB服务</p>
+<p>  首先确保MongoDB需要的存放数据库文件和日志文件的目录必须存在。MongoDB默认的数据库目录为：<code>C:\data\db</code>。但也可以在安装服务时自己指定。我们采用的是自己在命令行中自己指定。</p>
+<p>  假设我们将数据库文件存放在<code>D:\temp\data\db</code>，将日志文件存放在<code>D:\temp\
+data\log</code>，手动创建以上目录。</p>
+<p>  然后<code>win + r</code>，输入cmd后回车，打开命令窗口，在命令窗口中输入:</p>
+<pre><code>mongod.exe --dbpath &quot;D:\temp\data\db&quot; --logpath &quot;D:\temp\data\log\1.log&quot; --install --serviceName &quot;mongodb&quot;
+</code></pre><p>  <code>--serviceName</code>这个参数是用于指定我们安装的服务的名字。可以在Windows的服务管理器里看到，参考<a href="http://jingyan.baidu.com/article/f3e34a12ac10cef5eb653583.html" target="_blank" rel="external">Win7下MongoDB的安装和部署测试</a>的步骤8</p>
+</li>
+<li><p>启动/停止MonggoDB服务</p>
+<p>  <code>win + r</code>，输入cmd后回车，打开命令窗口，在命令窗口中输入:</p>
+<ul>
+<li>启动服务：<code>net start mongodb</code></li>
+<li>停止服务：<code>net stop mongodb</code></li>
+</ul>
+</li>
+<li><p>测试服务</p>
+<p>  <code>win + r</code>，输入cmd后回车，打开命令窗口，在命令窗口中输入: <code>mongo.exe</code>，如果能看到欢迎界面即说明工作正常，譬如：</p>
+<pre><code>...
+connecting to: test
+Welcome to the MongoDB shell.
+</code></pre></li>
+</ul>
+<p>貌似如此这般以后就ok了，不需要参考<a href="http://blog.163.com/lei_xu/blog/static/357343502014233469737/" target="_blank" rel="external">Easy web - node.js + mongodb (1): 环境搭建</a>的<code>1.3.2 把mongo设置成一个windows的服务</code>所述设置，机器重启后服务依然可用。</p>
+<h2 id="运行项目"><a href="#运行项目" class="headerlink" title="运行项目"></a>运行项目</h2><p><code>win + r</code>，输入cmd后回车，打开命令窗口。进入项目源码目录，譬如<code>D:\ws\webrtc\WebRtc0.5</code>，运行如下命令：</p>
+<pre><code>D:\ws\webrtc\WebRtc0.5&gt;node app.js
+</code></pre><p>打开浏览器，地址栏输入<code>http://localhost:8080/</code>，回车即可看到系统主页面。</p>
+<h1 id="Linux下环境搭建"><a href="#Linux下环境搭建" class="headerlink" title="Linux下环境搭建"></a>Linux下环境搭建</h1><h2 id="参考-1"><a href="#参考-1" class="headerlink" title="参考"></a>参考</h2><ul>
+<li><a href="http://www.linuxidc.com/Linux/2014-12/110983.htm" target="_blank" rel="external">Ubuntu 14.04下搭建Node.js开发环境</a> 里面有如何在Ubuntu中搭建WebStorm的介绍</li>
+<li><a href="https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions" target="_blank" rel="external">Installing Node.js via package manager</a> 官方的安装说明</li>
+<li>[如何在Ubuntu14.04服务器上安装NodeJS(]<a href="http://www.nodejs.net/a/20141106/145909.html" target="_blank" rel="external">http://www.nodejs.net/a/20141106/145909.html</a>)</li>
+</ul>
+<p>注：这里使用的Ubuntu系统为14.04 LTS 64位版本。</p>
+<h2 id="安装Node-js-1"><a href="#安装Node-js-1" class="headerlink" title="安装Node.js"></a>安装Node.js</h2><ul>
+<li><p>进入<a href="https://nodejs.org/en/download/" target="_blank" rel="external">Node.js的下载官网</a> 下载<code>Source Code</code>的tar包，建议使用LTS的版本。我下载的是<code>node-v4.4.4.tar.gz</code>。</p>
+</li>
+<li><p>下载后执行如下操作</p>
+<p>  先安装编译工具，否则后续操作configure时会报警<code>WARNING: failed to autodetect C++ compiler version (CXX=g++)</code>，具体参考<a href="https://bbs.deepin.org/forum.php?mod=viewthread&amp;tid=36496&amp;extra=" target="_blank" rel="external">编译安装nodejs不通过，请问怎么破(搞定了）</a></p>
+<pre><code>$ sudo apt-get install build-essential
+</code></pre><p>  然后按如下步骤进行编译和安装</p>
+<pre><code>$ tar xzf node-v4.4.4.tar.gz 
+$ cd node-v4.4.4/
+$ ./configure 
+$ make
+$ sudo make install
+</code></pre></li>
+<li><p>测试一下是否安装成功</p>
+<p>  输入: <code>node -v</code>, 回车. 若安装成功, 则会显示 node 的版本号。</p>
+</li>
+</ul>
+<h2 id="安装MongoDB-1"><a href="#安装MongoDB-1" class="headerlink" title="安装MongoDB"></a>安装MongoDB</h2><p>官方安装指导可以参考<a href="https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/" target="_blank" rel="external">Install MongoDB Community Edition on Ubuntu</a>。</p>
+<p>但问题是如果从官方的repo下载速度奇慢，参考<a href="https://ruby-china.org/topics/18028" target="_blank" rel="external">Mongodb 安装慢到极致</a>，所以我们还是使用ubuntu原生提供的版本，虽然版本老一点但安装速度快得多。</p>
+<ul>
+<li><p>安装步骤</p>
+<pre><code>$ sudo apt-get install mongodb
+</code></pre></li>
+<li><p>安装完毕后缺省服务已经启动</p>
+</li>
+</ul>
+<h2 id="运行项目-1"><a href="#运行项目-1" class="headerlink" title="运行项目"></a>运行项目</h2><p>进入项目源码目录，譬如<code>~/ws/WebRtc0.5</code>，运行如下命令：</p>
+<pre><code>$ node ./app.js
+</code></pre><p>打开FireFox浏览器，地址栏输入<code>http://localhost:8080/</code>，回车即可看到系统主页面。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/Node-js/" rel="tag">#Node.js</a>
+          
+            <a href="/tags/MongoDB/" rel="tag">#MongoDB</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/05/17/20160517-make-kernel/" rel="next" title="针对mini2440制作一个最小化的可启动的内核">
+                <i class="fa fa-chevron-left"></i> 针对mini2440制作一个最小化的可启动的内核
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/07/17/20160717-mongodb/" rel="prev" title="Mongodb">
+                Mongodb <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/05/25/20160525-nodejs-mongodb-envsetup/"
+           data-title="Node.js + MongoDB 开发环境搭建" data-url="http://unicornx.github.io/2016/05/25/20160525-nodejs-mongodb-envsetup/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#前言"><span class="nav-number">1.</span> <span class="nav-text">前言</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Windows下环境搭建"><span class="nav-number">2.</span> <span class="nav-text">Windows下环境搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考"><span class="nav-number">2.1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Node-js"><span class="nav-number">2.2.</span> <span class="nav-text">安装Node.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装MongoDB"><span class="nav-number">2.3.</span> <span class="nav-text">安装MongoDB</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行项目"><span class="nav-number">2.4.</span> <span class="nav-text">运行项目</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Linux下环境搭建"><span class="nav-number">3.</span> <span class="nav-text">Linux下环境搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#参考-1"><span class="nav-number">3.1.</span> <span class="nav-text">参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装Node-js-1"><span class="nav-number">3.2.</span> <span class="nav-text">安装Node.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#安装MongoDB-1"><span class="nav-number">3.3.</span> <span class="nav-text">安装MongoDB</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#运行项目-1"><span class="nav-number">3.4.</span> <span class="nav-text">运行项目</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

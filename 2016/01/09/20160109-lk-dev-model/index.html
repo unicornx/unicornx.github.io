@@ -1,0 +1,977 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,driver,device,sysfs," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-09
+注: 有关设备模型和sysfs是一个很大的话题，我的很多理解还不是很成熟，匆忙写在这里大部分也就是个笔记罢了。
+主要参考文章：
+
+ldd3
+lkd3
+ulk3
+使用/sys文件系统访问Linux内核
+Linux设备模型 (1)
+Linu">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux设备模型和sysfs">
+<meta property="og:url" content="http://unicornx.github.io/2016/01/09/20160109-lk-dev-model/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-09
+注: 有关设备模型和sysfs是一个很大的话题，我的很多理解还不是很成熟，匆忙写在这里大部分也就是个笔记罢了。
+主要参考文章：
+
+ldd3
+lkd3
+ulk3
+使用/sys文件系统访问Linux内核
+Linux设备模型 (1)
+Linu">
+<meta property="og:image" content="http://www.th7.cn/d/file/p/2014/07/06/bb3a144a29f75025a5c1b8bd94248145.png">
+<meta property="og:image" content="http://pic002.cnblogs.com/images/2010/175492/2010120909474854.jpg">
+<meta property="og:updated_time" content="2016-03-18T22:59:27.685Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux设备模型和sysfs">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-09
+注: 有关设备模型和sysfs是一个很大的话题，我的很多理解还不是很成熟，匆忙写在这里大部分也就是个笔记罢了。
+主要参考文章：
+
+ldd3
+lkd3
+ulk3
+使用/sys文件系统访问Linux内核
+Linux设备模型 (1)
+Linu">
+<meta name="twitter:image" content="http://www.th7.cn/d/file/p/2014/07/06/bb3a144a29f75025a5c1b8bd94248145.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/01/09/20160109-lk-dev-model/"/>
+
+  <title> Linux设备模型和sysfs | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux设备模型和sysfs
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-09T21:42:12+08:00" content="2016-01-09">
+              2016-01-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/09/20160109-lk-dev-model/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/09/20160109-lk-dev-model/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-01-09</p>
+<p>注: 有关设备模型和sysfs是一个很大的话题，我的很多理解还不是很成熟，匆忙写在这里大部分也就是个笔记罢了。</p>
+<p>主要参考文章：</p>
+<ul>
+<li>ldd3</li>
+<li>lkd3</li>
+<li>ulk3</li>
+<li><a href="http://www.ibm.com/developerworks/cn/linux/l-cn-sysfs/" target="_blank" rel="external">使用/sys文件系统访问Linux内核</a></li>
+<li><a href="http://www.cnblogs.com/wwang/archive/2010/12/09/1897106.html" target="_blank" rel="external">Linux设备模型 (1)</a></li>
+<li><a href="http://www.cnblogs.com/wwang/archive/2010/12/16/1902721.html" target="_blank" rel="external">Linux设备模型 (2)</a> - 该文章有实际的例子讲解kobject的父子层次关系和kset之间的区别。</li>
+<li><a href="http://www.th7.cn/system/lin/201407/62364.shtml" target="_blank" rel="external">linux device model简述</a> - 内容一般，但有一张我曾经想补充的图。</li>
+<li>内核代码v2.6.32.2</li>
+</ul>
+<p>其他参考文章：</p>
+<ul>
+<li><a href="http://www.wowotech.net/sort/device_model" target="_blank" rel="external">蜗窝科技</a> - 从嵌入式角度诠释设备模型的相关概念</li>
+<li><a href="http://blog.csdn.net/duqi_2009/article/details/17164095" target="_blank" rel="external">linux设备模型与内核中的面向对象思想</a></li>
+</ul>
+<a id="more"></a>
+<h1 id="总论"><a href="#总论" class="headerlink" title="总论"></a>总论</h1><p>在 Linux 2.5 内核的开发过程中，人们设计了一套新的设备模型，目的是为了对计算机上的所有设备进行统一地表示和操作，包括设备本身和设备之间的连接关系。这个模型是在分析了PCI和USB的总线驱动过程中得到的，这两个总线类型能代表当前系统中的大多数设备类型，它们都有完善的热挺拔机制和电源管理的支持，也都有级连机制的支持，以桥接的<code>PCI/USB</code>总线控制器的方式可以支持更多的<code>PCI/USB</code>设备。为了给所有设备添加统一的电源管理的支持，而不是让每个设备中去独立实现电源管理的支持，人们考虑的是如何尽可能地重用代码；而且在有层次模型的<code>PCI/USB</code>总线中，必须以合理形式展示出这个层次关系，这也是电源管理等所要求的必须有层次结构。<br>如在一个典型的PC系统中，中央处理器(CPU)能直接控制的是<code>PCI总线设备</code>，而<code>USB总线设备</code>是以一个PCI设备(PCI-USB桥)的形式接入在<code>PCI总线设备</code>上，<code>外部USB设备</code>再接入在<code>USB总线设备</code>上；当计算机执行挂起(suspend)操作时， Linux内核应该以“外部USB设备-&gt;USB总线设备-&gt;PCI总线设备”的顺序通知每一个设备将电源挂起；执行恢复(resume)时则以相反的顺序通知；反之如果不按此顺序则将有设备得不到正确的电源状态变迁的通知，将无法正常工作。</p>
+<p>更加具体的设备模型所提供的功能，可以参考ldd3第十四章开篇的论述。</p>
+<p>sysfs是在这个Linux统一设备模型的开发过程中的一项副产品(见Greg写作的LinuxJournal文章<a href="http://www.linuxjournal.com/article/6717" target="_blank" rel="external">“The Driver Model Core, Part I</a>)。为了将这种具备层次结构的内核的设备模型以用户程序可见的方式表达出来，人们很自然想到了利用文件系统的目录树结构（这是以 UNIX 方式思考问题的基础，一切都是文件！）。sysfs是一种虚拟的基于内存的文件系统，它的作用与proc有些类似，但除了与proc 相同的具有查看和设定内核参数功能之外，还有为Linux统一设备模型作为管理之用。相比于proc文件系统，使用 sysfs 导出内核数据的方式更为统一，并且组织的方式更好，它的设计从proc中吸取了很多教训。</p>
+<p>ps: sysfs v.s. proc<br>sysfs 与 proc 相比有很多优点，最重要的莫过于设计上的清晰。一个 proc 虚拟文件可能有内部格式，如 /proc/scsi/scsi ，它是可读可写的，(其文件权限被错误地标记为了0444，这是内核的一个BUG)，并且读写格式不一样，代表不同的操作，应用程序中读到了这个文件的内容一般还需要进行字符串解析，而在写入时需要先用字符串格式化按指定的格式写入字符串进行操作；相比而言， sysfs 的设计原则是一个属性文件只做一件事情， sysfs 属性文件一般只有一个值，直接读取或写入。整个 /proc/scsi 目录在2.6内核中已被标记为过时(LEGACY)，它的功能已经被相应的 /sys 属性文件所完全取代。新设计的内核机制应该尽量使用 sysfs 机制，而将 proc 保留给纯净的“进程文件系统”。</p>
+<h1 id="Linux统一设备模型"><a href="#Linux统一设备模型" class="headerlink" title="Linux统一设备模型"></a>Linux统一设备模型</h1><p>Linux的设备模型作为一个内核的子系统，其设计由很多结构类型构成，而且这些类型之间具有明显的层次关系。</p>
+<p>从大的层次来说，可以从下到上分为两层：</p>
+<ul>
+<li>kobject和kset<br>  按照ldd3的定义，它们属于Linux设备模型的低层部分，是组成设备模型的基础结构。具体的功能，可以参考ldd3的描述如下：<ul>
+<li>管理对象的引用计数</li>
+<li>sys表述，为建立sysfs的树状结构提供基本元素，具体说来，就是sysfs中的每个目录都对应着一个kobject对象，但反过来说则不成立，因为不是所有的kobject对象都需要在sysfs中有所展现（一个kset对象本质上也是一个kobject对象，后面我们会看到从OOP的角度来看，kset可以看成是kobject的子类）；对每个kobject可以设置导出一个或者多个属性，这些属性在kobject所对应的sysfs的目录中则表现为文件。</li>
+<li>数据结构关联，Linux 统一设备模型使用了两种基本数据结构，即以树状结构在纵向表达分层概念，以及用链表在横向上组织位于同一层上的所有对象。这些都在kobject和kset的设计中有所体现。</li>
+<li>热插拔事件处理，观察内核代码kobject中的<code>uevent</code>相关内容，都是和这个功能有关，主要是当系统中硬件被热插拔时，可以产生事件通知用户空间。</li>
+</ul>
+</li>
+<li><p>总线，设备和驱动程序<br>  按照ldd3的定义，它们属于Linux设备模型的高级部分。在这一层其实还可以再分。<br>  最基本的就是形如<code>bus_type</code>，<code>device</code>和<code>device_driver</code>这三个类。这三个类从OOP的思想看来，看以看成是从kobject的子类，但它们仍然还是次基类，具体的总线，设备和驱动需要继续从这三个类进行派生。</p>
+<p>  它们的对应关系见下表”Linux 统一设备模型的基本结构” ：</p>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>所包含的内容</th>
+<th>对应内核数据结构</th>
+<th>对应/sys项</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>设备(Devices)</td>
+<td>设备是此模型中最基本的类型，以设备本身的连接按层次组织</td>
+<td>struct device</td>
+<td>/sys/devices/*</td>
+</tr>
+<tr>
+<td>设备驱动(Device Drivers)</td>
+<td>在一个系统中安装多个相同设备，只需要一份驱动程序的支持</td>
+<td>struct device_driver</td>
+<td>/sys/bus/pci/drivers/*/</td>
+</tr>
+<tr>
+<td>总线类型(Bus Types)</td>
+<td>在整个总线级别对此总线上连接的所有设备进行管理</td>
+<td>struct bus_type</td>
+<td>/sys/bus/*/</td>
+</tr>
+<tr>
+<td>设备类别(Device Classes)</td>
+<td>这是按照功能进行分类组织的设备层次树；如USB接口和PS/2接口的鼠标都是输入设备，都会出现在/sys/class/input/下</td>
+<td>struct class</td>
+<td>/sys/class/*/</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Linux设备模型的低层部分-kobject和kset"><a href="#Linux设备模型的低层部分-kobject和kset" class="headerlink" title="Linux设备模型的低层部分 - kobject和kset"></a>Linux设备模型的低层部分 - kobject和kset</h2><h3 id="kobject"><a href="#kobject" class="headerlink" title="kobject"></a>kobject</h3><p>kobject是在Linux设备模型中最基本的对象，它的功能是提供引用计数和维持父子(parent)结构、平级(sibling)目录关系。按照OOP的概念来看可以认为是设备模型中其他类的基类，上面的device, device_driver等类型都是在kobject的基础功能之上实现的子类；具体定义参考<code>include/linux/kobject.h</code></p>
+<pre><code>struct kobject {
+    const char        *name;
+    struct list_head    entry;
+    struct kobject        *parent;
+    struct kset        *kset;
+    struct kobj_type    *ktype;
+    struct sysfs_dirent    *sd;
+    struct kref        kref;
+    unsigned int state_initialized:1;
+    unsigned int state_in_sysfs:1;
+    unsigned int state_add_uevent_sent:1;
+    unsigned int state_remove_uevent_sent:1;
+    unsigned int uevent_suppress:1;
+};
+</code></pre><p>其中:</p>
+<ul>
+<li>name：分配给kobject的名字就是我们在sysfs中看到的对应的目录名。即处于sysfs分层结构同一层的kobject的名字必须唯一，而且名字必须是合法的文件名，不能包括<code>/</code>，而且强烈建议不可以包含空格。</li>
+<li>entry：链表挂载点，用于将同级的对象串联在一起，配合kset使用。</li>
+<li>parent：保存了另一个kobject的指针，这里不要理解成OOP的父类的概念，其主要用途是用于表达模型的分层特性。也就是说parent所指向的kobject对象位于本kobject对象的上一层。譬如一个kobject对象表示了一个USB设备，他的parent可能指向了该USB设备所连接的USB集线器对象，即表达了拓扑上USB设备是插在USB集线器上的概念。参考<a href="http://www.cnblogs.com/wwang/archive/2010/12/16/1902721.html" target="_blank" rel="external">Linux设备模型 (2)</a>所述：“内核里的设备之间是以树状形式组织的，在这种组织架构里比较靠上层的节点可以看作是下层节点的父节点，反映到sysfs里就是上级目录和下级目录之间的关系，在内核里，正是kobject帮助我们实现这种父子关系。”</li>
+<li>kset：指向该kobject所归属的kset对象。具体用途见下文kset的介绍。</li>
+<li>kref：<code>struct kref</code>内含一个<code>atomic_t</code>类型用于引用计数。</li>
+<li><p>ktype：Ktype的定义如下：</p>
+<pre><code>struct kobj_type {
+    void (*release)(struct kobject *kobj);
+    const struct sysfs_ops *sysfs_ops;
+    struct attribute **default_attrs;
+};
+</code></pre><ul>
+<li>函数指针release是给kref使用的，当引用计数为0这个指针指向的函数会被调用来释放内存。</li>
+<li>sysfs_ops和attribute是做什么用的呢？前文里提到，一个kobject对应sysfs里的一个目录，而目录下的文件就是由sysfs_ops和attribute来实现的，其中，attribute定义了kobject的属性，在sysfs里对应一个文件，sysfs_ops用来定义读写这个文件的方法。</li>
+<li>Ktype里的attribute是默认的属性，另外也可以使用更加灵活的手段，本文的重点还是放在default attribute。</li>
+</ul>
+</li>
+<li><p>sd：和sysfs展现有关，看到的是一个dirent，所以一个kobject对应的是一个目录。</p>
+</li>
+<li>uevent相关项：和热插拔有关</li>
+</ul>
+<h3 id="kset"><a href="#kset" class="headerlink" title="kset"></a>kset</h3><p>kset可以看成是kobject的顶层容器。从OOP的概念来看，表达的是多个kobject的聚集或者说是集合的概念。主要是为了sysfs的需要所设计，一旦定义了一个kset对象并将其添加到系统中，在sysfs中相应地创建一个目录（ldd3中提到top-level的概念，但我目前还不能确定，就是kset是否只对应sysfs的顶层目录）。至少参考lkd3的说法没有提到这个意思。</p>
+<p>我们会发现一旦某个kobject对象被添加到一个kset集合中，则在sysfs里，在对应的kset的目录下就一定会出现一个和该kobject对应的子目录。但这并不意味着所有的kobject对象都会在sysfs中有对应的目录项来显示，譬如有些就没有被添加到kset中。</p>
+<p>在这里提一下kobject结构中的parent和kset成员的含义。参考<a href="http://www.th7.cn/system/lin/201407/62364.shtml" target="_blank" rel="external">linux device model简述</a>，中有这么一句话我觉得有点意思：</p>
+<pre><code>内核用kobject结构将各个对象连接起来组成一个分层的结构体系，有两种独立的机制用于连接：parent指针和kset。
+在kobject结构中的parent成员指向另一个kobject结构，这个结构表示了分层结构中的上一层节点。父kobject和kobject在sysfs中表现为目录与子目录的关系。
+kset是同类kobject的集合。
+</code></pre><p>同时参考ldd3第14章中有关低层sysfs操作中的描述：</p>
+<pre><code>sysfs入口在目录中的位置对应于kobject的parent指针。
+</code></pre><p>所以一个kobject的对象的parent可以是一个普通kobject，或者是一个kset，其实kset也不过就是一个特殊的kset，但重要的是kset为何了一个链表，遍历该链表上的kobject会方便。<br>所以我目前的理解是，到底怎么在设备模型的低层搭建kobject之间的层次关系，可以用kset，也可以不用kset。何时用kset，可以参考<code>include/linux/kobject.h</code>中的注释<font color="red">“these kobjects all want to be grouped together and operated on in the same manner.”</font>：</p>
+<pre><code>/**
+ * struct kset - a set of kobjects of a specific type, belonging to a specific subsystem.
+ *
+ * A kset defines a group of kobjects.  They can be individually
+ * different &quot;types&quot; but overall these kobjects all want to be grouped
+ * together and operated on in the same manner.  ksets are used to
+ * define the attribute callbacks and other common events that happen to
+ * a kobject.
+ *
+ * @list: the list of all kobjects for this kset
+ * @list_lock: a lock for iterating over the kobjects
+ * @kobj: the embedded kobject for this kset (recursion, isn&apos;t it fun...)
+ * @uevent_ops: the set of uevent operations for this kset.  These are
+ * called whenever a kobject has something happen to it so that the kset
+ * can add new environment variables, or filter out the uevents if so
+ * desired.
+ */
+struct kset {
+    struct list_head list;
+    spinlock_t list_lock;
+    struct kobject kobj;
+    struct kset_uevent_ops *uevent_ops;
+};
+</code></pre><ul>
+<li>list：用于将同属于一个kset中的kobject维护成双向链表；</li>
+<li>kobj：内嵌kobject对象表达的是OOP中继承的概念，说明我们可以把kset看成是kobject的子类。也就是说从设备模型的角度来说，一个kset对象也是一个kobject，我们可以对其应用所有kobject的方法。</li>
+<li>uevent_ops：热插拔相关。<br>kset和kobject之间的关系，还是参考ldd3的经典分层结构图吧。注意理解一下ldd3上有这么一句话<font color="red">在图中所有被包含的kobject，实际上是被嵌入到其他类型的对象中，甚至可能是其他的kset对象。</font><br>所以更准确的图应该如下所示，本来想自己画的，既然网上已经有了，就借用一下吧。</li>
+</ul>
+<p><img src="http://www.th7.cn/d/file/p/2014/07/06/bb3a144a29f75025a5c1b8bd94248145.png" alt=""></p>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>涉及到的结构体类型：</p>
+<table>
+<thead>
+<tr>
+<th>类</th>
+<th>用途</th>
+<th>方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>kobject</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>kset</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>kobj_type</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<h2 id="Linux设备模型的高层部分-总线，设备和驱动"><a href="#Linux设备模型的高层部分-总线，设备和驱动" class="headerlink" title="Linux设备模型的高层部分 - 总线，设备和驱动"></a>Linux设备模型的高层部分 - 总线，设备和驱动</h2><p>(待补充)</p>
+<h1 id="sysfs文件系统"><a href="#sysfs文件系统" class="headerlink" title="sysfs文件系统"></a>sysfs文件系统</h1><h2 id="sys文件系统下的目录结构"><a href="#sys文件系统下的目录结构" class="headerlink" title="/sys文件系统下的目录结构"></a><code>/sys</code>文件系统下的目录结构</h2><p><code>/sys</code>下的目录结构是经过精心设计的：在<code>/sys/devices</code>下是所有设备的真实对象，包括如视频卡和以太网卡等真实的设备，也包括 ACPI 等不那么显而易见的真实设备、还有 tty, bonding 等纯粹虚拟的设备；在其它目录如 class, bus 等中则在分类的目录中含有大量对 devices 中真实对象引用的符号链接文件； 清单 1 中在 /sys 根目录下顶层目录的意义如下：<br>表 1. /sys 下的目录结构：</p>
+<table>
+<thead>
+<tr>
+<th>/sys下的子目录</th>
+<th>所包含的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/sys/devices</td>
+<td>这是内核对系统中所有设备的分层次表达模型，也是 /sys文件系统管理设备的最重要的目录结构</td>
+</tr>
+<tr>
+<td>/sys/dev</td>
+<td>这个目录下维护一个按字符设备和块设备的主次号码(major:minor)链接到真实的设备(/sys/devices下)的符号链接文件，它是在内核2.6.26首次引入</td>
+</tr>
+<tr>
+<td>/sys/bus</td>
+<td>这是内核设备按总线类型分层放置的目录结构，devices中的所有设备都是连接于某种总线之下，在这里的每一种具体总线之下可以找到每一个具体设备的符号链接，它也是构成Linux统一设备模型的一部分</td>
+</tr>
+<tr>
+<td>/sys/class</td>
+<td>这是按照设备功能分类的设备模型，如系统所有输入设备都会出现在/sys/class/input之下，而不论它们是以何种总线连接到系统。它也是构成Linux统一设备模型的一部分</td>
+</tr>
+<tr>
+<td>/sys/block</td>
+<td>这里是系统中当前所有的块设备所在，按照功能来说放置在/sys/class之下会更合适，但只是由于历史遗留因素而一直存在于/sys/block, 但从2.6.22开始就已标记为过时，只有在打开了CONFIG_SYSFS_DEPRECATED配置下编译才会有这个目录的存在，并且在2.6.26内核中已正式移到/sys/class/block, 旧的接口/sys/block为了向后兼容保留存在，但其中的内容已经变为指向它们在/sys/devices/中真实设备的符号链接文件</td>
+</tr>
+<tr>
+<td>/sys/firmware</td>
+<td>这里是系统加载固件机制的对用户空间的接口，关于固件有专用于固件加载的一套API，在LDD3一书中有关于内核支持固件加载机制的更详细的介绍</td>
+</tr>
+<tr>
+<td>/sys/fs</td>
+<td>这里按照设计是用于描述系统中所有文件系统，包括文件系统本身和按文件系统分类存放的已挂载点，但目前只有 fuse,gfs2 等少数文件系统支持sysfs接口，一些传统的虚拟文件系统(VFS)层次控制参数仍然在sysctl(/proc/sys/fs)接口中</td>
+</tr>
+<tr>
+<td>/sys/kernel</td>
+<td>这里是内核所有可调整参数的位置，目前只有uevent_helper,kexec_loaded,mm和新式的slab分配器等几项较新的设计在使用它，其它内核可调整参数仍然位于sysctl(/proc/sys/kernel)接口中</td>
+</tr>
+<tr>
+<td>/sys/module</td>
+<td>这里有系统中所有模块的信息，不论这些模块是以内联(inlined)方式编译到内核映像文件(vmlinuz)中还是编译为外部模块(ko文件)，都可能会出现在/sys/module中；<br> - 编译为外部模块(ko文件)在加载后会出现对应的/sys/module/<module_name>/, 并且在这个目录下会出现一些属性文件和属性目录来表示此外部模块的一些信息，如版本号、加载状态、所提供的驱动程序等；<br> - 编译为内联方式的模块则只在当它有非0属性的模块参数时会出现对应的/sys/module/<module_name>, 这些模块的可用参数会出现在/sys/modules/<modname>/parameters/<param_name> 中，如/sys/module/printk/parameters/time这个可读写参数控制着内联模块printk在打印内核消息时是否加上时间前缀；所有内联模块的参数也可以由”<module_name>.<param_name>=<value>“的形式写在内核启动参数上，如启动内核时加上参数 “printk.time=1” 与 向 “/sys/module/printk/parameters/time” 写入1的效果相同；<br> - 没有非0属性参数的内联模块不会出现于此。</value></param_name></module_name></param_name></modname></module_name></module_name></td>
+</tr>
+<tr>
+<td>/sys/power</td>
+<td>这里是系统中电源选项，这个目录下有几个属性文件可以用于控制整个机器的电源状态，如可以向其中写入控制命令让机器关机、重启等。</td>
+</tr>
+<tr>
+<td>/sys/slab (对应 2.6.23 内核，在 2.6.24 以后移至 /sys/kernel/slab)</td>
+<td>从2.6.23 开始可以选择 SLAB 内存分配器的实现，并且新的 SLUB（Unqueued Slab Allocator）被设置为缺省值；如果编译了此选项，在 /sys 下就会出现 /sys/slab ，里面有每一个 kmem_cache 结构体的可调整参数。对应于旧的 SLAB 内存分配器下的 /proc/slabinfo 动态调整接口，新式的 /sys/kernel/slab/<slab_name> 接口中的各项信息和可调整项显得更为清晰。</slab_name></td>
+</tr>
+</tbody>
+</table>
+<h2 id="sys文件系统实现"><a href="#sys文件系统实现" class="headerlink" title="sys文件系统实现"></a>sys文件系统实现</h2><p>sysfs 是一种基于 ramfs 实现的内存文件系统，与其它同样以 ramfs<br>实现的内存文件系统(configfs,debugfs,tmpfs,…)类似， sysfs 也是直接以 VFS 中的 struct inode 和 struct dentry 等 VFS 层次的结构体直接实现文件系统中的各种对象；同时在每个文件系统的私有数据 (如 dentry-&gt;d_fsdata 等位置) 上，使用了称为 struct sysfs_dirent 的结构用于表示 /sys 中的每一个目录项。</p>
+<pre><code>struct sysfs_dirent {
+        atomic_t                s_count;
+        atomic_t                s_active;
+        struct sysfs_dirent     *s_parent;
+        struct sysfs_dirent     *s_sibling;
+        const char              *s_name;
+
+        union {
+                struct sysfs_elem_dir           s_dir;
+                struct sysfs_elem_symlink       s_symlink;
+                struct sysfs_elem_attr          s_attr;
+                struct sysfs_elem_bin_attr      s_bin_attr;
+        };
+
+        unsigned int            s_flags;
+        ino_t                   s_ino;
+        umode_t                 s_mode;
+        struct iattr            *s_iattr;
+};
+</code></pre><p>在上面的 kobject 对象中可以看到有向<code>sysfs_dirent</code>的指针，因此在sysfs中是用同一种<code>struct sysfs_dirent</code>来统一设备模型中的<code>kset/kobject/attr/attr_group</code>。</p>
+<p>具体在数据结构成员上，<code>sysfs_dirent</code>上有一个union共用体包含四种不同的结构，分别是目录、符号链接文件、属性文件、二进制属性文件；其中目录类型可以对应kobject，在相应的s_dir 中也有对 kobject 的指针，因此在内核数据结构，<code>kobject</code>与<code>sysfs_dirent</code>是互相引用的.</p>
+<p>对sysfs中的每一个目录，对应一个kobject，每个kobject都输出一个或者多个属性，属性在目录中表现为文件。</p>
+<ul>
+<li>kobject在sysfs的入口是一个目录，因此对<code>kobject_add</code>的调用将在sysfs中创建一个目录。通常在这个目录中包含一个或者多个文件，对应kobject的属性。</li>
+<li>分配给kobject的名字(<code>kobject_set_name</code>)是sysfs中对应kobject的目录名。名字必须是合法的文件名，不可以包含<code>/</code>，并强烈建议不要使用空格。</li>
+<li>在使用<code>kobject_add</code>添加一个新的kobject的时候，如果kobject的parent成员是NULL而其kset成员不是NULL，则该kobject被加入到kset中并且其对应的目录也被添加到kset所对应的目录下成为其子目录（kset也是一个kobject，所以在sysfs中其也表现为一个目录的形式）。如果该kobject的parent成员和kset成员都是NULL，则将其对应的目录设置为sysfs的顶层目录，但通常不建议这么做，应为sysfs的顶层目录是有特殊含义的，一般由系统创建。</li>
+</ul>
+<p>属性：</p>
+<ul>
+<li>默认属性：缺省属性由kobject的ktype来描述，其类型为<code>kobj_type</code>，其中有一个<code>default_attrs</code>的成员。</li>
+<li>非默认属性： struct attrubute</li>
+<li>二进制属性：struct bin_attribute</li>
+</ul>
+<p>符号链接，在sysfs中用符号链接表达不同子树中对象之间的关系，譬如<code>/sys/bus</code>下驱动程序和<code>/sys/devices</code>下所有设备之间的关系通过符号链接来表达。注意是符号链接，不是硬链接。</p>
+<h1 id="常用工具："><a href="#常用工具：" class="headerlink" title="常用工具："></a>常用工具：</h1><p>在Linux里也可以找到一些图形化的工具来查询设备信息。比如GNOME下基于HAL的Device Manager：<br><img src="http://pic002.cnblogs.com/images/2010/175492/2010120909474854.jpg" alt=""></p>
+<p>这些图形化的工具提供了更加直观的方式来访问设备，但是它们的提供的信息还不够全面，而且没有向内核设备写数据的功能。</p>
+<p>如果具体到某一类型的设备，Linux下还有一些专用的工具可以使用。比如面向PCI设备的pciutils，面向USB设备的usbutils，以及面向SCSI设备的lsscsi等。对于Linux开发者来说，有时使用这些专用的工具更加方便。</p>
+<p>我们如果要写程序来访问sysfs，可以像读写普通文件一样来操作/sys目录下的文件，或者，也可以使用libsysfs。不过需要注意的是，Linux内核社区并不推荐用libsysfs，因为这个API的更新不够快，赶不上内核的变化。libsysfs已经逐渐背离最初创建它的目标，这个lib带来的问题似乎比它解决的还要多。当然，如果只是要访问设备，一般很少会直接操作sysfs，它太细节太底层了，大部分情况下可以使用更加方便的<a href="http://www.freedesktop.org/wiki/Software/DeviceKit" target="_blank" rel="external">DeviceKit</a>或者<a href="http://www.kernel.org/pub/linux/utils/kernel/hotplug/libudev/" target="_blank" rel="external">libudev</a>。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/driver/" rel="tag">#driver</a>
+          
+            <a href="/tags/device/" rel="tag">#device</a>
+          
+            <a href="/tags/sysfs/" rel="tag">#sysfs</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/09/20151210-markdown-usage/" rel="next" title="Markdown使用方法小结">
+                <i class="fa fa-chevron-left"></i> Markdown使用方法小结
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/13/20160111-lk-drv-module-makefile/" rel="prev" title="Linux内核模块的Makefile写法分析">
+                Linux内核模块的Makefile写法分析 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/01/09/20160109-lk-dev-model/"
+           data-title="Linux设备模型和sysfs" data-url="http://unicornx.github.io/2016/01/09/20160109-lk-dev-model/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#总论"><span class="nav-number">1.</span> <span class="nav-text">总论</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Linux统一设备模型"><span class="nav-number">2.</span> <span class="nav-text">Linux统一设备模型</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux设备模型的低层部分-kobject和kset"><span class="nav-number">2.1.</span> <span class="nav-text">Linux设备模型的低层部分 - kobject和kset</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#kobject"><span class="nav-number">2.1.1.</span> <span class="nav-text">kobject</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#kset"><span class="nav-number">2.1.2.</span> <span class="nav-text">kset</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#总结"><span class="nav-number">2.1.3.</span> <span class="nav-text">总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux设备模型的高层部分-总线，设备和驱动"><span class="nav-number">2.2.</span> <span class="nav-text">Linux设备模型的高层部分 - 总线，设备和驱动</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#sysfs文件系统"><span class="nav-number">3.</span> <span class="nav-text">sysfs文件系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#sys文件系统下的目录结构"><span class="nav-number">3.1.</span> <span class="nav-text">/sys文件系统下的目录结构</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#sys文件系统实现"><span class="nav-number">3.2.</span> <span class="nav-text">sys文件系统实现</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#常用工具："><span class="nav-number">4.</span> <span class="nav-text">常用工具：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

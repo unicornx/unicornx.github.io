@@ -1,0 +1,982 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-15">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核源码结构(基于v2.6.32.2)">
+<meta property="og:url" content="http://unicornx.github.io/2015/12/31/20151231-linux-src-arch-v2.6/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-15">
+<meta property="og:image" content="http://unicornx.github.io/img/20151231-linux-src-arch-v2.6/lk-include.png">
+<meta property="og:updated_time" content="2016-05-15T07:15:13.796Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核源码结构(基于v2.6.32.2)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-15">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20151231-linux-src-arch-v2.6/lk-include.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/12/31/20151231-linux-src-arch-v2.6/"/>
+
+  <title> Linux内核源码结构(基于v2.6.32.2) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux内核源码结构(基于v2.6.32.2)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-12-31T11:30:47+08:00" content="2015-12-31">
+              2015-12-31
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/12/31/20151231-linux-src-arch-v2.6/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/31/20151231-linux-src-arch-v2.6/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-05-15</p>
+<a id="more"></a>
+<p>参考文章：</p>
+<ul>
+<li><a href="http://klinux.h.baike.com/article-80253.html" target="_blank" rel="external">基础：Linux 核心源码是怎么组织的</a>  </li>
+<li><a href="http://wenku.baidu.com/link?url=6o80AJuZAQJaPOXgtMdJdxGsyo4A_Ai0LoouWYvgy1cUg_gM2XTpyM_QC1e0Fp-2x2ugl6tKy0lmwc_jxEGPY6OSR1IC_bnAPQaTNStzqyi" target="_blank" rel="external">大话Linux内核基础</a></li>
+</ul>
+<p>对Linux内核源码的分析，有几个很好的入口点：</p>
+<ul>
+<li>一个就是系统的引导和初始化，即从机器加电到系统核心的运行；</li>
+<li>另外一个就是系统调用，系统调用是用户程序或操作调用核心所提供的功能的接口。</li>
+</ul>
+<p>对于那些对硬件比较熟悉的爱好者，从系统的引导入手进行分析，可能来的容易一些；而从系统调用下口，则可能更合适于那些在dos或Uinx、Linux下有过C编程经验的高手。</p>
+<h1 id="内核目录overview"><a href="#内核目录overview" class="headerlink" title="内核目录overview"></a>内核目录overview</h1><table>
+<thead>
+<tr>
+<th>目录</th>
+<th>解释</th>
+<th>关注程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>arch</td>
+<td>体系架构相关代码。对每种架构的CPU，有一个子目录对应。</td>
+<td>AAAAA</td>
+</tr>
+<tr>
+<td>block</td>
+<td>块设备的通用函数（注：<code>drivers/block</code>下的是具体的块设备的驱动程序代码）</td>
+<td>AAAAA</td>
+</tr>
+<tr>
+<td>crypto</td>
+<td>常用的加密和散列算法（如AES、SHA等），还有一些压缩和CRC校验算法</td>
+<td>A</td>
+</tr>
+<tr>
+<td>Documentation</td>
+<td>内核文档</td>
+<td>AA</td>
+</tr>
+<tr>
+<td>drivers</td>
+<td>放置系统所有的设备驱动程序；每种驱动程序又各占用一个子目录</td>
+<td>AAAAA</td>
+</tr>
+<tr>
+<td>firmware</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>fs</td>
+<td>所有的文件系统代码和各种类型的文件操作代码，它的每一个子目录支持一个文件系统</td>
+<td>AA</td>
+</tr>
+<tr>
+<td>include</td>
+<td>include子目录包括与体系架构无关的编译内核所需要的头文件，和体系架构相关的头文件分布在arch/$(ARCH)/include/asm</td>
+<td>AAAA</td>
+</tr>
+<tr>
+<td>init</td>
+<td>这个目录包含核心的初始化代码(注：不是系统的引导代码)，包含两个文件main.c和Version.c，这是研究内核如何工作的好的起点之一。</td>
+<td>AA</td>
+</tr>
+<tr>
+<td>ipc</td>
+<td>这个目录包含核心的进程间通讯的代码</td>
+<td>AA</td>
+</tr>
+<tr>
+<td>kernel</td>
+<td>主要的内核代码，此目录下的文件实现了大多数linux系统的内核函数，其中最重要的文件当属sched.c；同样，和体系架构相关的代码在arch/$(ARCH)/kernel中</td>
+<td>AA</td>
+</tr>
+<tr>
+<td>lib</td>
+<td>放置内核的库代码</td>
+<td>AAA</td>
+</tr>
+<tr>
+<td>mm</td>
+<td>这个目录包括所有独立于体系架构的内存管理代码，如页式存储管理内存的分配和释放等；而和体系架构相关的内存管理代码则位于arch/$(ARCH)/mm</td>
+<td>AAA</td>
+</tr>
+<tr>
+<td>net</td>
+<td>与网络相关的代码</td>
+<td>A</td>
+</tr>
+<tr>
+<td>samples</td>
+<td></td>
+<td>A</td>
+</tr>
+<tr>
+<td>scripts</td>
+<td>用于配置、编译内核的脚本文件</td>
+<td>A</td>
+</tr>
+<tr>
+<td>security</td>
+<td>安全，密钥相关代码</td>
+<td>A</td>
+</tr>
+<tr>
+<td>sound</td>
+<td>音频设备的驱动程序</td>
+<td>A</td>
+</tr>
+<tr>
+<td>tools</td>
+<td></td>
+<td>A</td>
+</tr>
+<tr>
+<td>usr</td>
+<td></td>
+<td>A</td>
+</tr>
+<tr>
+<td>virt</td>
+<td>KVM相关</td>
+<td>A</td>
+</tr>
+</tbody>
+</table>
+<p>一般，在每个子目录下，都有一个 Makefile 和一个Readme 文件，仔细阅读这两个文件，对内核源码的理解很有用。 </p>
+<h1 id="几个重要的顶层子目录"><a href="#几个重要的顶层子目录" class="headerlink" title="几个重要的顶层子目录"></a>几个重要的顶层子目录</h1><h2 id="arch"><a href="#arch" class="headerlink" title="arch"></a>arch</h2><p>arch目录包括了所有和体系架构相关的核心代码。它的每一个子目录都代表一种支持的体系架构，每一种体系架构目录下又包含很多子目录，这些子目录分成两部分，一部分是必选的，另一部分是可选的。</p>
+<h3 id="必选目录："><a href="#必选目录：" class="headerlink" title="必选目录："></a>必选目录：</h3><h4 id="arch-ARCH-boot："><a href="#arch-ARCH-boot：" class="headerlink" title="arch/$(ARCH)/boot："></a>arch/$(ARCH)/boot：</h4><p>参考该目录下的Makefile，可以发现其target就是创建Image，zImage，xipImage，bootpImage，uImage。大致步骤是根据同一层kernel目录下的vmlinux.lds文件生成未经压缩的vmlinux文件，再生成一个通用的linux镜像Image，最后通过各种压缩算法，将Image压缩为各种格式的特殊用途的镜像文件，譬如uImage，zImage等。有关linux内核的创建过程，以及该过程中生成的不同问题，可以参考以下两篇文章，但写得都不是很全面，综合起来会更好。</p>
+<ul>
+<li><a href="http://www.cnblogs.com/pigeon84/articles/2212404.html" target="_blank" rel="external">vmlinux uImage与zImage的区别</a>  </li>
+<li><a href="http://blog.chinaunix.net/uid-2630593-id-2530229.html" target="_blank" rel="external">linux内核的生成过程, vmlinux调试分析</a></li>
+</ul>
+<p>备注：<br>vmlinux是未压缩的内核，vmlinux 是ELF文件，即编译出来的最原始的文件。用于kernel-debug，产生system.map符号表，不能用于直接加载，不可以作为启动内核。只是启动过程中的中间媒体<br>vmlinuz是可引导的、压缩的内核。<br>“vm”代表“Virtual Memory”。Linux 支持虚拟内存，不像老的操作系统比如DOS有640KB内存的限制。</p>
+<p>可以使用反汇编查看这个文件：<br>arm-eabi-objdump -d kernel/vmlinux &gt; 1.S</p>
+<h4 id="arch-ARCH-configs"><a href="#arch-ARCH-configs" class="headerlink" title="arch/$(ARCH)/configs"></a>arch/$(ARCH)/configs</h4><p>包含各种板级别的缺省配置文件(xxx_defconfig)，可用于为不同厂家的系统进行内核级别的裁剪配置。譬如<code>mini2440_defconfig</code>。</p>
+<h4 id="arch-ARCH-include"><a href="#arch-ARCH-include" class="headerlink" title="arch/$(ARCH)/include"></a>arch/$(ARCH)/include</h4><ol>
+<li>硬件关联头文件：硬件级别的一些特殊声明和定义</li>
+<li>整体CPU架构关联头文件：CPU架构基础，体统级共通声明和定义</li>
+</ol>
+<h4 id="arch-ARCH-kernel"><a href="#arch-ARCH-kernel" class="headerlink" title="arch/$(ARCH)/kernel"></a>arch/$(ARCH)/kernel</h4><p>CPU加载启动过程，初始化CPU各种设定；加载内核并启动，在这里关注mini2440的CPU启动过程。</p>
+<h4 id="arch-ARCH-lib"><a href="#arch-ARCH-lib" class="headerlink" title="arch/$(ARCH)/lib"></a>arch/$(ARCH)/lib</h4><p>针对特定体系架构的通用库的实现。包括：</p>
+<ul>
+<li>IO相关(io_xxx.[cS])</li>
+<li>硬件延迟相关</li>
+<li>内存相关</li>
+<li>标准C关联部分(strnlen_user.S)</li>
+<li>其他</li>
+</ul>
+<h4 id="arch-ARCH-mm"><a href="#arch-ARCH-mm" class="headerlink" title="arch/$(ARCH)/mm"></a>arch/$(ARCH)/mm</h4><p>针对不同体系架构下的内存管理相关实现</p>
+<ul>
+<li>不同CPU的内存异常管理机制</li>
+<li>不同CPU的缓存管理机制</li>
+<li>不同CPU的分页管理机制</li>
+<li>不同CPU内存关联设定机制(结合arch/$(ARCH)/kernel下的相关使用)</li>
+<li>不同CPU的TLB(Translation Lookaside Buffer)管理机制</li>
+<li>通用内存管理机制</li>
+<li>通用容错管理机制</li>
+</ul>
+<h4 id="arch-ARCH-oprpfile"><a href="#arch-ARCH-oprpfile" class="headerlink" title="arch/$(ARCH)/oprpfile"></a>arch/$(ARCH)/oprpfile</h4><p>Linux内核性能分析工具，支持基于事件采样的方式以及基于时间的采样方式。<br>内核模块(oprofile.ko)负责访问性能计数器或者注册基于时间采样函数，并采样置于内核的缓冲区内；用户空间守护进程(oprofiled)负责从内核空间收集数据，写入文件。</p>
+<h3 id="可选目录（就arm这个体系）"><a href="#可选目录（就arm这个体系）" class="headerlink" title="可选目录（就arm这个体系）"></a>可选目录（就arm这个体系）</h3><h4 id="arch-ARCH-common"><a href="#arch-ARCH-common" class="headerlink" title="arch/$(ARCH)/common"></a>arch/$(ARCH)/common</h4><p>ARM体系下的对应共通处理实现，以及通用工具级API的实现，包括。</p>
+<ul>
+<li>时钟设备关联API</li>
+<li>DMA设备关联API</li>
+<li>ARM体系通用中断关联API</li>
+<li>307/525时钟发生器和分频设定API</li>
+<li>其他相关设定API</li>
+</ul>
+<h4 id="arch-ARCH-mach-xxx"><a href="#arch-ARCH-mach-xxx" class="headerlink" title="arch/$(ARCH)/mach-xxx"></a>arch/$(ARCH)/mach-xxx</h4><p>基于ARM的SOC实现部分</p>
+<ul>
+<li>完成对应CPU的基本功能</li>
+<li>时钟设定</li>
+<li>中断设定</li>
+<li>其他设置</li>
+</ul>
+<p>可以结合mini2440的s3c2440看看。</p>
+<h4 id="arch-ARCH-plat-xxx"><a href="#arch-ARCH-plat-xxx" class="headerlink" title="arch/$(ARCH)/plat-xxx"></a>arch/$(ARCH)/plat-xxx</h4><p>属于某系列的多款SOC的通用部分，譬如plat-s3c24xx就是对应mach-s3c24a0，mach-s3c2400，mach-s3c2410，mach-s3c2412，mach-s3c2440等。</p>
+<p>可以结合mini2440的s3c2440看看。包括有：</p>
+<ul>
+<li>A/D转换相关实现</li>
+<li>CPU时钟控制相关</li>
+<li>CPU频率控制相关</li>
+<li>配置定义相关</li>
+<li>DMA控制相关</li>
+<li>电源管理相关</li>
+<li>GPIO控制相关</li>
+<li>SPI总线接口协议相关</li>
+<li>I2C设定相关</li>
+<li>具体型号CPU中断/时钟控制/IO定时器/锁相环</li>
+</ul>
+<h4 id="arch-ARCH-nwfpe"><a href="#arch-ARCH-nwfpe" class="headerlink" title="arch/$(ARCH)/nwfpe"></a>arch/$(ARCH)/nwfpe</h4><p>ARM架构的浮点数模拟运算实现</p>
+<ul>
+<li>浮点数运算通用配置</li>
+<li>各种浮点运算具体实现</li>
+<li>浮点运算模型说明</li>
+</ul>
+<h4 id="arch-ARCH-vfp"><a href="#arch-ARCH-vfp" class="headerlink" title="arch/$(ARCH)/vfp"></a>arch/$(ARCH)/vfp</h4><p>和浮点数运算相关</p>
+<h2 id="block"><a href="#block" class="headerlink" title="block"></a>block</h2><p>2005年10月发布的2.6.14版本内核里，block还没有作为独立的子系统出现在代码树的根目录下，还是一部分附属于drivers/目录下一部分附属于fs/目录下的。但后来一切都变了，从2.6.15的内核开始,顶层目录下面有了一个叫做block的目录，也就是说块设备完全独立成为了一个单独的子系统，负责整个块设备的所有运作。</p>
+<h2 id="include"><a href="#include" class="headerlink" title="include"></a>include</h2><p><img src="/img/20151231-linux-src-arch-v2.6/lk-include.png" alt=""></p>
+<p><code>include</code>下有很多子目录，可以分为两大类，</p>
+<h3 id="第一大类对搞嵌入式开发和内核爱好者来说比较重要，需要更多关注。"><a href="#第一大类对搞嵌入式开发和内核爱好者来说比较重要，需要更多关注。" class="headerlink" title="第一大类对搞嵌入式开发和内核爱好者来说比较重要，需要更多关注。"></a>第一大类对搞嵌入式开发和内核爱好者来说比较重要，需要更多关注。</h3><table>
+<thead>
+<tr>
+<th>子目录</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>asm-$(ARCH)</td>
+<td>是和某特定体系架构相关的声明部分，该目录是在kbuild过程中动态创建出来的。其中内容都是指向其他位置的符号链接，主要是指向<code>arch/$(ARCH)/include/asm</code>以及<code>include/asm-generic</code></td>
+</tr>
+<tr>
+<td>asm-generic</td>
+<td>对不同的体系架构都通用的部分的函数等内容的声明。</td>
+</tr>
+<tr>
+<td>linux</td>
+<td>和体系架构无关的内核功能的函数结构体声明。在内核的很多头文件和源文件里看到的形如<code>#include &lt;linux/xxx.h&gt;</code>的语句就是在包含该目录下的文件。同时在该目录下的一些头文件中我们经常会看到形如<code>#include &lt;asm/xxxx.h&gt;</code>的语句，这里的<code>asm</code>就是指的<code>asm-$(ARCH)</code>目录下特定体系架构的头文件了。<br><br>在<code>include/linux</code>这个目录下存放这一个典型的OS所能够提供给各个模块，各种功能领域的所有函数声明和关键的结构体定义类型定义，常量定义等等。这些头文件，有的直接放在<code>include/linux</code>的目录下，有的被分门别类地存放在其子目录下。基本上包含了如下这些具体的模块支持或者是功能支持：<br>1)主目录下的基本OS功能定义，包括：原子操作/通用设备/基础数据类型声明定义/原始文件结构声明定义/数据校验/GPIO/I2S和I2C/内存/中断/初始化/GPIO/通用网络部分/内核对象模型/其他；<br>2)分门别类的声明和定义：包括：AMBA（Advanced Microcontroller Bus Architecture，用于将RISC处理器集成到其他IP芯片或者外设中去，由ARM研发）/byteorder/CAN总线/decompress（解压缩算法）/dvb（Digital Video Broadcasting）/hdlc（High-Level Data Link）/I2C总线/NetFilter/lockd（死锁守护）/RAID阵列/USB/其他</td>
+</tr>
+<tr>
+<td>media</td>
+<td>A/V相关声明和定义</td>
+</tr>
+<tr>
+<td>scsi</td>
+<td>SCSI设备</td>
+</tr>
+<tr>
+<td>sound</td>
+<td>主流声卡设备</td>
+</tr>
+<tr>
+<td>video</td>
+<td>通用显示相关</td>
+</tr>
+</tbody>
+</table>
+<h3 id="第二大类对应内核支持的各种常见的重要的总线或者设备类型"><a href="#第二大类对应内核支持的各种常见的重要的总线或者设备类型" class="headerlink" title="第二大类对应内核支持的各种常见的重要的总线或者设备类型"></a>第二大类对应内核支持的各种常见的重要的总线或者设备类型</h3><table>
+<thead>
+<tr>
+<th>子目录</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>acpi</td>
+<td><a href="http://product.pconline.com.cn/itbk/bjbzj/notebook/1107/2476367.html" target="_blank" rel="external">ACPI(Advanced Configuration and Power Interface)高级配置与电源接口</a>，简称ACPI。1997年由Intel、Microsoft、Toshiba 所共同制定提供操作系统应用程序管理所有电源管理接口。2000年8月推出 ACPI 2.0规格。2004年9月推出 ACPI 3.0规格。2009年6月16日则推出 ACPI 4.0规格。</td>
+</tr>
+<tr>
+<td>drm</td>
+<td><a href="http://blog.csdn.net/kickxxx/article/details/19188711" target="_blank" rel="external">DRM(Direct Rendering Manager)直接渲染管理</a>内核中的另一个子系统，为各种现代显卡的GPU图形绘画提供接口。参考<a href="https://en.wikipedia.org/wiki/Direct_Rendering_Infrastructure" target="_blank" rel="external">DRI(Direct Rendering Infrastructure)</a></td>
+</tr>
+<tr>
+<td>mtd</td>
+<td><a href="http://blog.csdn.net/myarrow/article/details/7865652" target="_blank" rel="external">MTD(Memory Technology Device)存储器技术设备</a>子系统。主要用于闪存flash的应用，提供一个介于flash和上层应用程序之间的抽象层，让上层应用可以象操作硬盘设备一样对flash设备进行读写。也可以参考<a href="http://www.linux-mtd.infradead.org/doc/general.html" target="_blank" rel="external">General MTD documentation</a></td>
+</tr>
+<tr>
+<td>pcmcia</td>
+<td><a href="http://www.elecfans.com/dianzichangshi/20120515271770.html" target="_blank" rel="external">PCMCIA(PERSONAL COMPUTER MEMORY CARD INTERNATIONAL ASSOCIATION)PC机内存卡国际联合会</a>，制定了PC机上内存设备的国际化标准。</td>
+</tr>
+<tr>
+<td>rdma</td>
+<td><a href="http://baike.baidu.com/link?url=lCWAx-UauF2XbYNK5FHZMRVqQzW-J-mwtzHEhSfUh3YHZvzNVHbcdIgjK16hnMdqvnurvMYCnJV7yUqkXF_LXK" target="_blank" rel="external">RDMA(Remote Direct Memory Access)远程直接内存访问</a>。就是为了解决网络传输中服务器端数据处理的延迟而产生的。RDMA通过网络把资料直接传入计算机的存储区，将数据从一个系统快速移动到远程系统存储器中，而不对操作系统造成任何影响，这样就不需要用到多少计算机的处理功能。它消除了外部存储器复制和文本交换操作，因而能解放内存带宽和CPU周期用于改进应用系统性能。</td>
+</tr>
+<tr>
+<td>rxprc</td>
+<td>下行远程过程调用(Remote Procedure Call)。是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。参考<a href="https://www.kernel.org/doc/Documentation/networking/rxrpc.txt" target="_blank" rel="external">内核文档</a></td>
+</tr>
+<tr>
+<td>scsi</td>
+<td><a href="http://baike.baidu.com/link?url=fnOt8dnTYEVaJ2sWvbQRAhzdQQqyaHIaEcuPjjRC552D2yYpLMhgOBQV-9GdeWbmRi0kjdpB0FM1Wxoxv_yjWof6M014mOs_6odk0cjoRHKHnWdPTbncnBqgcGIDP_GblAumk9onSwtO68I58HEE-K" target="_blank" rel="external">SCSI(Small Computer System Interface)小型计算机系统接口</a>,一种用于计算机和智能设备之间（硬盘、软驱、光驱、打印机、扫描仪等）系统级接口的独立处理器标准。 SCSI是一种智能的通用接口标准。</td>
+</tr>
+<tr>
+<td>xen</td>
+<td>Xen 是一个开放源代码虚拟机监视器，由剑桥大学开发。它打算在单个计算机上运行多达100个满特征的操作系统。操作系统必须进行显式地修改（“移植”）以在Xen上运行（但是提供对用户应用的兼容性）。这使得Xen无需特殊硬件支持，就能达到高性能的虚拟化。参考<a href="http://baike.baidu.com/link?url=npGcHWLqn3BT7dscgLlLQaj0Q1h4sMOiGpyTawY1OoO2wHI-3iHfpg4UyAm9OcCDaiSCI1oLHYD7d0dD0ae8aq" target="_blank" rel="external">百度百科Xen</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="对于include这个目录的总结"><a href="#对于include这个目录的总结" class="headerlink" title="对于include这个目录的总结"></a>对于include这个目录的总结</h3><p>作为内核爱好者，关注的点，肯定是着眼在那几个常见的目录上，逐层深入的方法是：</p>
+<ul>
+<li>1) 弄明白<code>asm-$(ARCH)</code>为什么最初是空的，编译之后，其符号链接都来源于何处；</li>
+<li>2) asm-generic是对<code>asm-$(ARCH)</code>的一个补充，不可或缺；</li>
+<li>3) linux这个目录下，从头文件的角度讲，才是内核的真实部分;</li>
+<li>4）需要搞清楚的是include/linux/*的几个来源，从编译的角度看（安装内核代码树到系统上后）：<ul>
+<li><code>/usr/include/linux</code>是用来编译当前系统应用程序的；</li>
+<li><code>/usr/src/linux/include/linux</code>是用来编译内核的；</li>
+</ul>
+</li>
+</ul>
+<h2 id="init"><a href="#init" class="headerlink" title="init"></a>init</h2><p>这是一个巨大的话题！但正如前述，对Linux内核源码的分析，有几个很好的入口点，其中之一就是系统的引导和初始化过程，即从机器加电到系统核心的运行。</p>
+<p>具体可以参考我的另外一篇文章：<br><a href="/2015/12/27/20151227-lk-init">内核启动过程分析(基于mini2440和linux v2.6.32.6))</a>  </p>
+<p>（未完待续）</p>
+<h1 id="阅读内核代码的技巧"><a href="#阅读内核代码的技巧" class="headerlink" title="阅读内核代码的技巧"></a>阅读内核代码的技巧</h1><h2 id="删除不关心的代码文件"><a href="#删除不关心的代码文件" class="headerlink" title="删除不关心的代码文件"></a>删除不关心的代码文件</h2><p>内核支持了各种各样的体系结构，对于不同的体系结构，重复定义了很多结构体等，在编译时通过指定arch只会选中一种，但这对我们阅读代码带来了一些困扰，特别是使用sourceinsight阅读内核代码时，所以有时候我喜欢将一些不关心的体系架构代码清理干净后再读。</p>
+<p>清理的方法总结如下，假设我现在关注的开发板是mini2440，我们知道这款开发板使用的SOC芯片是三星的S3C2440，其中使用的ARM核是ARM920T，可以这样清理：</p>
+<ul>
+<li><code>arch</code>目录下只保留<code>arm</code>子目录，所有其他架构对应的子目录统统删掉。</li>
+<li>针对<code>arch/arm</code>下形如<code>mach-xxxx</code>开头的子目录，只保留<code>mach-s3c2410</code>和<code>mach-s3c2440</code>，其他SOC对应的子目录统统删掉。这里之所以要保留<code>mach-s3c2410</code>，主要是因为<code>mach-s3c2410</code>是三星<code>s3c24xx</code>系列的基本款，其他的譬如<code>s3c2412</code>，<code>s3c2440</code>啥的都复用了<code>s3c2410</code>的一些函数和结构体定义。</li>
+<li>针对<code>arch/arm</code>下形如<code>plat-xxxx</code>开头的子目录，只保留<code>plat-s3c</code>和<code>plat-s3c24xx</code>，其他系列对应的子目录统统删掉。</li>
+</ul>
+<h1 id="参考文章："><a href="#参考文章：" class="headerlink" title="参考文章："></a>参考文章：</h1><ul>
+<li>[Linux的Makefile] linux-2.6.32.2/Documentation/kbuild/makefiles.txt  </li>
+<li><a href="http://wenku.baidu.com/view/c334021252d380eb62946d5b.html?re=view" target="_blank" rel="external">Linux内核Makefile</a> 另外一篇翻译。</li>
+<li><a href="http://wenku.baidu.com/view/8a07a509f78a6529647d53fa.html" target="_blank" rel="external">怎样读Linux内核源代码</a> 有点老，是基于内核2.2.5，而且是以x86系统为对象讨论，但值得在入门阶段先看看。</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/31/20151231-linux-kernel-2.6/" rel="next" title="Linux 2.6内核的新特性">
+                <i class="fa fa-chevron-left"></i> Linux 2.6内核的新特性
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/01/20160101-hello-2016/" rel="prev" title="你好，2016！">
+                你好，2016！ <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/12/31/20151231-linux-src-arch-v2.6/"
+           data-title="Linux内核源码结构(基于v2.6.32.2)" data-url="http://unicornx.github.io/2015/12/31/20151231-linux-src-arch-v2.6/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#内核目录overview"><span class="nav-number">1.</span> <span class="nav-text">内核目录overview</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#几个重要的顶层子目录"><span class="nav-number">2.</span> <span class="nav-text">几个重要的顶层子目录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#arch"><span class="nav-number">2.1.</span> <span class="nav-text">arch</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#必选目录："><span class="nav-number">2.1.1.</span> <span class="nav-text">必选目录：</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-boot："><span class="nav-number">2.1.1.1.</span> <span class="nav-text">arch/$(ARCH)/boot：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-configs"><span class="nav-number">2.1.1.2.</span> <span class="nav-text">arch/$(ARCH)/configs</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-include"><span class="nav-number">2.1.1.3.</span> <span class="nav-text">arch/$(ARCH)/include</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-kernel"><span class="nav-number">2.1.1.4.</span> <span class="nav-text">arch/$(ARCH)/kernel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-lib"><span class="nav-number">2.1.1.5.</span> <span class="nav-text">arch/$(ARCH)/lib</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-mm"><span class="nav-number">2.1.1.6.</span> <span class="nav-text">arch/$(ARCH)/mm</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-oprpfile"><span class="nav-number">2.1.1.7.</span> <span class="nav-text">arch/$(ARCH)/oprpfile</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#可选目录（就arm这个体系）"><span class="nav-number">2.1.2.</span> <span class="nav-text">可选目录（就arm这个体系）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-common"><span class="nav-number">2.1.2.1.</span> <span class="nav-text">arch/$(ARCH)/common</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-mach-xxx"><span class="nav-number">2.1.2.2.</span> <span class="nav-text">arch/$(ARCH)/mach-xxx</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-plat-xxx"><span class="nav-number">2.1.2.3.</span> <span class="nav-text">arch/$(ARCH)/plat-xxx</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-nwfpe"><span class="nav-number">2.1.2.4.</span> <span class="nav-text">arch/$(ARCH)/nwfpe</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#arch-ARCH-vfp"><span class="nav-number">2.1.2.5.</span> <span class="nav-text">arch/$(ARCH)/vfp</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#block"><span class="nav-number">2.2.</span> <span class="nav-text">block</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#include"><span class="nav-number">2.3.</span> <span class="nav-text">include</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#第一大类对搞嵌入式开发和内核爱好者来说比较重要，需要更多关注。"><span class="nav-number">2.3.1.</span> <span class="nav-text">第一大类对搞嵌入式开发和内核爱好者来说比较重要，需要更多关注。</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第二大类对应内核支持的各种常见的重要的总线或者设备类型"><span class="nav-number">2.3.2.</span> <span class="nav-text">第二大类对应内核支持的各种常见的重要的总线或者设备类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#对于include这个目录的总结"><span class="nav-number">2.3.3.</span> <span class="nav-text">对于include这个目录的总结</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#init"><span class="nav-number">2.4.</span> <span class="nav-text">init</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#阅读内核代码的技巧"><span class="nav-number">3.</span> <span class="nav-text">阅读内核代码的技巧</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#删除不关心的代码文件"><span class="nav-number">3.1.</span> <span class="nav-text">删除不关心的代码文件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考文章："><span class="nav-number">4.</span> <span class="nav-text">参考文章：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,980 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="I2C,S5PC100," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-28
+参考文章
+
+THE I2C-BUS SPECIFICATION VERSION 2.1
+USER’S MANUAL S5PC100 REV 1.02
+LM75 Digital Temperature Sensor and Thermal">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于S5PC100学习I2C">
+<meta property="og:url" content="http://unicornx.github.io/2016/04/28/20160428-i2c-s5pc100/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-28
+参考文章
+
+THE I2C-BUS SPECIFICATION VERSION 2.1
+USER’S MANUAL S5PC100 REV 1.02
+LM75 Digital Temperature Sensor and Thermal">
+<meta property="og:image" content="http://unicornx.github.io/img/20160426-i2c-s5pc100/i2c-bus.jpg">
+<meta property="og:image" content="http://unicornx.github.io/img/20160426-i2c-s5pc100/i2c.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160426-i2c-s5pc100/i2c-2.png">
+<meta property="og:image" content="http://www.embedu.org/Column/images/Column725-1.jpg">
+<meta property="og:image" content="http://unicornx.github.io/img/20160426-i2c-s5pc100/master-tx.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160426-i2c-s5pc100/master-rx.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160426-i2c-s5pc100/lm75.png">
+<meta property="og:updated_time" content="2016-04-28T13:27:42.893Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于S5PC100学习I2C">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-28
+参考文章
+
+THE I2C-BUS SPECIFICATION VERSION 2.1
+USER’S MANUAL S5PC100 REV 1.02
+LM75 Digital Temperature Sensor and Thermal">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20160426-i2c-s5pc100/i2c-bus.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/04/28/20160428-i2c-s5pc100/"/>
+
+  <title> 基于S5PC100学习I2C | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                基于S5PC100学习I2C
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-04-28T16:52:19+08:00" content="2016-04-28">
+              2016-04-28
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ARM裸机接口/" itemprop="url" rel="index">
+                    <span itemprop="name">ARM裸机接口</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/04/28/20160428-i2c-s5pc100/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/28/20160428-i2c-s5pc100/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-28</p>
+<p>参考文章</p>
+<ul>
+<li><a href="">THE I2C-BUS SPECIFICATION VERSION 2.1</a></li>
+<li><a href="">USER’S MANUAL S5PC100 REV 1.02</a></li>
+<li><a href="">LM75 Digital Temperature Sensor and Thermal Watchdog with Two-Wire Interface</a></li>
+</ul>
+<ul>
+<li><a href="http://www.embedu.org/Column/Column888.htm" target="_blank" rel="external">轻松学ARM系列之I2C总线</a> 基于s5pv210</li>
+<li><a href="http://www.embedu.org/Column/Column853.htm" target="_blank" rel="external">I2C</a> I2C的Linux驱动开发</li>
+<li><a href="http://www.embedu.org/Column/Column709.htm" target="_blank" rel="external">I2C 原理及应用(上)</a>，<a href="http://www.embedu.org/Column/Column725.htm" target="_blank" rel="external">I2C 原理及应用(下)</a>  基于S5PC100，裸机驱动，温度测量LM75</li>
+</ul>
+<a id="more"></a>
+<h1 id="I2C总线介绍"><a href="#I2C总线介绍" class="headerlink" title="I2C总线介绍"></a>I2C总线介绍</h1><p>I2C（Inter－Integrated Circuit）总线（也称IIC或I2C）是由PHILIPS公司开发的两线式串行总线，用于连接微控制器及其外围设备，是微电子通信控制领域广泛采用的一种总线标准。它是同步通信的一种特殊形式，具有接口线少、控制方式简单、器件封装形式小、通信速率较高等优点。I2C有着如下的特点。</p>
+<ul>
+<li><p>（1）两条总线线路：一条串行数据线SDA，一条串行时钟线SCL。所有的设备都挂接在这两条总线上。</p>
+<p>  <img src="/img/20160426-i2c-s5pc100/i2c-bus.jpg" alt=""></p>
+</li>
+<li>（2）所有连接在总线上的设备按照工作时的角色分为主机和从机两种，或者叫主控器和外围器件。协议的设计按照主从方式工作，传输的发起和结束由主机控制。每个连接到总线的从机器件都必须分配一个唯一的地址（协议规定地址可以是7位也可以是10位），主机按照该地址访问从机。主机可以控制传输的方向，主机作为发送器时数据传输方向为从主机到从机(write），主机作为接收器时数据传输方向为从从机到主机(read)。</li>
+<li><p>（3）事务(transaction)和传输(transfer)的概念。<br>  一次标准的事务由以下三部分组成：</p>
+<p>  此处可以补充一个图TBD</p>
+<ul>
+<li>开始信号(S)：时钟线(SCL)是高电平时，串行数据线(SDA)从高电平向低电平切换。</li>
+<li>一个或者多个transfer，每个transfer由8位数据和一次响应信号(Ack)构成，Ack可能不存在。Ack的发生通过在第9个时钟周期拉低SDA电平实现。</li>
+<li><p>结束信号(P)：串行时钟线(SCL)是高电平时，串行数据线(SDA)从低电平向高电平切换</p>
+<p>具体的事务格式可以参考I2C标准v2.1，注意按照协议定义，从机设备地址分7位和10位两种，协议上也是分别定义的。</p>
+<p>7位地址的传输事务的格式：</p>
+</li>
+<li><p>Fig. 11</p>
+</li>
+<li>Fig. 12</li>
+<li>Fig. 13</li>
+<li><p>Fig. 16</p>
+<p>10位地址的传输事务的格式：</p>
+</li>
+<li><p>Fig. 26</p>
+</li>
+<li>Fig. 27</li>
+<li>Fig. 28</li>
+<li>Fig. 29</li>
+<li>Fig. 30</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><p>（4）I2C是一个真正的多主机总线，但总线上同时只能发生一个传输（一个主机和一个从机之间），如果两个或更多主机同时发起传输，必须通过冲突检测和仲裁确定当前的传输。从稳定性考虑，建议尽量避免多主机方式，而是采用单主机方式。</p>
+</li>
+<li><p>（5）I2C的传输有多种模式：分为”标准模式”，”快速模式”和”高速模式”。串行的8位双向数据传输位速率在标准模式下可达100 kbit/s，快速模式下可达400kbit/s，高速模式下可达3.4Mbit/s。一般情况下使用”标准模式”就足够了。</p>
+</li>
+<li><p>（6）连接到相同总线的I2C数量只受到总线的最大电容400 pF限制。</p>
+</li>
+</ul>
+<h1 id="I2C的应用-基于I2C总线操作LM75温度传感器"><a href="#I2C的应用-基于I2C总线操作LM75温度传感器" class="headerlink" title="I2C的应用 - 基于I2C总线操作LM75温度传感器"></a>I2C的应用 - 基于I2C总线操作LM75温度传感器</h1><p>结合上面已经提到的I2C理论基础，将以一个例子来进行实际讲解，用I2C来操作LM75温度传感器。</p>
+<p>我使用的开发板的主控芯片是S5PC100，其I2C控制器支持两路I2C接口，本实验通过第一个I2C0接口连接了一个LM75温度传感器。具体的电路连接图，参考DEV第9页如下：</p>
+<p><img src="/img/20160426-i2c-s5pc100/i2c.png" alt=""></p>
+<p>可以看到SDA/SCL被接到了S5PC100的IIC控制器上，并且接了一个外部中断，该中断可作为从机应答信号。</p>
+<p>参考上图，以及CORE第1页如下，可知LM75的输出SDA和SCL分别连接S5PC100的GPD3和GPD4。</p>
+<p><img src="/img/20160426-i2c-s5pc100/i2c-2.png" alt=""></p>
+<p>下面分别来看一下作为主机的S5PC100和作为从机的LM75温度传感器的I2C的操作接口，以及最终如何通过这些接口在主机和从机之间读写数据。</p>
+<h1 id="主机侧-S5PC100下的I2C控制器介绍"><a href="#主机侧-S5PC100下的I2C控制器介绍" class="headerlink" title="主机侧 - S5PC100下的I2C控制器介绍"></a>主机侧 - S5PC100下的I2C控制器介绍</h1><p>参考<a href="">USER’S MANUAL S5PC100 REV 1.02</a>的8.2章节<code>I2C-BUS INTERFACE</code>。</p>
+<p>S5PC100处理器上内置I2C控制器，支持多主机I2C串行总线接口，并且它支持主机发送模式、主机接收模式、从机发送模式和从机接收模式4种模式，在我们的应用中主要将S5PC100作为主机使用。</p>
+<p>I2C控制器的内部组成如下图所示：</p>
+<p><img src="http://www.embedu.org/Column/images/Column725-1.jpg" alt=""></p>
+<p>从图中可以看到对I2C控制器的操作<strong>接口</strong>比较简单，主要是涉及以下四个寄存器：</p>
+<ul>
+<li>Multi-master I2C-bus control register- I2CCON</li>
+<li>Multi-master I2C-bus control/status register- I2CSTAT</li>
+<li>Multi-master I2C-bus Tx/Rx data shift register- I2CDS</li>
+<li>Multi-master I2C-bus address register- I2CADD：注意S5PC100的I2C控制器支持的地址为7位形式。</li>
+</ul>
+<p>研究I2C控制器的操作<strong>接口</strong>就是要围绕下面的主机发送模式和主机接收模式下的操作分别研究这四个寄存器与之相关的功能：</p>
+<p>根据下图实现主机发送(写)流程：</p>
+<p><img src="/img/20160426-i2c-s5pc100/master-tx.png" alt=""></p>
+<p>根据下图实现主机接收(读)流程：</p>
+<p><img src="/img/20160426-i2c-s5pc100/master-rx.png" alt=""></p>
+<h1 id="从机侧-LM75温度传感器对I2C总线的支持"><a href="#从机侧-LM75温度传感器对I2C总线的支持" class="headerlink" title="从机侧 - LM75温度传感器对I2C总线的支持"></a>从机侧 - LM75温度传感器对I2C总线的支持</h1><p>LM75是National Semiconductor出品的一款数字化温湿度传感器，支持I2C总线接口。8管脚封装。</p>
+<p><img src="/img/20160426-i2c-s5pc100/lm75.png" alt=""></p>
+<p>有关LM75的功能描述，对应寄存器相关描述参考LM75第10页；</p>
+<p>对应读写时序图参考LM75的第12页。</p>
+<h1 id="实验例子："><a href="#实验例子：" class="headerlink" title="实验例子："></a>实验例子：</h1><p>本实验结合开发板利用S5PC100的I2C控制器的I2C0作为主设备控制从设备-温度传感器芯片LM75，实时读取温度值并通过串口COM1打印在控制终端上。</p>
+<h2 id="初始化"><a href="#初始化" class="headerlink" title="初始化"></a>初始化</h2><p>参考UM第664页<code>1.9 FLOWCHARTS OF OPERATIONS IN EACH MODE</code>在实行实际的读写操作之前对S5PC100的I2C控制器进行初始化，对应函数<code>i2c_init()</code>。</p>
+<pre><code>/*
+ * 配置相应GPIO口的工作模式为S5PC100的I2C0控制器的SDA和SCL。根据前硬件
+ * 的描述，已知LM75的输出SDA和SCL分别连接S5PC100的GPD3和GPD4，所以需要
+ * 对这两个GPIO口进行配置，具体参考UM第86页5.1.5。
+ * set GPD3 work as I2C0_SDA, GPD4 work as I2C0_SCL 
+ */
+GPD.GPDCON = (0x02 &lt;&lt; 12) | (0x02 &lt;&lt; 16);
+
+/* 
+ * 配置I2C0，参考UM第670页3.1：
+ * - 应答产生位使能。
+ * - 一次时钟频率I2CCLK设置，实验中PCLK为66Mhz，因为I2C正常工作频率在
+ *   100Khz左右，所以采用预分频值为512，即时钟工作频率I2CCLK=PCLK/512，
+ *   约为129Khz左右。
+ * - 打开I2C中断，只有打开中断，才能使能Interrupt pending flag，后面要
+ *   通过查询Interrupt pending flag来探询读写是否完成。如果我们
+ *   不enable该中断位，Interrupt pending flag就无法正常工作，所以手册
+ *   推荐我们即使不用I2C的中断，也要enable该中断使能标志，具体参考手册
+ *   第670页最下面NOTES的第5项。
+ * - 二次时钟分频，可以在前面一次时钟分频I2CCLK的基础上继续分频，这里
+ *   我们不做二次分频，所以取值为0就好了。
+ */
+I2C0.I2CCON0 |= (1 &lt;&lt; 7) | (1 &lt;&lt; 6) | (1 &lt;&lt; 5);
+</code></pre><h2 id="发送（写）数据"><a href="#发送（写）数据" class="headerlink" title="发送（写）数据"></a>发送（写）数据</h2><p>I2C0作为Master的“写”操作的实现对应函数<code>i2c_master_tx()</code>，具体步骤参考UM第665页” Figure 8.2-6 Operations for Master/Transmitter Mode”。</p>
+<pre><code>/* 
+ * 配置I2C0工作为Master的Tx模式，参考UM第671页3.2的I2CSTAT寄存器
+ * 的Mode selection位。
+ */
+I2C0.I2CSTAT0 |= (0x03 &lt;&lt; 6);
+
+/* 
+ * 将slave设备的地址设置到I2CDS准备发送。参考UM第672页3.4。slave的地
+ * 址共7位，占据发送地址命令阶段的高7位，最低位标志后继的操作是“读”还
+ * 是“写”，该位不需要我们填写，由芯片完成。 
+ */ 
+I2C0.I2CDS0 = addr_s &lt;&lt; 1;
+
+/* 
+ * 启动I2C总线，发出START信号，参考UM第671页3.2的I2CSTAT寄存器的设置，
+ * 向I2CSTAT寄存器写0xF0即可。注，一旦发出START信号，上一步设置在
+ * I2CDS的slave设备的地址值就自动发送到总线上去了。 
+ */
+I2C0.I2CSTAT0 = 0xf0;
+
+/* 
+ * 等待slave的ACK完成，可以通过检测I2CCON的Interrupt pending flag为1
+ * 得到。参考UM第670页3.1。
+ * 注，根据手册说明，一旦读到该位为1，说明时钟线I2CSCL会被拉低，此时
+ * I2C总线停止工作。
+ */
+while ( !(I2C0.I2CCON0 &amp; (1 &lt;&lt; 4)));
+
+/* 如果当前有数据（单位为字节）要发送，则需要按以下步骤执行： */
+while (count &gt; 0) {
+
+    /* 先把内存中的数据加载到I2CDS寄存器等待发送。*/
+    I2C0.I2CDS0 = *buf;
+
+    count--;
+    buf++;
+
+    /* 
+     * 然后通过向I2CCON的Interrupt pending flag位写0即可清除
+     * pending位达到重启I2C总线的目的，此时I2CDS中的数据就会
+     * 被自动发送到I2C总线上。
+     */
+    I2C0.I2CCON0 &amp;= ~(1&lt;&lt;4);
+
+    /* 
+     * 最后等待slave的ACK完成。一旦读到pending位为1说明slave
+     * 设备完成了数据的接收。
+     */
+    while ( !(I2C0.I2CCON0 &amp; (1 &lt;&lt; 4)));
+}
+/* 以上步骤可以重复执行，直到所有的数据都发送到I2C总线上。*/
+
+/* 如果所有的数据发送完毕，则可以释放I2C总线，需要按以下步骤执行: */    
+
+/* 
+ * 发送STOP信号，参考UM第671页3.2的I2CSTAT寄存器的设置，向I2CSTAT寄存
+ * 器写0xD0即可。
+ */
+I2C0.I2CSTAT0 = 0xd0;
+
+/* 
+ * 通过向I2CCON的Interrupt pending flag位写0即可清除pending位达到
+ * 重启I2C总线的目的，此时I2CSTAT中的STOP信号就会被自动发送到I2C总线上。
+ */
+I2C0.I2CCON0 &amp;= ~(1 &lt;&lt; 4);
+
+/* 
+ * 等待STOP信号执行完毕，S5PC100没有非常直接的方法判断，可以通过延时来
+ * 完成，或者对于本实验的单master布局，也可以通过检测I2CSTAT的Busy 
+ * signal status来判断总线当前是否被占用。
+ */
+while ( (I2C0.I2CSTAT0 &amp; (1 &lt;&lt; 5)));
+</code></pre><h2 id="接收（读）数据"><a href="#接收（读）数据" class="headerlink" title="接收（读）数据"></a>接收（读）数据</h2><p>I2C0作为Master的“读”操作的实现对应函数<code>i2c_master_rx()</code>，具体步骤参考UM第666页” Figure 8.2-7 Operations for Master/Receiver Mode”。</p>
+<pre><code>/* 
+ * 配置I2C0工作为Master的Rx模式，参考UM第671页3.2的I2CSTAT寄存器
+ * 的Mode selection位。
+ */
+I2C0.I2CSTAT0 |= (0x02 &lt;&lt; 6);
+
+/* 
+ * 将slave设备的地址设置到I2CDS准备发送。参考UM第672页3.4。slave的
+ * 地址共7位，占据发送地址命令阶段的高7位，最低位标志后继的操作是
+ * “读”还是“写”，该位不需要我们填写，由芯片完成。
+ */
+I2C0.I2CDS0   = addr_s &lt;&lt; 1;
+
+/* 
+ * 启动I2C总线，发出START信号，参考UM第671页3.2的I2CSTAT寄存器的设置，
+ * 向I2CSTAT寄存器写0xB0即可。
+ * 注，一旦发出START信号，上一步设置在I2CDS的slave设备的地址值就自动
+ * 发送到总线上去了。
+ */
+I2C0.I2CSTAT0 = 0xb0;
+
+/* 
+ * 等待slave的ACK完成，可以通过检测I2CCON的Interrupt pending flag
+ * 为1得到。参考UM第670页3.1。
+ * 注，根据手册说明，一旦读到该位为1，说明时钟线I2CSCL会被拉低，
+ * 此时I2C总线停止工作。
+ */
+while ( !(I2C0.I2CCON0 &amp; (1 &lt;&lt; 4)));
+
+/* 如果当前有数据（单位为字节）要接收，则需要按以下步骤执行： */
+while (count &gt; 0) {
+
+    /* 
+     * 先通过向I2CCON的Interrupt pending flag位写0即可清除
+     * pending位达到重启I2C总线的目的，此时slave设备开始向
+     * I2C总线发送数据 
+     */
+    I2C0.I2CCON0 &amp;= ~(1 &lt;&lt; 4);
+
+    /* 
+     * 等待slave的ACK完成。一旦检测完成，说明master侧已经完
+     * 成一个字节数据的读操作并存放在I2CDS寄存器内等待应用
+     * 程序读取。
+     */
+    while ( !(I2C0.I2CCON0 &amp; (1 &lt;&lt; 4)));
+
+    /* 将I2CDS寄存器内的数据读进内存 */
+    *buf = I2C0.I2CDS0 ;
+
+    count--;
+    buf++;
+    nr++;
+} 
+/* 以上步骤可以重复执行，直到所有的数据都发送到I2C总线上。*/
+
+/* 如果所有的数据发送完毕，则可以释放I2C总线，需要按以下步骤执行: */
+/* 
+ * 发送STOP信号，参考UM第671页3.2的I2CSTAT寄存器的设置，向I2CSTAT寄
+ * 存器写0x90即可。
+ */
+I2C0.I2CSTAT0 = 0x90;
+
+/* 
+ * 通过向I2CCON的Interrupt pending flag位写0即可清除pending位达到重
+ * 启I2C总线的目的，此时I2CSTAT中的STOP信号就会被自动发送到I2C总线上。
+ */
+I2C0.I2CCON0 &amp;= ~(1&lt;&lt;4);
+
+/* 
+ * 等待STOP信号执行完毕，S5PC100没有非常直接的方法判断，可以通过延时
+ * 来完成，或者对于本实验的单master布局，也可以通过检测I2CSTAT的
+ * Busy signal status来判断总线当前是否被占用。
+ */
+while ( (I2C0.I2CSTAT0 &amp; (1 &lt;&lt; 5)));
+</code></pre><h2 id="读取LM75测量的温度值"><a href="#读取LM75测量的温度值" class="headerlink" title="读取LM75测量的温度值"></a>读取LM75测量的温度值</h2><p>注：我们的练习采用典型方式，即两步读取LM75的当前温度值，即先通过“写”方式设置Pointer寄存器指向温度值寄存器Temp（通过调用<code>i2c_master_tx()</code>），然后再以“读”方式读取Temp寄存器的值（通过调用<code>i2c_master_rx()</code>）。时序图可以参考LM75的第12页的<code>(b) Typical Pointer Set Followed by Immediate Read for 2-Byte Register such as Temp, T-OS, T-HYST</code>。 当然缺省情况下LM75复位后具备的功能就是温度读取，所以我们也可以不设置Pointer Register，即参考<code>(a) Typical 2-Byte Read From Preset Pointer Location Such as Temp, T-OS, T-HYST</code>的方式来读取，感兴趣的同学可以自己试一下。</p>
+<ul>
+<li>关于slaves设备(LM75)的I2C地址的值，可以参考LM75第8页1.3 “I2C BUS INTERFACE”，地址总共7位，高四位为0b1001，低三位，同时参考DEV第9页的电路设置，可知A0，A1和A2都接地为0，所以其地址为0b1001000，即0x48。</li>
+<li>关于如何设置Pointer寄存器指向温度寄存器Temp，需要设置Temp寄存器的地址，参考LM75第11页1.11可知温度寄存器Temperature (Read only)的地址为0b00000000。</li>
+<li>关于LM75的温度寄存器值的格式解释，参考LM75第9页14和第11页1.12。该寄存器共16位，低7位不用，最高位D15如果为0表示温度为零上，最高位如果为1表示为零下。LM75的温度测量范围为[-55度，125度]，精度为0.5度，D8到D14位为温度值的整数部分，D7为小数部分，1表示0.5度，0表示0度。</li>
+</ul>
+<p>以下为参考代码：</p>
+<pre><code>while (1) {
+    /* 
+     * set LM75 pointer register to point to 
+     * temperature read-only register
+     */
+    buf[0] = 0;
+    i2c_master_tx(0x48, buf, 1);
+
+    /* read temperature value and print to COM1 */
+    i2c_master_rx(0x48, buf, 2 );
+
+    uart0_puts(&quot;temprature = &quot;);
+    if (buf[0] &amp; 0x80) {
+        uart0_putchar(&apos;-&apos;);
+    } else {
+        uart0_putchar(&apos;+&apos;);
+    }
+    b2d(buf[0] &amp; 0x07f, str);
+    uart0_puts(str);
+    if (buf[1] &amp; 0x80) {
+        uart0_puts(&quot;.5 C\r&quot;);
+    } else {
+        uart0_puts(&quot;.0 C\r&quot;);
+    }
+
+    delay(0x200000);
+}
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/I2C/" rel="tag">#I2C</a>
+          
+            <a href="/tags/S5PC100/" rel="tag">#S5PC100</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/19/20160419-lk-drv-th-bh/" rel="next" title="Linux驱动开发中的上半部和下半部的概念">
+                <i class="fa fa-chevron-left"></i> Linux驱动开发中的上半部和下半部的概念
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/05/04/20160504-spi-s5pc100/" rel="prev" title="基于S5PC100学习SPI">
+                基于S5PC100学习SPI <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/04/28/20160428-i2c-s5pc100/"
+           data-title="基于S5PC100学习I2C" data-url="http://unicornx.github.io/2016/04/28/20160428-i2c-s5pc100/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#I2C总线介绍"><span class="nav-number">1.</span> <span class="nav-text">I2C总线介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#I2C的应用-基于I2C总线操作LM75温度传感器"><span class="nav-number">2.</span> <span class="nav-text">I2C的应用 - 基于I2C总线操作LM75温度传感器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#主机侧-S5PC100下的I2C控制器介绍"><span class="nav-number">3.</span> <span class="nav-text">主机侧 - S5PC100下的I2C控制器介绍</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#从机侧-LM75温度传感器对I2C总线的支持"><span class="nav-number">4.</span> <span class="nav-text">从机侧 - LM75温度传感器对I2C总线的支持</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#实验例子："><span class="nav-number">5.</span> <span class="nav-text">实验例子：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#初始化"><span class="nav-number">5.1.</span> <span class="nav-text">初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#发送（写）数据"><span class="nav-number">5.2.</span> <span class="nav-text">发送（写）数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#接收（读）数据"><span class="nav-number">5.3.</span> <span class="nav-text">接收（读）数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#读取LM75测量的温度值"><span class="nav-number">5.4.</span> <span class="nav-text">读取LM75测量的温度值</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

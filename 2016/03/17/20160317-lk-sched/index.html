@@ -1,0 +1,801 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,调度," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-17
+任务调度是操作系统内核的核心，我目前对它的认识也只能说是寥寥，但是聊胜于无，知道一点对理解内核的多任务处理机制，以及编写内核驱动还是有好处的。
+将我目前理解的东西总结在这里，以后有新的认识再逐渐更新吧。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux的任务调度">
+<meta property="og:url" content="http://unicornx.github.io/2016/03/17/20160317-lk-sched/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-17
+任务调度是操作系统内核的核心，我目前对它的认识也只能说是寥寥，但是聊胜于无，知道一点对理解内核的多任务处理机制，以及编写内核驱动还是有好处的。
+将我目前理解的东西总结在这里，以后有新的认识再逐渐更新吧。">
+<meta property="og:image" content="http://1874.img.pp.sohu.com.cn/images/blog/2012/10/29/15/3/e38795997_13b6f4f56dbg85_blog.png">
+<meta property="og:image" content="http://1824.img.pp.sohu.com.cn/images/blog/2012/10/29/15/4/e38795997_13b6f4fa2bdg2_blog.png">
+<meta property="og:image" content="http://1804.img.pp.sohu.com.cn/images/blog/2012/10/29/15/4/e38795997_13b6f50088fg86_blog.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:48.317Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux的任务调度">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-17
+任务调度是操作系统内核的核心，我目前对它的认识也只能说是寥寥，但是聊胜于无，知道一点对理解内核的多任务处理机制，以及编写内核驱动还是有好处的。
+将我目前理解的东西总结在这里，以后有新的认识再逐渐更新吧。">
+<meta name="twitter:image" content="http://1874.img.pp.sohu.com.cn/images/blog/2012/10/29/15/3/e38795997_13b6f4f56dbg85_blog.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/03/17/20160317-lk-sched/"/>
+
+  <title> Linux的任务调度 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux的任务调度
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-03-17T05:50:12+08:00" content="2016-03-17">
+              2016-03-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/17/20160317-lk-sched/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/17/20160317-lk-sched/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-17</p>
+<p>任务调度是操作系统内核的核心，我目前对它的认识也只能说是寥寥，但是聊胜于无，知道一点对理解内核的多任务处理机制，以及编写内核驱动还是有好处的。</p>
+<p>将我目前理解的东西总结在这里，以后有新的认识再逐渐更新吧。</p>
+<a id="more"></a>
+<p>主要参考文章：</p>
+<ul>
+<li>ldd3</li>
+<li>lkd3</li>
+<li>ulk3</li>
+<li>内核代码v2.6.32.2</li>
+<li><a href="http://www.zhihu.com/question/35484429" target="_blank" rel="external">现在的 Linux 内核和 Linux 2.6 的内核有多大区别？</a></li>
+<li><a href="http://www.myhack58.com/Article/48/66/2014/49351.htm" target="_blank" rel="external">Linux 调度器发展简述</a>  相对来说比较完整第从历史的角度介绍了Linux调度器的发展，从最初2.4版本，经历2.6的O(1)改进，再到完全公平思想的提出，最后发展为从2.6.23开始正式被内核接纳的CFS调度算法。</li>
+<li><a href="http://blog.csdn.net/janneoevans/article/details/8125106" target="_blank" rel="external">linux2.6.24内核，调度器章节的笔记</a> 基于内核2.6.24。作者撰写技术博客的专业精神值得学习。也是我主要参考的文章，附注，几张图画的好。</li>
+</ul>
+<p>其他参考文章</p>
+<ul>
+<li><a href="http://m.blog.csdn.net/article/details?id=7596847" target="_blank" rel="external">【思维重现】进程调度</a></li>
+<li><a href="http://blog.chinaunix.net/uid-20671839-id-3032468.html" target="_blank" rel="external">Linux实时性分析</a></li>
+<li><a href="http://www.kerneltravel.net/journal/viii/01.htm" target="_blank" rel="external">中断解析</a></li>
+<li><a href="http://wenku.baidu.com/view/1a2651659b6648d7c1c746f2.html?re=view" target="_blank" rel="external">Linux进程调度知识</a> 这个应该是针对的2.6内核采用CFS之前的调度算法。</li>
+<li><a href="http://blog.chinaunix.net/uid-27052262-id-3239260.html" target="_blank" rel="external">Linux内核之CFS调度和组调度</a>，对代码的分析比较到位</li>
+<li><a href="http://blog.csdn.net/wudongxu/article/details/8573904" target="_blank" rel="external">linux调度器（一）——概述</a> <code>***</code> 基于2.6.32</li>
+<li><a href="http://www.douban.com/note/56531301/" target="_blank" rel="external">分析linux内核的idle的知识</a></li>
+<li><a href="http://blog.csdn.net/universus/article/details/5630939" target="_blank" rel="external">linux调度器之主调度器框架</a></li>
+</ul>
+<p>一些别人写的课件</p>
+<ul>
+<li><a href="http://wenku.baidu.com/link?url=jOybsWf7u8YUulZyXWT45BfuhQ35U9A21S3MNxca5jzwIx8sdOc9HD39HMxZEsSPXOK-s7HpJfE3ohq2UYCEFE0CCrjAU3veRt-1XwTv5_q" target="_blank" rel="external">Linux进程调度ppt</a></li>
+<li><a href="http://wenku.baidu.com/link?url=jxreaPOIUxuQ_ytFSDBzNqBt8ltJwmZ1nqIQzOAuG-8h4xiguZ4-eJp5hFo-GPbosBABc7ocZ9irq83RFYjczOLIv9v5dPrBpXNRLzyTGa7" target="_blank" rel="external">第15章 进程调度ppt</a></li>
+</ul>
+<h1 id="进程调度概述"><a href="#进程调度概述" class="headerlink" title="进程调度概述"></a>进程调度概述</h1><ul>
+<li>目标：最大限度地利用处理器时间</li>
+<li>基本任务：选择下一个要运行的进程</li>
+<li>核心问题：在可运行态进程之间分配有限的处理器时间，保证各进程公平，有效地使用处理器时间资源。</li>
+<li>调度的基本要求和难点：<ul>
+<li>不同类型的进程有不同的调度需求。进程主要分为两种类型：”IO操作频繁型”和”计算密集型”</li>
+<li>响应时间 vs 系统开销：一方面对交互式应用要有良好的响应速度；一方面要减少调度器自身的开销，以增加花在执行程序上的时间。</li>
+</ul>
+</li>
+</ul>
+<h1 id="任务，进程和线程的概念"><a href="#任务，进程和线程的概念" class="headerlink" title="任务，进程和线程的概念"></a>任务，进程和线程的概念</h1><h2 id="任务的概念"><a href="#任务的概念" class="headerlink" title="任务的概念"></a>任务的概念</h2><p>在逻辑上表达一个顺序执行流，在操作系统中用于表达内核中可以独立调度的一个实体。</p>
+<h2 id="进程和线程"><a href="#进程和线程" class="headerlink" title="进程和线程"></a>进程和线程</h2><p>历史上先有进程的概念，然后才有线程的概念。它们都是历史上任务概念的具体实现。</p>
+<p>现在Linux内核中一个任务对应的是一个线程，所以目前最新的内核中一个线程才对应着内核中可以独立调度的一个实体。进程的概念演变为线程组。</p>
+<h2 id="Linux内核中任务的组织方式"><a href="#Linux内核中任务的组织方式" class="headerlink" title="Linux内核中任务的组织方式"></a>Linux内核中任务的组织方式</h2><p>多个共享资源的线程构成线程组，线程组即进程。</p>
+<p>进程之间资源不共享，地址空间独立。</p>
+<p>进程之间有父子关系，线程之间无父子关系。父子进程之间组织为树状结构，多个子进程以链表的形式保存在父进程的<code>task_struct</code>结构体中。每个进程维护一个指向父进程的指针。</p>
+<p>内核线程是完全运行在内核地址空间的任务，和用户空间没有关系。可以运行<code>ps -eLf</code>命令列出来的线程，如果<code>CMD</code>那一列的值被<code>[]</code>括起来了，就是内核线程。</p>
+<h2 id="进程状态"><a href="#进程状态" class="headerlink" title="进程状态"></a>进程状态</h2><p><code>SCHED_NORMAL</code>在POSIX中称为<code>SCHED_OTHER</code>，所以查man手册时都叫<code>SCHED_OTHER</code>，但查看linux的头文件中都叫<code>SCHED_NORMAL</code>，两个实际是一回事。</p>
+<p>围绕任务的状态迁移，有另外一个组织方式。<br>在CFD调度算法中内核把所有<code>TASK_RUNNING</code>的任务组织为一棵红黑树rbtree。<br>内核中还存在多个队列，用来组织处于<code>TASK_INTERRUPTIBLE</code>和<code>TASK_UNINTERRUPTIBLE</code>的任务</p>
+<h1 id="任务类型和调度策略"><a href="#任务类型和调度策略" class="headerlink" title="任务类型和调度策略"></a>任务类型和调度策略</h1><ul>
+<li><a href="http://book.2cto.com/201302/16285.html" target="_blank" rel="external">调度策略</a></li>
+<li><a href="http://blog.csdn.net/muge0913/article/details/7561323" target="_blank" rel="external">窥探 kernel — 初识进程调度器</a></li>
+<li><a href="http://blog.chinaunix.net/uid-24774106-id-3379478.html" target="_blank" rel="external">linux进程调度之 FIFO 和 RR 调度策略</a></li>
+</ul>
+<p>内核把它所要处理的所有任务分为两种类型，普通任务和实时任务</p>
+<p>三类调度</p>
+<p>static const struct sched_class fair_sched_class<br>static const struct sched_class idle_sched_class<br>static const struct sched_class rt_sched_class</p>
+<p>struct sched_class</p>
+<p>策略</p>
+<p>Linux支持三种进程调度策略，分别是SCHED_FIFO 、 SCHED_RR和SCHED_NORMAL。Linux支持两种类型的进程，实时进程和普通进程。实时进程可以采用SCHED_FIFO 和SCHED_RR调度策略；普通进程采用SCHED_NORMAL调度策略。</p>
+<pre><code>`man sched_setscheduler`
+</code></pre><h1 id="TASK-RUNNING任务的组织和管理"><a href="#TASK-RUNNING任务的组织和管理" class="headerlink" title="TASK_RUNNING任务的组织和管理"></a><code>TASK_RUNNING</code>任务的组织和管理</h1><table>
+<thead>
+<tr>
+<th>defines</th>
+<th>filepath</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>runqueues</td>
+<td><code>kernel/sched.c</code></td>
+</tr>
+<tr>
+<td>struct rq</td>
+<td><code>kernel/sched.c</code></td>
+</tr>
+</tbody>
+</table>
+<p>对于调度器来说，只有任务进入<code>TASK_RUNNING</code>态才需要执行调度。<code>TASK_RUNNING</code>态的任务又分为两种，一种是尚未拥有CPU的就绪态，另外一种是拥有CPU的实际运行态。对一个CPU来说，实际正在其上运行的任务只有一个，记为CURRENT。</p>
+<p><img src="http://1874.img.pp.sohu.com.cn/images/blog/2012/10/29/15/3/e38795997_13b6f4f56dbg85_blog.png" alt=""></p>
+<p>在多核系统中，每个CPU（此处指一个核心）对应一个全局变量<code>per_cpu_runqueues</code>，其数据结构为<code>struct rq</code>，该变量为调度的最顶层的数据结构。每个CPU对应一个rq结构体，所有rq结构体存放在runqueues数组中，有几个CPU数组长度就为几。</p>
+<p>在这个数据结构中将系统中所有处于<code>TASK_RUNNING</code>状态的任务组织在一起。</p>
+<pre><code>static DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
+</code></pre><p>内核将所有就绪的进程分为两大类，普通进程和实时进程。这个概念在代码上体现为：在<code>struct rq</code>结构中包含了两个重要的成员：cfs和rt，其数据结构为分别为<code>struct cfs_rq</code>和<code>struct rt_rq</code>。分别表示两个就绪队列：cfs就绪队列用于组织就绪的普通进程(这个队列上的进程用完全公平调度器进行调度)；rt就绪队列用于用于组织就绪的实时进程(该队列上的进程用实时调度器调度)。</p>
+<pre><code>struct rq {
+    ...
+    struct cfs_rq cfs;
+    struct rt_rq rt;
+    ...
+    struct task_struct *curr, *idle;
+    ...
+};
+</code></pre><p>curr指向此CPU上的CURRENT进程,通常用<code>cpu_curr(cpu)</code>宏来访问。</p>
+<h1 id="其他状态的任务的组织管理"><a href="#其他状态的任务的组织管理" class="headerlink" title="其他状态的任务的组织管理"></a>其他状态的任务的组织管理</h1><h1 id="调度器原理概述"><a href="#调度器原理概述" class="headerlink" title="调度器原理概述"></a>调度器原理概述</h1><h2 id="触发内核施行任务调度的触发点："><a href="#触发内核施行任务调度的触发点：" class="headerlink" title="触发内核施行任务调度的触发点："></a>触发内核施行任务调度的触发点：</h2><ul>
+<li><p>显式调用：<br>  想到这种时机最为正常。一个进程显式调用调度函数<code>schedule()</code>，意味着它已经完成自己所需要做的事情，主动放弃对处理器的使用。这个“时间点”自然就是一个调度时机。</p>
+</li>
+<li><p>系统调用<br>  有一些系统调用会产生调度时间发生，这些与调度相关的系统调度其实也很好去理解，凡是对<code>task_struct</code>中与调度相关的参数进行操作（例如改变优先级）的时候，这就意味着有调度的期望，所以这些调度函数返回（执行完操作）的时候就是一个必要的调度时机。下图列出了一些与调度相关的函数API，像<code>nice()</code>，<code>sched_getscheduler()</code>，<code>sched_set_param()</code>这样的函数在返回的时候就会进行重新调度（注：这些函数会引发调用不意味着绝对会被调度）。</p>
+</li>
+<li><p>中断和时钟中断：<br>  中断——产生一个中断就很可能意味着发生了一件很紧急的事情，它很可能意味着出现了一个更高优先级的进程迫切需要执行，所以在中断返回的时候就需要考虑是否有进程需要进行调度。</p>
+<p>  对于时钟中断，之所以把它单独提出讲，是因为它太重要了，在时钟中断的中断处理程序中存在一个周期性调度时机。</p>
+</li>
+</ul>
+<h2 id="任务调度函数"><a href="#任务调度函数" class="headerlink" title="任务调度函数"></a>任务调度函数</h2><p>任务调度与两个调度函数有关：<code>scheduler_tick()</code>和<code>schedule()</code>，这两者分别被称作周期性调度器(或周期性调度函数)和主调度器(或主调度函数)。两者合在一起被称作通用调度器（或者核心调度器）</p>
+<h3 id="主调度器"><a href="#主调度器" class="headerlink" title="主调度器"></a>主调度器</h3><p>在我们通常的概念中：调度器就负责将CPU使用权限从一个进程切换到另一个进程。完成这个工作的这其实就是Linux内核中所谓的主调度器。</p>
+<p>在前面说到的<code>触发内核施行任务调度的触发点</code>中”显式调用”，”系统调用”和”中断返回”时就会调用主调度器函数<code>schedule()</code>。</p>
+<p><img src="http://1824.img.pp.sohu.com.cn/images/blog/2012/10/29/15/4/e38795997_13b6f4fa2bdg2_blog.png" alt=""></p>
+<p>上图中，三种不同颜色的长条分别表示CPU分配给进程A、B、C的一小段执行时间，执行顺序是：A,B,C。竖直的虚线表示当前时间，也就是说；A已经在CPU上执行完CPU分配给它的时间，马上轮到B执行了。这时主调度器shedule就负责完成相关处理工作然后将CPU的使用权交给进程B。总之，主调度器的工作就是完成进程间的切换。</p>
+<h3 id="周期性调度器"><a href="#周期性调度器" class="headerlink" title="周期性调度器"></a>周期性调度器</h3><p>在前面说到的<code>触发内核施行任务调度的触发点</code>中”时钟中断”就会调用周期性调度器<code>scheduler_tick()</code>。</p>
+<p><img src="http://1804.img.pp.sohu.com.cn/images/blog/2012/10/29/15/4/e38795997_13b6f50088fg86_blog.png" alt=""></p>
+<p>再来看看周期性调度器都干些什么吧。同样是刚才的那幅图，不过现在我们关注的不是从进程A切换到进程B这个过程，而是把A在CPU上执行的过程放大后观察细节。<br>在A享用它得到的CPU时间的过程中，系统会定时调用周期性调度器（即定时执行周期性调度函数<code>scheduler_tick()</code>)。</p>
+<p>在此版本的内核中，这个周期为10ms（这个10ms是这样得来的：内中定义了一个宏变量：HZ=100，它表示每秒钟周期性调度器执行的次数，那么时间间隔<code>t=1/HZ=1/100s=10ms</code>。10ms是个什么概念呢，我们粗略地计算一下：如果周期性调度程序每次执行100条指令，每秒执行100次，那么一秒钟周期性调度器在CPU上执行的指令就是1万条。如果主频为1GHz的处理器每秒钟执行10亿条指令，就相当于，周期性调度器消耗的CPU只占CPU总处理能力的 1万/10亿=10万分之一，微乎其微）。为了方便理解，上图将A获得的时间段分成长度为10ms的小片（注意：只是为了方便讲解，假想成这样的，内核并没有做这样的划分）。<br>周期性调度器每10ms执行一次，那它都干了些什么呢？</p>
+<ul>
+<li>首先它负责减少当前运行进程(CURRENT)的时间片计数。例如：进程A的结构体的成员<code>sum_exec_runtime</code>记录了A在CPU上运行的总时间，周期性调度器会更新该时间为：<code>sum_exec_runtime+=10ms</code>。</li>
+<li>其次，它会在需要时设置need_resched标志。这会影响后续主调度器函数<code>schedule()</code>对该进程的处理，譬如抢占。</li>
+<li>在SMP机器中，该函数还要负责平衡多个处理器上的运行队列。<br>总之，这个函数虽然称为周期性调度器，但它不负责实际的进程切换，它是为主调度器函数<code>schedule()</code>服务的。<br>有关时钟中断处理程序的细节，可以参考LKD的11.5章节。</li>
+</ul>
+<p>小结：<br>主调度器负责将CPU的使用权从一个进程切换到另一个进程。周期性调度器只是定时更新调度相关的统计信息。   </p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/调度/" rel="tag">#调度</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/14/20160314-mjpeg-streamer/" rel="next" title="mjpg-streamer使用总结">
+                <i class="fa fa-chevron-left"></i> mjpg-streamer使用总结
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/20/20160320-lk-vfs/" rel="prev" title="linux内核之虚拟文件系统总结">
+                linux内核之虚拟文件系统总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/03/17/20160317-lk-sched/"
+           data-title="Linux的任务调度" data-url="http://unicornx.github.io/2016/03/17/20160317-lk-sched/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#进程调度概述"><span class="nav-number">1.</span> <span class="nav-text">进程调度概述</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#任务，进程和线程的概念"><span class="nav-number">2.</span> <span class="nav-text">任务，进程和线程的概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#任务的概念"><span class="nav-number">2.1.</span> <span class="nav-text">任务的概念</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程和线程"><span class="nav-number">2.2.</span> <span class="nav-text">进程和线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Linux内核中任务的组织方式"><span class="nav-number">2.3.</span> <span class="nav-text">Linux内核中任务的组织方式</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#进程状态"><span class="nav-number">2.4.</span> <span class="nav-text">进程状态</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#任务类型和调度策略"><span class="nav-number">3.</span> <span class="nav-text">任务类型和调度策略</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#TASK-RUNNING任务的组织和管理"><span class="nav-number">4.</span> <span class="nav-text">TASK_RUNNING任务的组织和管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他状态的任务的组织管理"><span class="nav-number">5.</span> <span class="nav-text">其他状态的任务的组织管理</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#调度器原理概述"><span class="nav-number">6.</span> <span class="nav-text">调度器原理概述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#触发内核施行任务调度的触发点："><span class="nav-number">6.1.</span> <span class="nav-text">触发内核施行任务调度的触发点：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#任务调度函数"><span class="nav-number">6.2.</span> <span class="nav-text">任务调度函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主调度器"><span class="nav-number">6.2.1.</span> <span class="nav-text">主调度器</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#周期性调度器"><span class="nav-number">6.2.2.</span> <span class="nav-text">周期性调度器</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

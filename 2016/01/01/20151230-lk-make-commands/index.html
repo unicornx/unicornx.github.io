@@ -1,0 +1,720 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,make," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-01">
+<meta property="og:type" content="article">
+<meta property="og:title" content="编译内核常用命令">
+<meta property="og:url" content="http://unicornx.github.io/2016/01/01/20151230-lk-make-commands/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-01">
+<meta property="og:updated_time" content="2016-03-18T23:02:52.175Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="编译内核常用命令">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-01">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/01/01/20151230-lk-make-commands/"/>
+
+  <title> 编译内核常用命令 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                编译内核常用命令
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-01T22:19:47+08:00" content="2016-01-01">
+              2016-01-01
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/01/20151230-lk-make-commands/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/01/20151230-lk-make-commands/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-01-01</p>
+<a id="more"></a>
+<h1 id="make的处理参数"><a href="#make的处理参数" class="headerlink" title="make的处理参数"></a>make的处理参数</h1><p>一共有5个命令行参数，具体查看顶层Makefile前面的代码描述：</p>
+<ul>
+<li>V : 设定编译时，输出信息的等级，例如你可以用<code>make V=1</code>查看编译时执行的所有命令，包括 gcc 参数都会打印出来</li>
+<li>C :  代码检查，使用 sparse，检查源文件。</li>
+<li>M : 指定不在当前目录（外部模块）的编译，也可以指定当前目录的子目录，那么将只会编译子目录的内容</li>
+<li>O ：指定编译生成的目标文件位置，当设置了O参数，内核生成的obj和builtin文件都会按照目录结构组织到 O 参数指定的目录里面</li>
+<li>W： 使能外部 gcc 检查</li>
+</ul>
+<p>这几个命令参数，在特定的情况下，将会非常有用，比如我们想编译一个单独的模块就经常使用M参数，用M指定模块的路径，make的时候将会不编译整个内核，而只编译我们需要的模块：（M 参数会覆盖<code>KBUILD_EXTMOD</code>变量）。例如：</p>
+<pre><code>make M=drivers/misc/  
+LD      drivers/misc/eeprom/built-in.o  
+CC [M]  drivers/misc/eeprom/eeprom_93cx6.o  
+LD      drivers/misc/built-in.o  
+Building modules, stage 2.  
+MODPOST 1 modules  
+CC      drivers/misc/eeprom/eeprom_93cx6.mod.o  
+LD [M]  drivers/misc/eeprom/eeprom_93cx6.ko  
+    ...
+</code></pre><p>另比如O参数的指定，会改变整个编译出来的文件的结构，例如哦我们有多个平台要编译，你就需要为每个平台 clone 一份内核代码了，只需要设置不同的输出路径即可：</p>
+<pre><code>make O=atmel
+......
+make O=asus
+</code></pre><p>（O参数会覆盖<code>KBUILD_OUTPUT</code>变量），相应的文件也会生成在目标路径下，例如uImage就在<code>atmel/arch/arm/boot/uImage</code></p>
+<h1 id="make支持的伪目标"><a href="#make支持的伪目标" class="headerlink" title="make支持的伪目标"></a>make支持的伪目标</h1><p>每一个伪目标都可以作为一个编译命令，内核的Makefile大概定义有40个左右的伪目标，但是我们会使用到的并没有这么多，可以用<code>make help</code>查看我们使用的编译命令。或者查看在线文档<code>https://www.kernel.org/doc/makehelp.txt</code>，但注意这个文档对应的版本可能是当前最新的。如果要知道当前使用内核版本支持的伪目标，还是在当前代码树下运行<code>make help</code>为好，同时也可以参考当前内核代码树的顶层目录下的<code>README</code>文件。</p>
+<p>备忘：另网上看到一篇文章<a href="http://blog.csdn.net/kangear/article/details/39553337" target="_blank" rel="external">正确地保存编译内核产生的.config文件-使用make savedefconfig</a>，这个savedefconfig命令似乎在v2.6.32.2的内核中并没有，是不是出现在较新的3.x中的，待以后确认。</p>
+<h1 id="make-clean-make-mrproper和make-distclean"><a href="#make-clean-make-mrproper和make-distclean" class="headerlink" title="make clean, make mrproper和make distclean"></a><code>make clean</code>, <code>make mrproper</code>和<code>make distclean</code></h1><p>有关mrproper和distclean，clean之间的区别，Linux内核源码根目录下面的Makefile中，有很清晰的解释：</p>
+<pre><code>help:
+ @echo  &apos;Cleaning targets:&apos;
+ @echo  &apos;  clean    - Remove most generated files but keep the config and&apos;
+ @echo  &apos;                    enough build support to build external modules&apos;
+ @echo  &apos;  mrproper   - Remove all generated files + config + various backup files&apos;
+
+ @echo  &apos;  distclean   - mrproper + remove editor backup and patch files&apos;
+</code></pre><ul>
+<li><code>make clean</code>命令则是用于删除大多数的编译生成文件，但是会保留内核的配置文件.config，还有足够的编译支持来建立扩展模块。所以你若只想删除前一次编译过程的残留数据，只需执行<code>make clean</code>命令。</li>
+<li><code>make mrproper</code>命令会删除所有的编译生成文件、内核配置文件(.config文件)和各种备份文件，所以几乎只在第一次执行内核编译前才用这条命令。其动作包括了<code>make clean</code>。</li>
+<li><code>make distclean</code>命令更彻底地恢复，甚至会清除补丁。其动作包括了<code>make mrproper</code>。</li>
+</ul>
+<p>mrproper到底是什么意思呢？为什么起了个这么个看起来如此诡异的名字。在<a href="http://en.wikipedia.org/wiki/Mr._Clean" target="_blank" rel="external">英文wiki对Mr. Clean的解释</a>提到了此点；</p>
+<pre><code>&quot;make mrproper&quot; is a command in the Linux kernel build system, used to &quot;clean up&quot; 
+ all files from past builds and restore the build directory to its original clean 
+ state. The reason &quot;make mrproper&quot; is used instead of &quot;make mrclean&quot; is because 
+ Linus Torvalds, the father of Linux, was familiar with the name &quot;Mr. Proper&quot; as 
+ this is the brand widely known in Europe.&quot;
+</code></pre><p>总的来说，就是：首先，我们要知道的是<code>make mrproper</code>想要做的事情是，清理旧的编译生成的文件及其他配置等文件，所以，相当于Clean，即我们在现实世界中用清洁剂去清洁卫生，清理旧的，不再需要的，脏东西。而现实世界中，保洁（P&amp;G）公司的，有一个清洁产品方面的品牌，在美国叫做Mr.Clean，在欧洲叫做Mr.Proper，所以编译之前的清理旧东西的命令，原先是用的<code>make mrclean</code>，即<code>make Mr.Clean</code>。只是后来被Linux之父Linus Torvalds改成了<code>make mrproper</code>，即<code>make Mr.Proper</code>。所以，现在就变成了用<code>make mrproper</code>来清理之前的东西了。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/make/" rel="tag">#make</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/01/20160101-hello-2016/" rel="next" title="你好，2016！">
+                <i class="fa fa-chevron-left"></i> 你好，2016！
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/02/20160102-lk-make/" rel="prev" title="Linux内核的Make(基于v2.6.32.2)">
+                Linux内核的Make(基于v2.6.32.2) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/01/01/20151230-lk-make-commands/"
+           data-title="编译内核常用命令" data-url="http://unicornx.github.io/2016/01/01/20151230-lk-make-commands/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#make的处理参数"><span class="nav-number">1.</span> <span class="nav-text">make的处理参数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#make支持的伪目标"><span class="nav-number">2.</span> <span class="nav-text">make支持的伪目标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#make-clean-make-mrproper和make-distclean"><span class="nav-number">3.</span> <span class="nav-text">make clean, make mrproper和make distclean</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

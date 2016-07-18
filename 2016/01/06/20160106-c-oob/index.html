@@ -1,0 +1,758 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,oob," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-06
+主要参考了网上的文章
+
+Linux内核模块模型面向对象分析，节选了其中的部分内容。
+linux内核设计与实现思想 – C风格的面向对象
+Linux内核中面向对象思想的研究与应用">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核C语言中的面向对象">
+<meta property="og:url" content="http://unicornx.github.io/2016/01/06/20160106-c-oob/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-06
+主要参考了网上的文章
+
+Linux内核模块模型面向对象分析，节选了其中的部分内容。
+linux内核设计与实现思想 – C风格的面向对象
+Linux内核中面向对象思想的研究与应用">
+<meta property="og:image" content="http://unicornx.github.io/img/20160106-c-oob/1.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160106-c-oob/2.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160106-c-oob/3.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160106-c-oob/4.png">
+<meta property="og:updated_time" content="2016-03-18T22:59:36.171Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核C语言中的面向对象">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-06
+主要参考了网上的文章
+
+Linux内核模块模型面向对象分析，节选了其中的部分内容。
+linux内核设计与实现思想 – C风格的面向对象
+Linux内核中面向对象思想的研究与应用">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20160106-c-oob/1.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/01/06/20160106-c-oob/"/>
+
+  <title> Linux内核C语言中的面向对象 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux内核C语言中的面向对象
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-06T04:50:12+08:00" content="2016-01-06">
+              2016-01-06
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/06/20160106-c-oob/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/06/20160106-c-oob/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-01-06</p>
+<p>主要参考了网上的文章</p>
+<ul>
+<li><a href="http://www.cnblogs.com/wenhuisun/archive/2013/02/22/2921781.html" target="_blank" rel="external">Linux内核模块模型面向对象分析</a>，节选了其中的部分内容。</li>
+<li><a href="http://blog.csdn.net/hantangsongming/article/details/8068852" target="_blank" rel="external">linux内核设计与实现思想 – C风格的面向对象</a></li>
+<li><a href="http://wenku.baidu.com/link?url=PWzk4SoCPj8WvRAVkyRtmXQnEvSCZz73bMgVISpR9QH5QDngZbfoNwnYmypMhRr4MEIbrdHuKUalzZMuulbbFsO-v2IBO700jFxNI31quPK" target="_blank" rel="external">Linux内核中面向对象思想的研究与应用</a></li>
+</ul>
+<a id="more"></a>
+<h1 id="封装"><a href="#封装" class="headerlink" title="封装"></a>封装</h1><p>封装的定义是在程序上隐藏对象的属性和实现细节，仅对外公开接口，控制在程序中属性的读和修改的访问级别；将抽象得到的数据和行为（或功能）相结合，形成一个有机的整体，也就是将数据与操作数据的源代码进行有机的结合，形成“类”，其中数据和函数都是类的成员。</p>
+<p>最早C++里面的封装是从C中的头文件规则衍生出来的。其关键在于对于一个公共数据操作方法的归类。如果一个公共变量，被很多个C 函数修改，如下图：</p>
+<p><img src="/img/20160106-c-oob/1.png" alt=""></p>
+<p>后期调试及维护时，带来极大的不便，因为根本不知道系统中到底有多少函数操作的这块数据，这块数据的状态什么时候，被哪个函数改变了状态。所以就演变成了下面的方式：</p>
+<p><img src="/img/20160106-c-oob/2.png" alt=""></p>
+<p>将操作此数据的函数放到同一个文件中去，任何其它改变或访问此数据的函数都需要通过这个文件中的函数来访问。</p>
+<p>所以面向对象中的类，其实是C工程中总结出来的一系列管理方法在语言层面上的实现，并没有太多的新东西。</p>
+<p>假设我们有类型foo， 其内含有a、b、c三个成员变量，并有操作方法 op_a(a)、op_b(b)、op_c(c)等。在面向对象语言中及其容易实现，在C语言中面临的最大问题是操作方法及其参数传递。</p>
+<p>在Linux内核中通过<strong>函数表</strong>可以弥补语言机制上的缺陷：</p>
+<pre><code>struct foo_operations {
+    void (*op_a) (struct foo *, loff_t, int);
+    void (*op_b) (struct foo *, char __user *, size_t, loff_t *);
+    void (*op_c) (struct foo *, const char __user *, size_t, loff_t *);
+    ......
+};
+</code></pre><p>首先这是一个只含有方法的结构体，我们称之为函数表，传递的结构体参数foo为c++中默认编译器为类传递的this对象，这样，我们将结构体ops内嵌到结构体foo中，如下：</p>
+<pre><code>struct foo {
+    int a;
+    int b;
+    int c;
+    struct foo_operations ops;
+};
+</code></pre><p>将方法封装到了结构体中。在这里结构体foo相当于一个父类，而ops是作为父类公开给子类的接口。抽象出了接口，后面的多态也就很容易实现了。从这里模拟封装的过程，可以很容易发现接口的实质是父类提前为子类预留的占位符，是一种“高瞻远瞩”的行为。</p>
+<h1 id="多态："><a href="#多态：" class="headerlink" title="多态："></a>多态：</h1><p>多态是允许将父对象设置成为和一个或更多的他的子对象相等的技术，赋值之后，父对象就可以根据当前赋值给它的子对象的特性以不同的方式运作。<br>由多态的定义，最关键的地方在于运行时切换即在编译期不能确定需要执行的代码。<br>在内核中采用的方法如下：先声明两个子操作表ops1 、ops2，当需要使用ops2时，将 A-&gt;ops = ops2，即将子类实例化到父类，下面类A的具体操作就会采用ops2操作表中的方法。如图：</p>
+<p><img src="/img/20160106-c-oob/3.png" alt=""></p>
+<p>代码示例：</p>
+<pre><code>struct foo a;
+a-&gt;ops = ops1;
+a-&gt;ops-&gt;op_a(a);
+//切换
+a-&gt;ops = ops2;
+a-&gt;ops-&gt;op_a(a);
+</code></pre><h1 id="继承："><a href="#继承：" class="headerlink" title="继承："></a>继承：</h1><p>特殊类（或子类、派生类）的对象拥有其一般类（或称父类、基类）的全部属性与服务，称作特殊类对一般类的继承。<br>继承的本质是保留父类的一些成员和函数，实质上是保留父类的存储区及跳转函数表，继承在C语言中也是采用内嵌结构体的方式来实现的。这里举内核中的链表结构体来说明，<br>我们通常所使用链表结构如下：</p>
+<pre><code>struct A_LIST {
+    data_t        data; // 不同的链表这里的data_t类型不同。
+    struct A_LIST    *next;
+};
+</code></pre><p>在这里我们发现，每一个特定类型的链表机构都需要为其增加一个next字段来保持链表的结构。还需要为每一个特定的链表类实现脱链、入链操作等。我们需要抽象出一个“基类”来实现链表的功能，其他链表类只需要简单的继承这个链表类就可以了。</p>
+<p>Linux 内核的链表结构：</p>
+<pre><code>struct list_head {
+    struct list_head *next, prev；
+)；
+</code></pre><p>在这个结构体中，链表及作为一个单独的结构体，不再依附与任何对象。<br>同上面的例子，我们只需要声明</p>
+<pre><code>struct A_LIST {
+    data_t            data;
+    struct list_head    *list;
+};
+</code></pre><p>这样A_LIST即可作为一个链表对象，其链表操作均由其成员list代为实现，起到了继承基类的可复用方法的作用。实际过程如下图：</p>
+<p><img src="/img/20160106-c-oob/4.png" alt=""></p>
+<p>其作为一个连接件，只对本身结构体负责，而不需要关注真正归属的结构体。正如继承的特性，父类的方法无法操作也不需要操作子类的成员。关于链表结构的宿主指针获取方法，</p>
+<p>获取结构类型TYPE里的成员MEMBER 在结构体内的偏移</p>
+<pre><code>#define offsetof(TYPE, MEMBER) ((size_t)&amp;((TYPE *)0)-&gt;MEMBER)
+</code></pre><p>通过指向成员member的指针ptr获取该成员结构体type的指针</p>
+<pre><code>#define container_of(ptr, type, member) ({          \
+    const typeof(((type *)0)-&gt;member)*__mptr = (ptr);    \
+         (type *)((char *)__mptr - offsetof(type, member)); })
+</code></pre><p>至此，C在面向对象的三大特性的实现过程就结束了。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/oob/" rel="tag">#oob</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/02/20160102-lk-drv-module-op/" rel="next" title="Linux内核驱动开发中和模块相关操作总结">
+                <i class="fa fa-chevron-left"></i> Linux内核驱动开发中和模块相关操作总结
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/09/20151210-markdown-usage/" rel="prev" title="Markdown使用方法小结">
+                Markdown使用方法小结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/01/06/20160106-c-oob/"
+           data-title="Linux内核C语言中的面向对象" data-url="http://unicornx.github.io/2016/01/06/20160106-c-oob/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#封装"><span class="nav-number">1.</span> <span class="nav-text">封装</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#多态："><span class="nav-number">2.</span> <span class="nav-text">多态：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#继承："><span class="nav-number">3.</span> <span class="nav-text">继承：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

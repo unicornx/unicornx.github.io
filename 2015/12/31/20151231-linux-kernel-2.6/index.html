@@ -1,0 +1,724 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-05">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux 2.6内核的新特性">
+<meta property="og:url" content="http://unicornx.github.io/2015/12/31/20151231-linux-kernel-2.6/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-05">
+<meta property="og:updated_time" content="2016-03-18T23:02:52.222Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux 2.6内核的新特性">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-05">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/12/31/20151231-linux-kernel-2.6/"/>
+
+  <title> Linux 2.6内核的新特性 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux 2.6内核的新特性
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-12-31T10:58:47+08:00" content="2015-12-31">
+              2015-12-31
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/12/31/20151231-linux-kernel-2.6/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/31/20151231-linux-kernel-2.6/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-05</p>
+<a id="more"></a>
+<table>
+<thead>
+<tr>
+<th>改进点</th>
+<th>详细描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>模块子系统（Module Subsystem）</td>
+<td>发生了重大变化。稳定性有所提高，为了彻底避免内核加载或者导出正在被使用的内核模块，或者至少为了减少加载或者卸载模块的同时使用该模块的可能性（这有时会导致系统崩溃），内核加载和导出内核模块的过程都得到了改进。</td>
+</tr>
+<tr>
+<td>统一设备模型（Unified Device Model）</td>
+<td>统一设备模型的创建是 2.6 内核最重要的变化之一。它促进了模块接口的标准化，其目的是更好地控制和管理设备，例如：<br>- 更准确地确定系统设备。<br>- 电源管理和设备电源状态。<br>- 改进的系统总线结构管理。</td>
+</tr>
+<tr>
+<td>即插即用（PnP）支持</td>
+<td>前面两点提及的变化使得运行2.6内核的Linux成为一个真正即插即用的OS。例如，对ISA PnP扩展、遗留 MCA和EISA总线以及热插拔设备的PnP支持。</td>
+</tr>
+<tr>
+<td>内核基础设施的变化</td>
+<td>包括：<br>为了区别以 .o 为扩展名的常规对象文件，内核模块现在使用的扩展名是 .ko。<br>创建了新的 sysfs 文件系统，当内核发现设备树时就会描述它。<br>-内存支持，支持更大数量的RAM，2.6内核支持更大数量的RAM，在分页模式下最高可达64GB。</td>
+</tr>
+<tr>
+<td>非一致内核访问(Non-Uniform Memory Access)</td>
+<td>对系统的NUMA支持是 2.6 内核中新出现的。</td>
+</tr>
+<tr>
+<td>线程模型，NPTL</td>
+<td>相对于 v2.4 的 LinuxThreads，在版本 2.6 中新出现的是 NPTL（Native POSIX Threading Library）。 NPTL 为 Linux 带来了企业级线程支持，提供的性能远远超过了 LinuxThreads。它所基于的用户与内核线程的比率是 1:1。</td>
+</tr>
+<tr>
+<td>文件系统</td>
+<td>ext2、ext3 和 ReiserFS等传统Linux文件系统得到了显著的改进。最值得注意的改进是扩展属性（或文件元数据）的引入。最重要的是 POSIX ACL 的实现，这是对普通UNIX权限的扩展，可以支持更细化的用户访问控制。除了对传统Linux文件系统的改进支持以外，新的内核完全支持在 Linux 中相对较新的 XFS 文件系统。Linux 2.6 内核现在还引入了对 NTFS 文件系统的改进的支持，现在允许以读/写模式安装 NTFS 文件系统。</td>
+</tr>
+<tr>
+<td>性能改进</td>
+<td>包括：<br>- 新的调度器算法：2.6 Linux 内核引入了新的 O(1) 算法。在高负载情况下它运行得特别好。新的调度器基于每个 CPU来分布时间片，这样就消除了全局同步和重新分配循环，从而提高了性能。<br>- 内核抢占（Kernel Preemption）：新的 2.6 内核是抢占式的。这将显著地提高交互式和多媒体应用程序的性能。<br>- I/O 性能改进：Linux 的 I/O 子系统也发生了重大的变化，通过修改 I/O调度器来确保不会有进程驻留在队列中过长时间等待进行输入/输出操作，这样就使得 I/O 操作的响应更为迅速。<br>- 快速用户空间互斥（Fast User-Space Mutexes）：“futexes”（快速用户空间互斥）可以使线程串行化以避免竞态条件，引入它也提高了响应速度。通过在内核空间中部分实现“futexes”以允许基于竞争设置等待任务的优先级而实现改进。</td>
+</tr>
+<tr>
+<td>扩展性改进</td>
+<td>包括：<br>- 处理器数目更多：Linux 内核 2.6 最多可以支持 64 个 CPU。支持更大的内存，归功于 PAE（物理地址扩展，Physical Address Extensions），在 32-位系统上分页模式下所支持的内存增加到了 64GB。<br>- 用户和组: 惟一用户和组的数量从 65,000 增至 40 多亿，也就是从 16-位增加到了 32-位。<br>- PID 的数量: PID 的最大数量从 32,000 增至 10 亿。 <br>- 打开文件描述符的数量: 打开文件描述符的数量没有增加，但是不再需要事先设置该参数，它将自行调节。<br>- 支持更多的设备: 在 Linux 内核 2.6 之前，内核中有可以约束大型系统的限制，比如每条链 256 个设备。v2.6内核彻底地打破了这些限制，不但可以支持更多类型的设备，而且支持更多同类型的设备。在 Linux 2.6 系统中，可以支持 4095 种主要的设备类型，每一个单独的类型可以有超过一百万个子设备。<br>- 文件系统大小: Linux 内核 2.6 所允许的可寻址文件系统大小最大为 16 TB。</td>
+</tr>
+</tbody>
+</table>
+<p>参考文档：  </p>
+<ul>
+<li><a href="http://wenku.baidu.com/view/def1651fc281e53a5802ffa6.html?re=view" target="_blank" rel="external">Linux.kernel.2.6内核升级完全配置详解</a>  </li>
+<li><a href="http://www.jb51.net/os/RedHat/1229.html" target="_blank" rel="external">linux-2.6内核升级详细文档</a> 这是一篇比较老的文章，基于2.6.6的内核，但这篇文章详细列举了2.6的内核相对于2.4的特征改进，正如文章一开始就说的那样，“ 做一件事情,首先要知道自己在干什么,而不是盲目得升级内核,现在升级内核有点泛滥,sigh。首先让我们先了解一下2.6内核的新特性”</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/27/20151227-hex2dec-cheatsheet/" rel="next" title="地址转化时十六进制和十进制之间换算的一些常用数字小结">
+                <i class="fa fa-chevron-left"></i> 地址转化时十六进制和十进制之间换算的一些常用数字小结
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/12/31/20151231-linux-src-arch-v2.6/" rel="prev" title="Linux内核源码结构(基于v2.6.32.2)">
+                Linux内核源码结构(基于v2.6.32.2) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/12/31/20151231-linux-kernel-2.6/"
+           data-title="Linux 2.6内核的新特性" data-url="http://unicornx.github.io/2015/12/31/20151231-linux-kernel-2.6/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

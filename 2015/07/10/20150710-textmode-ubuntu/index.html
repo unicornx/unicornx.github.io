@@ -1,0 +1,719 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="ubuntu,vmware,putty," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-04
+一、问题：平时工作一直在VMware的环境下运行Ubuntu，Ubuntu升级到12.04LTS后VMware缺省需要1个G的内存才可以运行，自己的本本总共物理内存才2个G，实在感觉有点捉襟见肘，但又舍不得银子，所以决定研究一下是否可以">
+<meta property="og:type" content="article">
+<meta property="og:title" content="尝试在文本模式下在VMware上运行ubuntu">
+<meta property="og:url" content="http://unicornx.github.io/2015/07/10/20150710-textmode-ubuntu/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-04
+一、问题：平时工作一直在VMware的环境下运行Ubuntu，Ubuntu升级到12.04LTS后VMware缺省需要1个G的内存才可以运行，自己的本本总共物理内存才2个G，实在感觉有点捉襟见肘，但又舍不得银子，所以决定研究一下是否可以">
+<meta property="og:image" content="http://unicornx.github.io/img/20150710-textmode-ubuntu/vmware-config-run-as-background.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:49.222Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="尝试在文本模式下在VMware上运行ubuntu">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-04
+一、问题：平时工作一直在VMware的环境下运行Ubuntu，Ubuntu升级到12.04LTS后VMware缺省需要1个G的内存才可以运行，自己的本本总共物理内存才2个G，实在感觉有点捉襟见肘，但又舍不得银子，所以决定研究一下是否可以">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20150710-textmode-ubuntu/vmware-config-run-as-background.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/07/10/20150710-textmode-ubuntu/"/>
+
+  <title> 尝试在文本模式下在VMware上运行ubuntu | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                尝试在文本模式下在VMware上运行ubuntu
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-07-10T23:00:26+08:00" content="2015-07-10">
+              2015-07-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/开发环境与工具/" itemprop="url" rel="index">
+                    <span itemprop="name">开发环境与工具</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/07/10/20150710-textmode-ubuntu/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/10/20150710-textmode-ubuntu/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-04</p>
+<h1 id="一、问题："><a href="#一、问题：" class="headerlink" title="一、问题："></a>一、问题：</h1><p>平时工作一直在VMware的环境下运行Ubuntu，Ubuntu升级到12.04LTS后VMware缺省需要1个G的内存才可以运行，自己的本本总共物理内存才2个G，实在感觉有点捉襟见肘，但又舍不得银子，所以决定研究一下是否可以在现有基础上优化一下。</p>
+<a id="more"></a>
+<h1 id="二、解决方法"><a href="#二、解决方法" class="headerlink" title="二、解决方法"></a>二、解决方法</h1><p>关键是要降内存消耗，我尝试的方法就是采用纯文本模式运行Ubuntu，不开启图形模式，方法如下：<br>第一步，修改文件<code>/etc/default/grub</code>，注意需要root权限：</p>
+<pre><code>$ sudo vi /etc/default/grub
+</code></pre><p>找到这一行:<br><code>GRUB_CMDLINE_LINUX_DEFAULT=&quot;quiet splash&quot;</code><br>添加一个选项<code>text</code>如下:<br><code>GRUB_CMDLINE_LINUX_DEFAULT=&quot;quiet splash text&quot;</code></p>
+<p>第二步，更新grub</p>
+<pre><code>$ sudo update-grub
+</code></pre><p>第三步，重启生效</p>
+<pre><code>$ sudo reboot
+</code></pre><p>如果要切换回图形模式，只要重复以上三步，并在第一步中确保去掉<code>text</code>选项即可。</p>
+<p>经测试发现，相同运行条件下，原来VMWare要为我的Ubuntu12.04LTS虚拟机配置1个G的内存，现在似乎改为512M跑起来也蛮流畅的，呵呵。</p>
+<h1 id="三、锦上添花"><a href="#三、锦上添花" class="headerlink" title="三、锦上添花"></a>三、锦上添花</h1><h2 id="锦上添花之一，使用Putty做前端"><a href="#锦上添花之一，使用Putty做前端" class="headerlink" title="锦上添花之一，使用Putty做前端"></a>锦上添花之一，使用Putty做前端</h2><p>图形模式设置好后，直接在纯文本模式下运行有个小问题，就是没法对命令行的字符使用粘帖拷贝，为了解决这个问题可以将VMware Workstation最小化到系统托盘,在后台运行虚拟机，然后使用Putty作为前台的命令行界面，利用SSH登录到ubuntu。<br>有关如何利用putty以及SSH，可以参考</p>
+<ul>
+<li><a href="http://blog.csdn.net/backtracker/article/details/6642784" target="_blank" rel="external">ubuntu下安装配置SSH，Putty</a>。</li>
+<li><a href="http://wenku.baidu.com/link?url=21y04rrmbjB_1A3jTW-od-DnUnjf5YzKgoeNOjm4mGbYTsgQ9gFShWct8r2xSCDfrSiNV6xytLJ5TLpC33UGFqG59XQzqTKDPlNhOBpfdJi" target="_blank" rel="external">putty使用技巧(珍藏版)</a></li>
+</ul>
+<p>其中有个技巧很好，可以解决ssh登录慢的问题。其实是sshd的问题，跟putty没关系。方法如下：</p>
+<p>首先修改sshd配置文件</p>
+<pre><code>sudo vi /etc/ssh/sshd_config
+</code></pre><p>增加一行:</p>
+<pre><code>UseDNS no
+</code></pre><p>然后重启sshd服务</p>
+<pre><code>sudo service ssh restart
+</code></pre><h2 id="锦上添花之二，最小化VMWare到系统托盘"><a href="#锦上添花之二，最小化VMWare到系统托盘" class="headerlink" title="锦上添花之二，最小化VMWare到系统托盘"></a>锦上添花之二，最小化VMWare到系统托盘</h2><p>通常情况下最小化VMware Workstation后偌大一个长条占据了有限的任务栏(Taskbar)空间着实令人不爽。为解决这个问题，可以通过VMware的界面进行操作。以VMWare Workstation版本是10.0.5 build-2443746为例。打开菜单：”编辑/Edit”-&gt;”首选项/Preferences”，在弹出的对话框中选中”工作区/Workspace”,把”Workstation关闭后保持虚拟机运行/Run powered on virtual machine in background after close”选中。<br><img src="/img/20150710-textmode-ubuntu/vmware-config-run-as-background.png" alt=""><br>这样以后当关闭VMware Workstation 的时候，VMWare即可在后台运行，同时任务栏的程序就不见了，VMware被最小化到了右下角的系统托盘。</p>
+<h2 id="锦上添花之三，固定IP"><a href="#锦上添花之三，固定IP" class="headerlink" title="锦上添花之三，固定IP"></a>锦上添花之三，固定IP</h2><p>缺省情况下Ubuntu采用动态IP地址，所以用Putty登录时经常会发现有时候系统重启后Ubuntu的IP地址就变了，有点麻烦不是吗，所以就把它改成静态IP地址就好了。<br>修改文件：<code>/etc/network/interfaces</code></p>
+<pre><code>$ sudo vi /etc/network/interfaces
+</code></pre><p>在文件中对你的网络接口，我这里是<code>eth0</code>做如下配置：<br>如果有语句形如<code>iface eth0 inet dhcp</code>，坚决注释掉。<br>添加如下语句：</p>
+<pre><code>iface eth0 inet static
+address 192.168.74.210
+netmask 255.255.255.0
+gateway 192.168.74.2
+</code></pre><p>第一句是设置eth0为静态配置，下面三句分别是配置ip地址，网络掩码和网关IP地址，请按照自己的实际情况修改即可。<br>改好后保存退出，重启系统即可生效，这样你的Ubuntu的IP地址就不会变了。</p>
+<p>除了该IP地址，DNS服务器的IP地址可能也需要手工改一下，因为现在我们把DHCP给禁止了。注意我这里针对的是Ubuntu 12.04LTS，如果仅仅修改’/etc/resolv.conf’，重启后修改就会丢失，解决的方法如下，参考<a href="http://blog.chinaunix.net/uid-21516619-id-3511953.html" target="_blank" rel="external">Ubuntu 12.04/12.10 中自定义DNS服务器设置 </a>，总结如下：<br>首先我们需要创建一个文件<code>/etc/resolvconf/resolv.conf.d/tail</code></p>
+<pre><code>$ sudo touch /etc/resolvconf/resolv.conf.d/tail
+</code></pre><p>然后我们在这个文件里写入自己要添加的DNS服务器，格式与以前的/etc/resolv.conf文件一致，譬如：</p>
+<pre><code>nameserver 114.114.114.114
+nameserver 8.8.8.8
+</code></pre><p>接下来我们重启下resolvconf程序，让配置生效：</p>
+<pre><code>$ sudo /etc/init.d/resolvconf restart
+</code></pre><p>再去看看<code>/etc/resolv.conf</code>文件，自己添加的DNS服务器果然乖乖的写进去了！至此问题完美解决！</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/ubuntu/" rel="tag">#ubuntu</a>
+          
+            <a href="/tags/vmware/" rel="tag">#vmware</a>
+          
+            <a href="/tags/putty/" rel="tag">#putty</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/07/06/20150706-how-to-add-comments-duoshuo-in-my-hexo/" rel="next" title="在Hexo搭建的blog上增加"多说"评论">
+                <i class="fa fa-chevron-left"></i> 在Hexo搭建的blog上增加"多说"评论
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/17/20150717-uboot-mkconfig-v2013-01/" rel="prev" title="理解u-boot的make xxx_config机制和mkconfig(基于v2013.01)">
+                理解u-boot的make xxx_config机制和mkconfig(基于v2013.01) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/07/10/20150710-textmode-ubuntu/"
+           data-title="尝试在文本模式下在VMware上运行ubuntu" data-url="http://unicornx.github.io/2015/07/10/20150710-textmode-ubuntu/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、问题："><span class="nav-number">1.</span> <span class="nav-text">一、问题：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、解决方法"><span class="nav-number">2.</span> <span class="nav-text">二、解决方法</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、锦上添花"><span class="nav-number">3.</span> <span class="nav-text">三、锦上添花</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#锦上添花之一，使用Putty做前端"><span class="nav-number">3.1.</span> <span class="nav-text">锦上添花之一，使用Putty做前端</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#锦上添花之二，最小化VMWare到系统托盘"><span class="nav-number">3.2.</span> <span class="nav-text">锦上添花之二，最小化VMWare到系统托盘</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#锦上添花之三，固定IP"><span class="nav-number">3.3.</span> <span class="nav-text">锦上添花之三，固定IP</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

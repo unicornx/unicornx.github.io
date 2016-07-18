@@ -1,0 +1,806 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="s3c2440,interrupt," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-1-23
+参考文章
+
+ARM920T中断控制系统
+S3C2440用户手册">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于s3c2440学习中断控制器">
+<meta property="og:url" content="http://unicornx.github.io/2016/01/23/20160123-s3c2440-interrupt/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-1-23
+参考文章
+
+ARM920T中断控制系统
+S3C2440用户手册">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/phy_cpu.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/s3c2440_int.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/int_sources_1.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/int_sources_2.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/int_subsources.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/keys.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/interrupt_process.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/s3c2440_int_process.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/s3c2440_int.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:46.726Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于s3c2440学习中断控制器">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-1-23
+参考文章
+
+ARM920T中断控制系统
+S3C2440用户手册">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20160123-s3c2440-interrupt/phy_cpu.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/01/23/20160123-s3c2440-interrupt/"/>
+
+  <title> 基于s3c2440学习中断控制器 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                基于s3c2440学习中断控制器
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-23T07:43:19+08:00" content="2016-01-23">
+              2016-01-23
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ARM裸机接口/" itemprop="url" rel="index">
+                    <span itemprop="name">ARM裸机接口</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/23/20160123-s3c2440-interrupt/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/23/20160123-s3c2440-interrupt/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-1-23</p>
+<p>参考文章</p>
+<ul>
+<li><a href="http://blog.csdn.net/jinzheng_2010/article/details/6552029" target="_blank" rel="external">ARM920T中断控制系统</a></li>
+<li>S3C2440用户手册</li>
+</ul>
+<a id="more"></a>
+<h1 id="中断控制机制"><a href="#中断控制机制" class="headerlink" title="中断控制机制"></a>中断控制机制</h1><p>CPU运行过程中，如何知道各类外设发生了某些不预期的事件，比如串口收到了数据、按键被按下？</p>
+<p>此时ARM有两种中断机制：</p>
+<ul>
+<li><p>1.查询方式。程序不断地查询各设备的状态，并作出相应的反应。该方式实现比较简单，常用在比较单一的系统中，比如一个温控系统中可以使用查询方式不断检测温度的变化。特点：实现简单；但CPU利用率很低，不适合多任务的系统。</p>
+</li>
+<li><p>2.中断方式。当事件发生时，硬件会设置某个寄存器；CPU在执行完一个指令时，查看这个寄存器，如果所关注的事件发生了，则中断当前程序，跳转到一个固定的地址处理这个事件，处理完后返回到被终端的程序中继续运行。特点：实现相对复杂，但效率较高，是常用的方法。</p>
+</li>
+</ul>
+<h1 id="中断控制器，中断端口-Interrupt-Port-和中断源-Interrupt-Source"><a href="#中断控制器，中断端口-Interrupt-Port-和中断源-Interrupt-Source" class="headerlink" title="中断控制器，中断端口(Interrupt Port)和中断源(Interrupt Source)"></a>中断控制器，中断端口(Interrupt Port)和中断源(Interrupt Source)</h1><p>以S3C2440这款SOC片上系统芯片为例，其内部集成的ARM内核是ARM920T，该处理器核心只有两路外部中断输入信号nFIQ和nIRQ。但对于一个SOC片上系统来说，需要处理外接的设备很多，中断来源可能有多达几十个。为了解决多路中断源的冲突，S3C2440内部集成有一个中断控制器，该中断控制器有一共32路中断请求信号输入，在发生多路请求时执行仲裁动作，最终决定一路IRQ和一路FIQ送入CPU。我们定义中断控制器看到的32路中断请求信号为中断端口(Interrupt Port)，注，在S3C2440手册里没有专门提这个概念，只有中断源(source)和子中断源(sub source)的说法，我觉得很容易把人搞糊涂，但实际上中断处理就是有这么三级的概念，就是中断源-&gt;中断端口-&gt;IRQ/FIQ，我这里自己定义中断端口的概念，希望不要混淆。<br><img src="/img/20160123-s3c2440-interrupt/phy_cpu.png" alt=""></p>
+<p>一路中断端口一次可以处理一个设备产生的一次中断信号，但对于某些设备，一个设备可能产生多种中断信号，譬如UART串口设备，一个串口设备会产生三种中断信号，收(RX),发(TX)和出错(ERR)。为此S3C2440对一个外部UART设备实际引出三根信号线，但这三根信号线在S3C2440的内部都接在其内部中断控制器的一路中断端口上。也就是说某些中断端口上可以复用多种中断输入信号，这就是手册中所谓的中断源（Interrupt Source）的概念。S3C2440上最多接受来自片内和片外外设总共高达60个中断源（片内外设包括DMA控制器，UART控制器等等）的输入，部分中断源复用了一路中断端口。在32路中断端口中，有23路唯一对应一个中断源，其余9路通道（标红色）是复用的。而且32路中断端口被分成了六组参与优先级仲裁，这个在后面介绍。<br><img src="/img/20160123-s3c2440-interrupt/s3c2440_int.png" alt="中断端口和中断源"></p>
+<p>以实时时钟中断为例，该设备只会产生一种中断，它是单一中断源，直接将其中断信号线连接到中断控制器的REQ3/INT_RTC上。</p>
+<p>对于复用中断源，以UART串口为例进行说明，S3C2440A可以支持3个UART串口，每个串口对应一个复合中断端口通道，以UART0为例，中断控制器上有一路输入<code>REQ1/INT_UART0</code>，UART0串口可以产生三种中断源，也就是三个子中断源：接收数据中断<code>INT_RXD0</code>，发送数据中断<code>INT_TXD0</code>，<code>数据错误中断INT_ERR0</code>，这三个子中断源复用中断端口<code>INT_UART0</code>，三种中断源中任何一个产生都会产生中断信号通过对应的中断端口源<code>INT_UART0</code>传递给中断控制器，中断控制器会区分出此时在该中断端口上发生的是前述三种中断源的哪种，并仲裁后传递给ARM内核。</p>
+<h2 id="独立中断源和复用中断源："><a href="#独立中断源和复用中断源：" class="headerlink" title="独立中断源和复用中断源："></a>独立中断源和复用中断源：</h2><p>S3C2440一共支持60个中断源。按照其是否会独占中断端口可以分为两大类，</p>
+<ul>
+<li>独立中断源，一个中断源独占一路中断端口，占用23路。</li>
+<li>复用中断源，多个中断源复用一路中断端口，占用9路。</li>
+</ul>
+<p>手册上称以下为源表，按照我的说法，为和我定义的中断源区分，其实下面的这张表应该叫<strong>“中断端口”</strong>表更合适。其中红色框标识的是被复用的中断端口。<br><img src="/img/20160123-s3c2440-interrupt/int_sources_1.png" alt="源表1"><br><img src="/img/20160123-s3c2440-interrupt/int_sources_2.png" alt="源表2"></p>
+<p>针对复用的<strong>中断端口</strong>，其复用的子中断源的列表，不包括INT_LCD，EINT4_7和EINT8_23：<br><img src="/img/20160123-s3c2440-interrupt/int_subsources.png" alt="子源表"> </p>
+<h2 id="外部中断源和内部中断源"><a href="#外部中断源和内部中断源" class="headerlink" title="外部中断源和内部中断源"></a>外部中断源和内部中断源</h2><p>除了按照上面的分类方法60路中断源可以分为独立中断源和复用中断源外，中断源可以按照接入的引脚和设备硬件位置分为：外部中断源和内部中断源。</p>
+<ul>
+<li><strong>内部中断源</strong>：它是S3C2440片内控制器产生的中断信号，比如：UART串口中断源，时钟Timer中断源，看门狗中断源等，这些都是嵌入式系统中常见硬件，所以S3C2440内部直接集成了这些常见硬件的控制器。</li>
+<li><p><strong>外部中断源</strong>：有些设备并不是一个通用嵌入式系统里必备硬件，比如：蓝牙模块，各种传感器，WIFI无线通信模块，S3C2440片上没有集成这些硬件的控制器，而是作为外设挂载在S3C2440引出的外部引脚上（输入输出接口I/O Ports），连接到片内的中断控制器上，这些外部设备产生的中断叫做外部中断信号。外部设备的中断信号与SOC的连接方式与中断处理完全由系统硬件与软件设计者自己定义和实现。</p>
+<p>  举一个外部中断源的例子，按键Key可以认为最为简单的一种硬件设备了，如下图所示：<br>  <img src="/img/20160123-s3c2440-interrupt/keys.png" alt="按键硬件接线原理图"></p>
+<p>  它功能很简单，可以将电路接通，按键K1~K6一端接地为低电平，另外一端接电源正极为高电平，EINT8，EINT11，EINT13，EINT14，EINT15，EINT19六根中断信号线分别和高电平端按键相连，当按键按下时电路接通，整个电路变成低电平，中断信号线上电压产生变化，通过设置中断触发方式，产生外部中断请求，输入到CPU内部，从而实现按键中断控制。</p>
+<p>  值得提一下的是，对于按键这个例子，其EINT8，EINT11，EINT13，EINT14，EINT15，EINT19这些外部中断源复用了EINT8_23这路中断端口。</p>
+<p>  S3C2440A可以支持EINT0~EINT23共24种外部中断，完全可以满足小型嵌入式设备外设硬件的需求。</p>
+</li>
+</ul>
+<h1 id="中断处理流程图及相关寄存器"><a href="#中断处理流程图及相关寄存器" class="headerlink" title="中断处理流程图及相关寄存器"></a>中断处理流程图及相关寄存器</h1><h2 id="中断处理流程"><a href="#中断处理流程" class="headerlink" title="中断处理流程"></a>中断处理流程</h2><p>无论是何种CPU，中断的处理过程都是相似的，针对具体的CPU只是处理细节不同。</p>
+<ul>
+<li>1.中断控制器汇集各类外设发出的中断信号，然后通知CPU。  </li>
+<li>2.CPU中断当前任务的执行，保存当前任务的运行上下文环境，然后调用中断服务程序(ISR)来处理中断。这里涉及两个运行上下文，任务上下文和中断上下文。  </li>
+<li>3.在ISR中通过读取中断控制器和外设的相关寄存器来识别是哪个<strong>中断源</strong>，并进行相应的处理。  </li>
+<li>4.清除中断。通过读写相关中断控制寄存器和外设相关寄存器来实现。  </li>
+<li>5.恢复被中断任务的执行环境，继续执行被中断的程序。</li>
+</ul>
+<h2 id="S3C2440的中断处理流程"><a href="#S3C2440的中断处理流程" class="headerlink" title="S3C2440的中断处理流程"></a>S3C2440的中断处理流程</h2><p><img src="/img/20160123-s3c2440-interrupt/interrupt_process.png" alt="">  </p>
+<p>一个更清晰的流程处理图：<br><img src="/img/20160123-s3c2440-interrupt/s3c2440_int_process.png" alt="中断处理流程图及相关寄存器"> </p>
+<p>第一步：<strong>SRCPND</strong>标记着32路中断端口的发生状态，注意是32路<strong>中断端口</strong>，不是60个中断源的发生状态。中断源是如何被映射到中断端口上去的呢？</p>
+<ul>
+<li>对于独立中断源，不需要经过特别处理过程，所以如果发生，直接反映在SRCPND的对应位上。</li>
+<li>而对于复用的中断源，一旦发生首先记录发生状态在<code>EINTPEND/SUBSRCPND</code>，然后CPU根据对应掩码<code>EINTMASK/INTSUBMASK</code>的设置将允许服务的中断源映射到SRCPND的对应位上 。在S3C2440的中断控制器设计上，将复用的中断源分为外部和内部两大类，外部的复用中断源用EINTPEND和EINTMASK进行管理，EINTPND记录着哪个子中断源发生了，EINTMASK用于设置mask屏蔽某个子中断源。内部复用中断源用SUBSRCPND和INTSUBMASK进行类似的管理。在ISR中可以在得到具体那个中断端口上有中断发生后，通过查询EINTPND/SUBSRCPND即可知道在复用端口上具体哪些子中断源发生了。注意有可能出现一种情况就是在一路中断端口上的多个中断源同时发生并被检测到。譬如前面按键的例子，EINT8~EINT19这些中断源都复用了EINT8_23这个中断端口，所以有可能同时有多个按键按下，则我们的ISR应该通过检查EINTPEND得到具体哪些按键被按下。 </li>
+</ul>
+<p>第二步：根据<strong>INTMASK</strong> 对32路<strong>中断端口</strong>的掩码设置可以屏蔽<strong>SRCPND</strong>中的某些端口。  </p>
+<p>第三步：<strong>INTMOD</strong>是对32路<strong>中断端口</strong>的模式设置，即认为标记哪些端口信号是IRQ，哪些是FIQ。（注：最多只能设置一路FIQ）。根据INTMOD的设置，</p>
+<ul>
+<li>如果某路端口被标记为IRQ并且未被<strong>INTMASK</strong>屏蔽，则进入仲裁阶段，转第四步。</li>
+<li>如果某路是FIQ并且发生了则直接通知系统。</li>
+</ul>
+<p>第四步：根据<strong>PRIORITY</strong>寄存器的设置对同时发生的IRQ进行优先级仲裁，即如果多路IRQ发生则最终CPU只会挑出一路IRQ通知给系统，经过中断优先级仲裁器选出优先级最高的IRQ中断后，这个中断在<strong>INTPND</strong>寄存器中的相应位被置1，如前所述，CPU在执行完每条指令后可以检查该寄存器，如果上面有IRQ发生，则进入IRQ中断模式处理它。同一时间内，此寄存器只有一位被置1，在ISR中可以根据这个位确定中断类型。清除该中断时，往这个位写入0。 </p>
+<h2 id="相关寄存器汇总"><a href="#相关寄存器汇总" class="headerlink" title="相关寄存器汇总"></a>相关寄存器汇总</h2><table>
+<thead>
+<tr>
+<th>寄存器编号</th>
+<th>功能描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SUBSRCPND</td>
+<td>标明内部复用子中断(如：INT_RXD0)是否发生。S3c2440有15个内部复用子中断，SUBSRCPND中每一位对应一个内部子中断，当这些子中断发生时，相应的位被置为1。清除子中断只需向SUBSRCPND寄存器中相应位写入1。</td>
+</tr>
+<tr>
+<td>INTSUBMSK</td>
+<td>用来屏蔽SUBSRCPND寄存器所标示的子中断。某位被设为1时，相应的子中断被屏蔽。设为0时，表示子中断被允许。</td>
+</tr>
+<tr>
+<td>EINTPEND</td>
+<td>标明外部复用子中断(如：EINT23)是否发生。S3c2440有20个外部复用子中断，EINTPEND中每一位对应一个外部子中断，当这些子中断发生时，相应的位被置为1。清除子中断只需向EINTPEND寄存器中相应位写入1。</td>
+</tr>
+<tr>
+<td>EINTMASK</td>
+<td>用来屏蔽EINTPEND寄存器所标示的子中断。某位被设为1时，相应的子中断被屏蔽。设为0时，表示子中断被允许。</td>
+</tr>
+<tr>
+<td>SRCPND</td>
+<td>标识32路中断信号输入上哪些中断发生了。在IRQ中断服务程序中需要清理；在FIQ中断服务程序中也需要清理。</td>
+</tr>
+<tr>
+<td>INTMASK</td>
+<td>屏蔽SRCPND，如果一个中断的屏蔽位为1，在该中断发出请求时挂起位还是会被设置为1，但中断请求都不被受理。</td>
+</tr>
+<tr>
+<td>INTMOD</td>
+<td>设置哪些中断请求信号为FIQ，哪些为IRQ，但只有一个中断信号输入可以被设置为FIQ模式。</td>
+</tr>
+<tr>
+<td>PRIORITY</td>
+<td>配置IRQ的优先级</td>
+</tr>
+<tr>
+<td>INTPND</td>
+<td>标识32路中断信号经过屏蔽过滤和仲裁，最后剩下的FIQ和IRQ。在IRQ中断服务程序中需要清理，但在FIQ中断服务程序中不需要清理INTPND。</td>
+</tr>
+<tr>
+<td>INTOFFSET</td>
+<td>用于检测INTPND中具体哪个中断端口上有IRQ中断请求发生，直接读取该寄存器的值就对应中断端口号。有关FIQ的信息不用该寄存器检测。</td>
+</tr>
+<tr>
+<td>EXTINT0~EXTINT2</td>
+<td>24个外部中断分为三组，用这三个寄存器分别用于配置外部中断的触发方式(高电平，低电平，上升沿，下降沿，上升下降均可)。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="优先级仲裁"><a href="#优先级仲裁" class="headerlink" title="优先级仲裁"></a>优先级仲裁</h2><p>S3C2440A支持60种中断，多个硬件可能同时产生中断请求，由于CPU只能处理一个中断，中断控制器怎么选择出一个最佳的中断，交给ARM内核进行处理呢？ 中断控制器采用优先级仲裁比较的方式进行选择，找出优先级最高的中断源。中断控制器将60种中断源分成7组，如下图所示，它类似体育赛事里的比赛方式，所有参赛选手在小组赛PK，选择出小组赛最优秀选手，然后进入决赛阶段和其它小组最优先选择再PK，最后优胜者就是总冠军。其中ARBITER0~ARBITER5为“小组赛”阶段，中断源信号在各自小组里进行优先级仲裁，选择出最高优先级中断信号，每小组选出的中断信号送到ARBITER6，也就是决赛阶段，选择出最高优先级中断信号，交给ARM内核。<br><img src="/img/20160123-s3c2440-interrupt/s3c2440_int.png" alt="中断信号和中断源"></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/s3c2440/" rel="tag">#s3c2440</a>
+          
+            <a href="/tags/interrupt/" rel="tag">#interrupt</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/18/20160118-lk-drv-concur/" rel="next" title="Linux内核驱动开发中的并发和竞争总结">
+                <i class="fa fa-chevron-left"></i> Linux内核驱动开发中的并发和竞争总结
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/05/20160205-lk-drv-io-access/" rel="prev" title="阅读LDD3第9章的笔记-外设编址和访问">
+                阅读LDD3第9章的笔记-外设编址和访问 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/01/23/20160123-s3c2440-interrupt/"
+           data-title="基于s3c2440学习中断控制器" data-url="http://unicornx.github.io/2016/01/23/20160123-s3c2440-interrupt/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#中断控制机制"><span class="nav-number">1.</span> <span class="nav-text">中断控制机制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#中断控制器，中断端口-Interrupt-Port-和中断源-Interrupt-Source"><span class="nav-number">2.</span> <span class="nav-text">中断控制器，中断端口(Interrupt Port)和中断源(Interrupt Source)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#独立中断源和复用中断源："><span class="nav-number">2.1.</span> <span class="nav-text">独立中断源和复用中断源：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#外部中断源和内部中断源"><span class="nav-number">2.2.</span> <span class="nav-text">外部中断源和内部中断源</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#中断处理流程图及相关寄存器"><span class="nav-number">3.</span> <span class="nav-text">中断处理流程图及相关寄存器</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#中断处理流程"><span class="nav-number">3.1.</span> <span class="nav-text">中断处理流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#S3C2440的中断处理流程"><span class="nav-number">3.2.</span> <span class="nav-text">S3C2440的中断处理流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#相关寄存器汇总"><span class="nav-number">3.3.</span> <span class="nav-text">相关寄存器汇总</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#优先级仲裁"><span class="nav-number">3.4.</span> <span class="nav-text">优先级仲裁</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

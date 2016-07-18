@@ -1,0 +1,936 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,mini2440," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-13
+从Bootloader到内核先从U-boot的角度看一下U-boot是怎么调用内核的入口函数，以及传递了怎样的参数给内核的。
+参考u-boot的引导过程，对应着就是u-boot最后的一次跳转，u-boot将内核镜像uImage（也就是z">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内核启动过程分析(基于mini2440和linux v2.6.32.2)">
+<meta property="og:url" content="http://unicornx.github.io/2015/12/27/20151227-lk-init/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-13
+从Bootloader到内核先从U-boot的角度看一下U-boot是怎么调用内核的入口函数，以及传递了怎样的参数给内核的。
+参考u-boot的引导过程，对应着就是u-boot最后的一次跳转，u-boot将内核镜像uImage（也就是z">
+<meta property="og:image" content="http://blog.chinaunix.net/attachment/201210/21/25909619_1350803116yRU2.png">
+<meta property="og:image" content="http://blog.chinaunix.net/attachment/201210/21/25909619_13508041824F55.jpg">
+<meta property="og:image" content="http://www.linuxidc.com/upload/2011_02/110209084837161.gif">
+<meta property="og:updated_time" content="2016-05-13T09:22:39.982Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="内核启动过程分析(基于mini2440和linux v2.6.32.2)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-13
+从Bootloader到内核先从U-boot的角度看一下U-boot是怎么调用内核的入口函数，以及传递了怎样的参数给内核的。
+参考u-boot的引导过程，对应着就是u-boot最后的一次跳转，u-boot将内核镜像uImage（也就是z">
+<meta name="twitter:image" content="http://blog.chinaunix.net/attachment/201210/21/25909619_1350803116yRU2.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/12/27/20151227-lk-init/"/>
+
+  <title> 内核启动过程分析(基于mini2440和linux v2.6.32.2) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                内核启动过程分析(基于mini2440和linux v2.6.32.2)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-12-27T17:18:56+08:00" content="2015-12-27">
+              2015-12-27
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux系统移植/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux系统移植</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/12/27/20151227-lk-init/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/27/20151227-lk-init/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-05-13</p>
+<h1 id="从Bootloader到内核"><a href="#从Bootloader到内核" class="headerlink" title="从Bootloader到内核"></a>从Bootloader到内核</h1><p>先从U-boot的角度看一下U-boot是怎么调用内核的入口函数，以及传递了怎样的参数给内核的。</p>
+<p>参考u-boot的引导过程，对应着就是u-boot最后的一次跳转，u-boot将内核镜像uImage（也就是zImage）从flash上搬移到内存的正确位置后，以<code>u-boot-2009.11</code>为例，启动内核的逻辑最后都是走到<code>lib_arm/bootm.c</code>的<code>do_bootm_linux</code>函数。这个函数的地址存放在一个数组里：</p>
+<a id="more"></a>
+<p>参考<code>cmd_bootm.c</code></p>
+<pre><code>static boot_os_fn *boot_os[] = {
+#ifdef CONFIG_BOOTM_LINUX
+    [IH_OS_LINUX] = do_bootm_linux,
+#endif
+...
+</code></pre><p>在<code>do_bootm</code>函数中有这么一行，就是调用<code>do_bootm_linux</code>：</p>
+<pre><code>boot_fn = boot_os[images.os.os];
+</code></pre><p>在<code>do_bootm_linux</code>函数里有如下语句：</p>
+<pre><code>theKernel = (void (*)(int, int, uint))images-&gt;ep;
+
+...
+
+/* we assume that the kernel is in place */
+printf (&quot;\nStarting kernel ...\n\n&quot;);
+
+...
+
+theKernel (0, machid, bd-&gt;bi_boot_params);
+/* does not return */
+</code></pre><p>观察系统系统串口的输出。采用u-boot引导内核过程中，<code>Starting kernel ...</code>这句话是u-boot在调用内核启动函数之前打印出来的最后一句话。</p>
+<p><code>theKernel</code>就是内核的入口地址，在u-boot里，参考tekkaman的u-boot v2009。11，该函数的地址来自<code>include/configs/mini2440.h</code>中定义的如下语句：</p>
+<pre><code>#define    CONFIG_SYS_LOAD_ADDR        0x30008000
+</code></pre><p>具体为何u-boot定义该值，最终还是要看内核里，在内核代码的<code>arch/arm/mach-s3c2410/Makefile.boot</code>文件中有如下内容：</p>
+<pre><code>zreladdr-y  := 0x30008000
+params_phys-y := 0x30000100
+</code></pre><p>应该出处是来自这里，虽然我现在还没有完全理解为何定义在<code>mach-s3c2410</code>里的地址会影响到<code>s3c2440</code>，我实验的平台是mini2440，其采用的是<code>s3c2440</code>。但翻看了<code>arch/arm/mach-s3c2440</code>目录实在没有找到相关的内容，但在翻看<code>s3c2440</code>的<code>kconfig</code>文件时我发现如下描述：</p>
+<pre><code>config CPU_S3C2440
+    bool
+    depends on ARCH_S3C2410
+    ...
+</code></pre><p>似乎<code>s3c2440</code>的编译依赖于<code>s3c2410</code>，就先到这里吧，以后有空再来看看咋回事。但总之这番折腾让我理解了u-boot里的这些参数的设置应该还是都来源于内核，围绕内核所定义的。</p>
+<p><code>do_bootm_linux</code>函数的最后一行，调用<code>theKernel</code>函数。根据ATCPS的约定，第一个参数0放在寄存器<code>r0</code>里，目前暂时没有什么用。第二个参数machid是机器的ID，放在寄存器<code>r1</code>里，其来源参考<code>board_init</code>函数里的如下语句。</p>
+<pre><code>#if defined(CONFIG_S3C2440)
+/* arch number of S3C2440-Board */
+    gd-&gt;bd-&gt;bi_arch_number = MACH_TYPE_MINI2440 ;
+#endif
+</code></pre><p>第三个参数是u-boot传递给内核的启动参数在内存中所占区域的首地址，放在寄存器<code>r2</code>里。参考<code>board_init</code>函数里有如下赋值语句：</p>
+<pre><code>/* adress of boot parameters */
+gd-&gt;bd-&gt;bi_boot_params = 0x30000100;
+</code></pre><p>现在我知道U-boot为何要设置为0x30000100了，这也是根据内核的要求。</p>
+<p>有关传递的启动参数存放的格式，请参见我的另外一篇文章：TBD</p>
+<p>此时以mini2440为例，其内存的分布图如下所示，两张图，对照着看一下，注意下面图上标识的宏，都是定义在内核中的：<br><img src="http://blog.chinaunix.net/attachment/201210/21/25909619_1350803116yRU2.png" alt=""><br><img src="http://blog.chinaunix.net/attachment/201210/21/25909619_13508041824F55.jpg" alt=""></p>
+<p>以上分析，参考的来源包括:</p>
+<ul>
+<li><a href="http://blog.csdn.net/wavemcu/article/details/7270015" target="_blank" rel="external">基于linux2.6.38.8内核启动过程完全解析[一]</a>  </li>
+<li><a href="http://blog.chinaunix.net/uid-25909619-id-3380535.html" target="_blank" rel="external">Linux内核启动流程分析(一)</a></li>
+</ul>
+<h1 id="内核启动第一阶段，解压缩和重定位"><a href="#内核启动第一阶段，解压缩和重定位" class="headerlink" title="内核启动第一阶段，解压缩和重定位"></a>内核启动第一阶段，解压缩和重定位</h1><p>第一阶段不是必须的。原因在于这里U-boot引导的内核镜像是经过压缩的还是未压缩的。一般情况下内核都会压缩，以节省存储空间。所以我们重点考虑需要解压缩的情况。</p>
+<p>U-boot所调用的theKernel，即内核的入口点，分析内核代码<code>arch/arm/boot/compressed/vmlinux.lds</code>可以知道该入口就是<code>arch/arm/boot/compressed/head.S</code>。该汇编文件中的指令将完成我们的第一阶段工作，会执行一系列的简单CPU初始化，并解压内核zImage文件，在此过程中可能会执行一些代码重定位的工作。</p>
+<p>有关进一步的解压和重定位过程的分析，可以参考：  </p>
+<ul>
+<li><a href="http://blog.chinaunix.net/uid-25909619-id-3380535.html" target="_blank" rel="external">Linux内核启动流程分析(一) </a>，这篇文章是针对S3C2410系列板子的，内核版本2.6.35.7。  </li>
+<li><a href="http://blog.csdn.net/tommy_wxie/article/details/8763378" target="_blank" rel="external">Linux内核源码分析–内核启动之(1)zImage自解压过程（Linux-3.0 ARMv7）</a>，这篇文章是针对ARMv7的CPU，内核也是基于较新的3.0。  </li>
+</ul>
+<p>要理解为什么要解压，首先要理解我们下到板子中的内核镜像文件实际是压缩过的，要了解内核的压缩，先了解kernel的镜像文件的组成结构以及是如何得来的。可以参考如下文章：  </p>
+<p><a href="http://blog.csdn.net/wangrunmin/article/details/7584920" target="_blank" rel="external">国嵌视频学习—linux内核启动流程</a><br><a href="http://www.cnblogs.com/pigeon84/articles/2212404.html" target="_blank" rel="external">vmlinux uImage与zImage的区别</a><br><a href="http://blog.chinaunix.net/uid-2630593-id-2530229.html" target="_blank" rel="external">linux内核的生成过程, vmlinux调试分析</a></p>
+<p>以及下图了解内核镜像文件的生成过程：<br><img src="http://www.linuxidc.com/upload/2011_02/110209084837161.gif" alt=""></p>
+<p>具体的压缩过程，可以观察make内核的日志的最后几步，或者查看内核代码<code>arch/arm/boot</code>里的Makefile来了解。</p>
+<p>而所谓的重定位，主要是会涉及到部分指令在内存中的搬移。目的是为了保证最终解压开的内核程序-vmlinux的起始位置和链接时的运行地址要一致。这其中比较重要的一点是由于zImage中解压指令的运行地址以及其指令所占据的内存空间可能会和解压后的vmlinux占据空间冲突，所以在解压过程中需要采用一定措施避免这种重叠造成的覆盖。具体的实现参考<code>arch/arm/boot/compressed/head.S</code>这个文件，但里面是大段大段的汇编指令代码，暂时不想去深入的分析了，如果想要仔细研究的话可以参考前面提到的两篇参考文章。</p>
+<ul>
+<li><a href="http://blog.chinaunix.net/uid-25909619-id-3380535.html" target="_blank" rel="external">Linux内核启动流程分析(一) </a>  </li>
+<li><a href="http://blog.csdn.net/tommy_wxie/article/details/8763378" target="_blank" rel="external">Linux内核源码分析–内核启动之(1)zImage自解压过程（Linux-3.0 ARMv7）</a>  </li>
+</ul>
+<p>其中第一篇文章的方法比较简单一些，第二篇文章的方法比较复杂一些而已，可能和ARM的升级有关，但主要思想都是一样的，分了三种情况去处理。比较容易理解的是第一篇。</p>
+<p>观察系统系统串口的输出，和解压缩有关：</p>
+<pre><code>Uncompressing Linux................................................................................................................................ done, booting the kernel.
+</code></pre><p>这里的打印说明程序走到内核文件<code>arch/arm/boot/compressed/misc.c</code>的<code>decompress_kernel()</code>函数：</p>
+<pre><code>ulg decompress_kernel(ulg output_start, ulg free_mem_ptr_p, ulg free_mem_ptr_end_p, int arch_id)
+{
+    ...
+
+    makecrc();
+    putstr(&quot;Uncompressing Linux...&quot;);
+    gunzip();
+    putstr(&quot; done, booting the kernel.\n&quot;);
+    return output_ptr;
+}
+</code></pre><p>putstr会调用putc来完成串口输出，嵌入式开发中，我们假定bootloader已经进行了串口初始化，所以我们只需要对串口进行写操作就可以了。</p>
+<h1 id="内核启动第二阶段，正式启动前的准备工作"><a href="#内核启动第二阶段，正式启动前的准备工作" class="headerlink" title="内核启动第二阶段，正式启动前的准备工作"></a>内核启动第二阶段，正式启动前的准备工作</h1><p>这部分我主要参考的是：</p>
+<ul>
+<li><a href="http://blog.chinaunix.net/uid-25909619-id-3380544.html" target="_blank" rel="external">Linux内核启动流程分析(二) </a>。</li>
+<li>韦东山所著的《嵌入式Linux用用开发完全手册》第16章的内容。</li>
+</ul>
+<p>第一阶段完成后，解压得到真正的内核镜像vmlinux并完成了重定向，程序流程跳转到其入口开始执行第二阶段。该阶段的总体流程如下所示：</p>
+<p>以mini2440为例，第二阶段主要参考如下文件：</p>
+<ul>
+<li><code>arch/arm/kernel/head.S</code></li>
+<li><code>arch/arm/kernel/head-common.S</code></li>
+<li><code>arch/arm/mm/proc-arm920.S</code></li>
+</ul>
+<p>有如下主要步骤：</p>
+<table>
+<thead>
+<tr>
+<th>流程</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>开始</td>
+<td></td>
+</tr>
+<tr>
+<td><code>__lookup_processor_type</code></td>
+<td>检查内核是否支持当前处理器型号</td>
+</tr>
+<tr>
+<td><code>__lookup_machine_type</code></td>
+<td>检查内核是否支持当前机器类型</td>
+</tr>
+<tr>
+<td><code>__create_page_table</code></td>
+<td>建立一级页表</td>
+</tr>
+<tr>
+<td><code>__arm920_setup</code></td>
+<td>禁止ICache和DCache</td>
+</tr>
+<tr>
+<td><code>__enable_mmu</code></td>
+<td>使能MMU</td>
+</tr>
+<tr>
+<td><code>__mmap_switched</code></td>
+<td><br>- 复制数据段<br>- 清除BSS段<br>- 设置栈指针<br>- 保存CPUID到<code>processor_id</code>变量<br>- 保存机器类型ID到<code>__machine_arch_type</code>变量<br>- 调用<code>start_kernel</code>函数进入内核启动的第三阶段</td>
+</tr>
+</tbody>
+</table>
+<p>第二阶段的入口定义在<code>arch/arm/kernel/head.S</code>文件的<code>ENTRY(stext)</code>，正如韦东山的书上所述，移植Linux内核时，对于第二阶段的准备工作，也即<code>arch/arm/kernel/head.S</code>的内容，只需要关注开头几条指令所涉及的两个主要函数操作即可，如下所示：</p>
+<pre><code>ENTRY(stext)
+    setmode    PSR_F_BIT | PSR_I_BIT | SVC_MODE, r9 @ ensure svc mode
+                        @ and irqs disabled
+    mrc    p15, 0, r9, c0, c0        @ get processor id
+    bl    __lookup_processor_type        @ r5=procinfo r9=cpuid
+    movs    r10, r5                @ invalid processor (r5=0)?
+    beq    __error_p            @ yes, error &apos;p&apos;
+    bl    __lookup_machine_type        @ r5=machinfo
+    movs    r8, r5                @ invalid machine (r5=0)?
+    beq    __error_a            @ yes, error &apos;a&apos;
+        ...
+</code></pre><p>需要我们重点关注的两个重要的检查函数调用，一个是<code>__lookup_processor_type</code>，用于检查当前CPU内核是否支持，另一个是<code>__lookup_machine_type</code>，用于检查当前机器，即开发板内核是否支持，任何一个函数不通过，即不支持则内核不能启动。<font color="red"><strong>可见内核移植时首先需要考虑的就是针对自己当前的设备，需要特别注意配置好自己设备的设备型号和CPU的类型</strong></font>。如果配置内核时选择了<code>CONFIG_DEBUG_LL</code>，还会打印一些提示信息。这两个函数都定义在<code>arch/arm/kernel/head-common.S</code>中。</p>
+<h2 id="处理器类型检查-lookup-processor-type"><a href="#处理器类型检查-lookup-processor-type" class="headerlink" title="处理器类型检查__lookup_processor_type"></a>处理器类型检查<code>__lookup_processor_type</code></h2><p>指令<code>mrc    p15, 0, r9, c0, c0</code>的意思是读取协处理器CP15的C0获得当前的CPUID并保存在寄存器r9中。</p>
+<p>指令<code>bl  __lookup_processor_type</code>调用<code>__lookup_processor_type</code>函数检查该处理器型号是否被内核所支持。检查的结果通过寄存器r5返回，如果不支持，r5的值为0，如果支持，该函数会通过r5寄存器返回一个用来描述处理器的结构体类型<code>proc_info_list</code>的变量的地址，相当于该函数会返回一个指针。对内核所支持的每一种CPU，以ARM架构为例，在<code>arch/arm/mm</code>目录下有很多<code>proc-*.S</code>的文件，譬如对应s3c2440所使用的<code>arm920t</code>，就有一个<code>proc-arm920.S</code>。在这个文件中会定义一个<code>proc_info_list</code>类型的变量如下：</p>
+<pre><code>    .section &quot;.proc.info.init&quot;, #alloc, #execinstr
+
+    .type    __arm920_proc_info,#object
+__arm920_proc_info:
+    .long    0x41009200
+    .long    0xff00fff0
+    ...
+</code></pre><p><code>proc_info_list</code>这个结构体类型的定义在<code>arch/arm/include/asm/procinfo.h</code>,具体如下：</p>
+<pre><code>struct proc_info_list {
+    unsigned int        cpu_val;
+    unsigned int        cpu_mask;
+    unsigned long        __cpu_mm_mmu_flags;    /* used by head.S */
+    unsigned long        __cpu_io_mmu_flags;    /* used by head.S */
+    unsigned long        __cpu_flush;        /* used by head.S */
+    const char        *arch_name;
+    const char        *elf_name;
+    unsigned int        elf_hwcap;
+    const char        *cpu_name;
+    struct processor    *proc;
+    struct cpu_tlb_fns    *tlb;
+    struct cpu_user_fns    *user;
+    struct cpu_cache_fns    *cache;
+};
+</code></pre><p>可以看出来这个结构体类型描述了一款CPU的所有基本信息。而且需要注意的是因为在<code>proc-*.S</code>里定义变量是指定为<code>.section &quot;.proc.info.init&quot;</code>，所以在编译链接内核时，根据我们手动的配置，将我们选择支持的CPU所对应的该类型的变量（可以是一个或者多个）全部都放到<code>.proc.info.init</code>段中，因此可以认为<code>.proc.info.init</code>段就是一个结构体<code>proc_info_list</code>的数组。该数组的开始地址为<code>__proc_info_begin</code>，结束地址为<code>__proc_info_end</code>。这可以从链接脚本<code>arch/arm/kernel/vmlinux.lds</code>中得到：</p>
+<pre><code>__proc_info_begin = .;
+    *(.proc.info.init)
+__proc_info_end = .;
+</code></pre><p>目前<code>__lookup_processor_type</code>使用结构体<code>proc_info_list</code>的前两个字段<code>cpu_val</code>和<code>cpu_mask</code>来匹配当前CPUID（已经读出并保存在r9），如果满足<code>CPUID &amp; cpu_mask == cpu_val</code>，则找到当前cpu的定义并返回对应数组成员的地址保存在r5中，否则在r5中放0表示失败。具体的代码为汇编，还涉及物理地址和虚拟地址的转换，目前我还没有完全理解，留着以后再看。</p>
+<font color="red"><strong>根据以上描述，在系统移植时为使内核支持该CPU类型，需要将<code>arch/arm/mm/proc-arm920.S</code>文件编译入内核，查看<code>arch/arm/mm/Makefile</code>需要使能<code>CONFIG_CPU_ARM920T</code>，所以在配置内核过程中需要选中该CPU类型:</strong></font>
+
+<pre><code>System Type -&gt; Support ARM920T processor
+</code></pre><font color="red"><strong>如果要让你的内核同时支持多种CPU，则要在配置时同时使能多种CPU。</strong></font>
+
+<h2 id="机器类型检查-lookup-machine-type"><a href="#机器类型检查-lookup-machine-type" class="headerlink" title="机器类型检查__lookup_machine_type"></a>机器类型检查<code>__lookup_machine_type</code></h2><p>按照规定由bootloader负责将机器的ID(machineID)在引导内核之前放在寄存器r1中，譬如U-boot通过调用<code>theKernel</code>函数，按照ATPCS的约定完成该操作。<code>__lookup_machine_type</code>函数会检查该机器ID是否被内核所支持。检查的结果通过寄存器r5返回，如果不支持，r5的值为0，如果支持，该函数会通过r5寄存器返回一个用来描述处理器的结构体类型<code>machine_desc</code>的变量的地址，相当于该函数会返回一个指针。而且内核在后面的工作中会调用该机器的<code>machine_desc</code>结构体变量中的方法进行一些初始化工作。</p>
+<p>所谓的机器ID，可以理解为就是开发板的型号，譬如<code>mini2440</code>等。以ARM架构为例，内核支持的所有使用ARM处理器的设备ID号定义在<code>arch/arm/tools/mach-types</code>文件中。内核究竟就如何检查是否是它支持的机器的呢？实际上对应内核支持的每种机器，都会有一个自己的目录，仍然以<code>mini2440</code>为例，对应该开发板，有一个定义文件<code>arch/arm/mach-s3c2440/mach-mini2440.c</code>。文件中有个描述特定机器的数据结构:</p>
+<pre><code>MACHINE_START(MINI2440, &quot;MINI2440&quot;)
+    /* Maintainer: Michel Pollet &lt;buserror@gmail.com&gt; */
+    .phys_io    = S3C2410_PA_UART,
+    .io_pg_offst    = (((u32)S3C24XX_VA_UART) &gt;&gt; 18) &amp; 0xfffc,
+    .boot_params    = S3C2410_SDRAM_PA + 0x100,
+    .map_io        = mini2440_map_io,
+    .init_machine    = mini2440_init,
+    .init_irq    = s3c24xx_init_irq,
+    .timer        = &amp;s3c24xx_timer,
+MACHINE_END
+</code></pre><p><code>MACHINE_START</code>和<code>MACHINE_END</code>实际上被展开成一个结构体。</p>
+<p>这两个宏被定义在<code>arch/arm/include/asm/mach/arch.h</code>，如下：</p>
+<pre><code>#define MACHINE_START(_type,_name)            \
+static const struct machine_desc __mach_desc_##_type    \
+ __used                            \
+ __attribute__((__section__(&quot;.arch.info.init&quot;))) = {    \
+    .nr        = MACH_TYPE_##_type,        \
+    .name        = _name,
+
+#define MACHINE_END                \
+};
+</code></pre><p>于是上面的数据结构就被展开为</p>
+<pre><code>static const struct machine_desc __mach_desc_MINI2440    \
+ __used                            \
+ __attribute__((__section__(&quot;.arch.info.init&quot;))) = {    \
+    .nr        = MACH_TYPE_MINI2440,        \
+    .name        = &quot;MINI2440&quot;,
+    /* Maintainer: Michel Pollet &lt;buserror@gmail.com&gt; */
+    .phys_io    = S3C2410_PA_UART,
+    .io_pg_offst    = (((u32)S3C24XX_VA_UART) &gt;&gt; 18) &amp; 0xfffc,
+    .boot_params    = S3C2410_SDRAM_PA + 0x100,
+    .map_io        = mini2440_map_io,
+    .init_machine    = mini2440_init,
+    .init_irq    = s3c24xx_init_irq,
+    .timer        = &amp;s3c24xx_timer,
+};
+</code></pre><p>和前面检查处理器的机制类似。每种内核所需要支持的机器所定义的<code>machine_desc</code>结构体类型的静态变量在链接时都会被放在一个叫做<code>.arch.info.init</code>的段中构成一个结构体数组，开始地址为<code>__arch_info_begin</code>，结束地址为<code>__arch_info_end</code>。这可以从链接脚本<code>arch/arm/kernel/vmlinux.lds</code>中得到：</p>
+<pre><code>__arch_info_begin = .;
+    *(.arch.info.init)
+__arch_info_end = .;
+</code></pre><p>内核从r1中获得机器的ID后将其和<code>machine_desc</code>结构体数组中的每个成员的nr域进行比较，如果相同，内核就认为支持该机器并返回对应数组成员的指针。以mini2440为例，U-boot传入的机器ID为<code>MACH_TYPE_MINI2440</code>。</p>
+<font color="red"><strong>由上分析可以知道，在系统移植过程中为了让内核支持mini2440，需要将<code>arch/arm/mach-s3c2440/mach-mini2440.c</code>文件编译入内核，在配置内核过程中，需要选中该开发板项:</strong></font>
+
+<pre><code>System Type -&gt; S3C2440 Machines -&gt; MINI2440
+</code></pre><font color="red"><strong>如果要让一个内核支持多款开发板，则要都选中使能。</strong></font>
+
+<h2 id="第二阶段的其他步骤"><a href="#第二阶段的其他步骤" class="headerlink" title="第二阶段的其他步骤"></a>第二阶段的其他步骤</h2><p>如果检查CPU和检查机器都通过，则后续引导过程将继续下去，包括：</p>
+<ul>
+<li><p>第三步，创建一级页表，<code>__create_page_tables</code>以建立虚拟地址到物理地址之间的映射关系。它会用到<code>__lookup_processor_type</code>返回的<code>proc_info_list</code>结构。</p>
+</li>
+<li><p>第四步，使能mmu。在执行具体使能mmu之前有语句形如<code>ldr    r13, __switch_data</code>，该语句在R13中保存<code>__switch_data</code>该标号的地址，在使能mmu完成后会跳到该标号的地址处执行。<br>具体使能mmu时执行的是<code>__enable_mmu</code>，这个函数调用了<code>__turn_mmu_on</code>函数，在<code>_turn_mmu_on</code>的最后将前面赋给R13的值传给了PC指针 （<code>mov    pc, r13</code>），于是内核开始跳到__switch_data这个函数开始执行第五步。</p>
+</li>
+<li><p>第五步，为执行第三阶段的<code>start_kernel</code>函数做最后的准备。<code>__switch_data</code>。这个标号地址定义在<code>arch/arm/kenel/head-common.S</code>里。我们会看到该标号处只是定义了一些数据，实际执行的是紧跟在后面的函数<code>__mmap_switched</code>。该函数设置C代码运行环境，包括复制数据段，清除BBS段，设置函数栈指针，然后保存处理器内核和机器内核等工作环境，最后跳转到内核第一个真正的C函数<code>start_kernel</code>，从此进入内核的C语言部分开始执行第三阶段。</p>
+</li>
+</ul>
+<h1 id="内核启动第三阶段，正式启动"><a href="#内核启动第三阶段，正式启动" class="headerlink" title="内核启动第三阶段，正式启动"></a>内核启动第三阶段，正式启动</h1><p>具体参考<a href="/2016/05/13/20160513-start_kernel_init">内核初始化－从start_kernel到init</a></p>
+<h1 id="其他一些有趣的参考文章："><a href="#其他一些有趣的参考文章：" class="headerlink" title="其他一些有趣的参考文章："></a>其他一些有趣的参考文章：</h1><ul>
+<li><a href="http://blog.csdn.net/dianhuiren/article/details/6892605" target="_blank" rel="external">内核启动全过程</a>，有点老，但给我的启示是要熟练掌握内核的启动流程，仔细学习启动过程中的日志输出还是很有意义的。</li>
+<li><a href="http://book.51cto.com/art/201405/438671.htm" target="_blank" rel="external">7.3 Linux内核的启动过程</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_6340cd9c010106pu.html" target="_blank" rel="external">kernel starting 内核引导失败常见解决办法</a></li>
+<li><a href="http://blog.csdn.net/zjujoe/article/details/4220229" target="_blank" rel="external">开机过程中的内核打印</a></li>
+</ul>
+<p>其他参考文章：  </p>
+<ul>
+<li><a href="http://www.educity.cn/linux/1579297.html" target="_blank" rel="external">ARM-Linux内核移植 - 内核启动流程分析</a>  </li>
+<li><a href="http://www.cnblogs.com/armlinux/archive/2011/11/07/2396784.html" target="_blank" rel="external">ARM linux的启动部分源代码简略分析</a>  </li>
+<li><a href="http://wenku.baidu.com/link?url=dVJWNBm8PUaG3O4ea-y1qCgsd17YMiKf1YzRfKkhIqoQ4rioOXTAhdgqT6jAsFDWj-OTvlUXt1K7edj_0L_IyeOEDAxOZSquy5nqzm2Rtz_" target="_blank" rel="external">linux2.6内核启动分析–李枝果</a>，华清老学员的笔记，很详细的说。是基于s3c2410，估计和s3c2440差不多。  </li>
+<li><a href="http://blog.sina.com.cn/s/blog_4eaff3e10101jj63.html" target="_blank" rel="external">链接地址和运行地址</a></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/26/20151226-transfer-params-btw-uboot-and-kernel/" rel="next" title="U-boot和内核之间传递复杂参数的TAG方式">
+                <i class="fa fa-chevron-left"></i> U-boot和内核之间传递复杂参数的TAG方式
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/12/27/20151227-hex2dec-cheatsheet/" rel="prev" title="地址转化时十六进制和十进制之间换算的一些常用数字小结">
+                地址转化时十六进制和十进制之间换算的一些常用数字小结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/12/27/20151227-lk-init/"
+           data-title="内核启动过程分析(基于mini2440和linux v2.6.32.2)" data-url="http://unicornx.github.io/2015/12/27/20151227-lk-init/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#从Bootloader到内核"><span class="nav-number">1.</span> <span class="nav-text">从Bootloader到内核</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核启动第一阶段，解压缩和重定位"><span class="nav-number">2.</span> <span class="nav-text">内核启动第一阶段，解压缩和重定位</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核启动第二阶段，正式启动前的准备工作"><span class="nav-number">3.</span> <span class="nav-text">内核启动第二阶段，正式启动前的准备工作</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#处理器类型检查-lookup-processor-type"><span class="nav-number">3.1.</span> <span class="nav-text">处理器类型检查__lookup_processor_type</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#机器类型检查-lookup-machine-type"><span class="nav-number">3.2.</span> <span class="nav-text">机器类型检查__lookup_machine_type</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二阶段的其他步骤"><span class="nav-number">3.3.</span> <span class="nav-text">第二阶段的其他步骤</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核启动第三阶段，正式启动"><span class="nav-number">4.</span> <span class="nav-text">内核启动第三阶段，正式启动</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他一些有趣的参考文章："><span class="nav-number">5.</span> <span class="nav-text">其他一些有趣的参考文章：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

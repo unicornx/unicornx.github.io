@@ -1,0 +1,917 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="kernel,mini2440," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-17">
+<meta property="og:type" content="article">
+<meta property="og:title" content="针对mini2440制作一个最小化的可启动的内核">
+<meta property="og:url" content="http://unicornx.github.io/2016/05/17/20160517-make-kernel/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-17">
+<meta property="og:updated_time" content="2016-05-16T22:24:52.391Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="针对mini2440制作一个最小化的可启动的内核">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-17">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/05/17/20160517-make-kernel/"/>
+
+  <title> 针对mini2440制作一个最小化的可启动的内核 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                针对mini2440制作一个最小化的可启动的内核
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-17T06:22:12+08:00" content="2016-05-17">
+              2016-05-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux系统移植/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux系统移植</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/17/20160517-make-kernel/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/17/20160517-make-kernel/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-05-17</p>
+<a id="more"></a>
+<p>参考</p>
+<ul>
+<li>mini2440 Linux移植开发实战指南</li>
+<li>linux-2.6.32.2</li>
+<li><a href="http://www.cnitblog.com/luofuchong/archive/2007/01/10/21725.aspx" target="_blank" rel="external">2.6.14内核移植心得</a></li>
+<li><a href="http://www.linuxidc.com/Linux/2011-12/50292.htm" target="_blank" rel="external">ARM-Linux内核移植</a> 基于2440的移植过程，从最小配置开始，值得借鉴。</li>
+<li><a href="http://blog.csdn.net/zhaole20094463/article/details/7884785" target="_blank" rel="external">内核移植（详细版）</a> 写得比较粗糙，权且看看。</li>
+<li><a href="http://book.51cto.com/art/200912/169070.htm" target="_blank" rel="external">ARM嵌入式Linux系统开发详解</a> 这本书的第20章有在线版本，介绍了从零开始制作内核的过程，值得参考，特别是一些思路。但问题是讲的太粗糙了，很多细节过于简单。另外同时期同系列有一本书叫《Linux系统移植》，专门讲内核移植，但程度也是soso，随便翻翻还是可以的。</li>
+<li><a href="http://blog.csdn.net/wavemcu/article/details/7259546" target="_blank" rel="external">成功从linux2.6.17.4移植到linux2.6.38.8版本</a>这篇文章开头告诉我一个知识，就是”只要移植linux2.6.38.8成功之后，再移植到linux3.0会容易得多，因为linux3.0以上跟linux2.6.38和linux2.6.39差别不大”。这个在后面可以参考一下。我目前的这篇笔记毕竟还是基于2.6.32的内核。</li>
+</ul>
+<p>一些涉及make的文章，以后有机会再专门整理一下，在玩内核的过程中，make的操作以及配置选项的操作是基本功。</p>
+<ul>
+<li><a href="http://blog.sina.com.cn/s/blog_4ba5b45e0102e6vp.html" target="_blank" rel="external">Linux kernel的 Makefile和Kconfig以及Make menuconfig的关系</a></li>
+<li><a href="http://blog.csdn.net/skyflying2012/article/details/8660677" target="_blank" rel="external">menuconfig过程详解</a></li>
+<li><a href="http://www.linuxidc.com/Linux/2011-10/44721p4.htm" target="_blank" rel="external">Linux 内核配置机制（make menuconfig、Kconfig、makefile）讲解</a></li>
+</ul>
+<h1 id="搭建开发环境"><a href="#搭建开发环境" class="headerlink" title="搭建开发环境"></a>搭建开发环境</h1><p>参考<a href="/2016/04/04/20160404-mini2440-dev-env-setup/">mini2440开发环境搭建总结</a></p>
+<p>注意我这里移植的的目标是针对mini2440实现一个最小化的可启动的内核，所以在后面的具体实现过程中，内核引导采用的是tftp下载方式，文件系统的mount采用的是nfs网络挂载方式。这些选择可以最大限度地简化制作一个可以启动的功能最小化的内核版本。很多不必要的移植修改步骤可以在此前提下先不做，譬如不需要移植yaffs等，不需要对板子上的flash存储设备进行格式化。</p>
+<p>我使用的U-boot就是tekkaman制作的U-boot-2009.11的版本。文件系统是我自己制作的最小版本，参考<a href="/2016/04/10/20160410-make-rootfs">针对mini2440制作根文件系统</a>。</p>
+<h1 id="获取Linux内核源代码"><a href="#获取Linux内核源代码" class="headerlink" title="获取Linux内核源代码"></a>获取Linux内核源代码</h1><h1 id="搭建交叉编译环境"><a href="#搭建交叉编译环境" class="headerlink" title="搭建交叉编译环境"></a>搭建交叉编译环境</h1><h2 id="获取工具链"><a href="#获取工具链" class="headerlink" title="获取工具链"></a>获取工具链</h2><p>这里工具链直接使用FriendlyARM提供的缺省工具链4.4.3</p>
+<h2 id="指定交叉编译环境变量"><a href="#指定交叉编译环境变量" class="headerlink" title="指定交叉编译环境变量"></a>指定交叉编译环境变量</h2><p>先清一下工程目录</p>
+<pre><code>`make distclean`
+</code></pre><p>如果你是新下载的内核，那这一步就不用了。但如果你用的是别人移植好的内核，那最好在编译内核之前先清除一下中间文件，因为你们用来编译内核的交叉编译工具可能不同。</p>
+<p>然后修改总目录下的Makefile文件，指定目标架构和交叉工具链的前缀。否则需要在每次make的时候手动指定，那样比较麻烦。</p>
+<p>将原来的如下代码(182行)</p>
+<pre><code>export KBUILD_BUILDHOST := $(SUBARCH)
+ARCH ?= $(SUBARCH)
+CROSS_COMPILE ?=
+</code></pre><p>改为</p>
+<pre><code>export KBUILD_BUILDHOST := $(SUBARCH)
+ARCH ?= arm
+CROSS_COMPILE ?= arm-linux-
+</code></pre><h1 id="简单测试一下编译是否通过"><a href="#简单测试一下编译是否通过" class="headerlink" title="简单测试一下编译是否通过"></a>简单测试一下编译是否通过</h1><p>因为我使用的内核v2.6.32.2已经有对mini2440的支持，所以我们可以简单地测试一下。</p>
+<p>使用内核已经支持的mini2440的缺省内核配置文件<code>mini2440_defconfig</code>。</p>
+<pre><code>$ make mini2440_defconfig
+</code></pre><p>运行以上命令后在内核源码根目录下生成一个<code>.config</code>文件，包含了<code>mini2440_defconfig</code>中预先配置好的配置项。</p>
+<p>照理讲接下来直接运行<code>make uImage</code>就应该生成uImage文件，但尝试过之后发现不行，如此生成的uImage无法被u-boot加载运行。</p>
+<p>打开详细的内核日志开关输出查看一下内核是如何生成uImage文件的，方法如下：</p>
+<pre><code>$ make V=1 uImage -j4 &gt; make.log
+</code></pre><p>编译完成后查看内核源码根目录下的<code>make.log</code>文件，在日志文件的最后有如下描述：</p>
+<pre><code>  /bin/bash /home/fs/ws/mini2440/kernel/linux-2.6.32.2/scripts/mkuboot.sh -A arm -O linux -T kernel -C none -a 0x30008000 -e 0x30008040 -n &apos;Linux-2.6.32.2&apos; -d arch/arm/boot/zImage arch/arm/boot/uImage
+Image Name:   Linux-2.6.32.2
+Created:      Fri May  6 05:35:42 2016
+Image Type:   ARM Linux Kernel Image (uncompressed)
+Data Size:    2003208 Bytes = 1956.26 kB = 1.91 MB
+Load Address: 30008000
+Entry Point:  30008000
+  Image arch/arm/boot/uImage is ready
+</code></pre><p>检查我使用的v2.6.32.2的内核源码，发现在<code>arch/arm/boot/Makefile</code>中有如下生成uImage的语句：</p>
+<pre><code>quiet_cmd_uimage = UIMAGE  $@
+      cmd_uimage = $(CONFIG_SHELL) $(MKIMAGE) -A arm -O linux -T kernel \
+              -C none -a $(LOADADDR) -e $(STARTADDR) \
+           -n &apos;Linux-$(KERNELRELEASE)&apos; -d $&lt; $@
+</code></pre><p>而缺省情况下<code>$(LOADADDR)</code>和<code>$(STARTADDR)</code>是按照相同地址值<code>30008000</code>处理的，这样会导致启动地址错误，uImage应该会在实际的zImage前添加64个字节的头部。</p>
+<p>不知道这是不是内核的bug，或者是需要自己在编译时设置<code>$(LOADADDR)</code>和<code>$(STARTADDR)</code>的值，anyway，直接<code>make uImage</code>在我的环境里不工作。</p>
+<p>所以我采取的方法是生成zImage然后自己运行mkimage命令制作uImage。步骤如下：</p>
+<p>先生成zImage</p>
+<pre><code>$ make zImage -j4
+</code></pre><p>编译通过，在顶层目录下会生成内核的镜像文件vmlinux，同时在<code>arch/arm/boot</code>目录下生成zImage文件。</p>
+<p>然后自己制作U-boot引导的内核文件uImage：</p>
+<p>制作uImage需要获取mkimage这个工具软件，可以通过编译U-boot时获得，生成在U-boot源码的顶层目录的tools路径下。</p>
+<p>如果像我一样是用Ubuntu，则也可以直接安装：</p>
+<pre><code>sudo apt-get install uboot-mkimage
+</code></pre><p>然后运行如下命令：</p>
+<pre><code>mkimage -n &apos;unicornx&apos; -A arm -O linux -T kernel -C none -a 0x30008000 -e 0x30008040 -d arch/arm/boot/zImage ../../tftp/uImage
+</code></pre><ul>
+<li>-n 指定映象名</li>
+<li>-A 指定CPU的体系结构：</li>
+<li>-O 指定操作系统类型</li>
+<li>-T 指定映象类型</li>
+<li>-C 指定映象压缩方式, none 不压缩 </li>
+<li>-a 指定映象在内存中的加载地址，映象下载到内存中时，要按照用mkimage制作映象时，这个参数所指定的地址值来下载</li>
+<li>-e 指定映象运行的入口点地址，这个地址就是-a参数指定的值加上0x40（因为前面有个mkimage添加的0x40个字节的头）</li>
+<li>-d 指定制作映象的源文件</li>
+<li>最后一项指定生成的目标文件的路径</li>
+</ul>
+<p>这样就ok了。</p>
+<p>在此我们可以先运行一下，将生成的uImage文件放到tftp目录下利用tftp下载内核镜像启动开发板，看看输出的信息。在串口可以看到内核启动的信息，只是在最后看到如下panic。</p>
+<pre><code>Kernel panic - not syncing: VFS: Unable to mount root fs on unknown-block(2,0)
+Backtrace:
+[&lt;c0033ad0&gt;] (dump_backtrace+0x0/0x114) from [&lt;c02f12e8&gt;] (dump_stack+0x18/0x1c)
+
+ r6:00008000 r5:c3840000 r4:c03f0004
+[&lt;c02f12d0&gt;] (dump_stack+0x0/0x1c) from [&lt;c02f1338&gt;] (panic+0x4c/0x11c)
+[&lt;c02f12ec&gt;] (panic+0x0/0x11c) from [&lt;c00090e8&gt;] (mount_block_root+0x1d8/0x218)
+ r3:00000000 r2:00000000 r1:c381bf64 r0:c036d8e6
+[&lt;c0008f10&gt;] (mount_block_root+0x0/0x218) from [&lt;c00091ec&gt;] (mount_root+0xc4/0xf
+c)
+[&lt;c0009128&gt;] (mount_root+0x0/0xfc) from [&lt;c0009390&gt;] (prepare_namespace+0x16c/0x
+1c0)
+ r5:c002881d r4:c03ef754
+[&lt;c0009224&gt;] (prepare_namespace+0x0/0x1c0) from [&lt;c0008628&gt;] (kernel_init+0xe0/0
+x114)
+ r5:c0026f90 r4:c03ef520
+[&lt;c0008548&gt;] (kernel_init+0x0/0x114) from [&lt;c0055ff4&gt;] (do_exit+0x0/0x5ac)
+ r5:00000000 r4:00000000
+</code></pre><p>由于缺省的mini2440配置和我用的mini2440的板子一些硬件参数并不一致，后来想想主要是时钟，网口等不同，导致内核启动失败。所以还是自己制作吧。</p>
+<h1 id="从零开始建立一个支持mini2440最小内核系统"><a href="#从零开始建立一个支持mini2440最小内核系统" class="headerlink" title="从零开始建立一个支持mini2440最小内核系统"></a>从零开始建立一个支持mini2440最小内核系统</h1><h2 id="启动内核的最小配置分析"><a href="#启动内核的最小配置分析" class="headerlink" title="启动内核的最小配置分析"></a>启动内核的最小配置分析</h2><p>在正式编译内核之前应该要对内核配置一下，主要目的是要pass在内核启动初期对处理器类型(<code>processor_type</code>)和机器类型(<code>machine_type</code>)的检查，具体参考：<a href="/2015/12/27/20151227-lk-init/">内核启动过程分析(基于mini2440和linux v2.6.32.6)</a>一文中的“内核启动第二阶段，正式启动前的准备工作”。</p>
+<p>下面就这两点，结合mini2440开发板来操作一下。</p>
+<h3 id="内核中支持开发板对应的处理器类型-processor-type"><a href="#内核中支持开发板对应的处理器类型-processor-type" class="headerlink" title="内核中支持开发板对应的处理器类型(processor_type)"></a>内核中支持开发板对应的处理器类型(<code>processor_type</code>)</h3><p>通过配置，将目标开发板的处理器类型添加到内核中，一般来说我们手头的开发板的处理器类型内核已经支持了，否则添加过程会麻烦很多，普通开发者应该不需要考虑这种情况。在内核已经支持我们开发板的处理器类型的前提下，我们要做的就是通过配置打开对应的处理器类型的宏开关，譬如对我手头的mini2440开发板，其处理器类型是ARM920T，内核的配置文件中对应的宏是<code>CONFIG_CPU_ARM920T</code>。具体为何使能该宏后就可以通过内核启动过程中的处理器类型检查，参考<a href="/2015/12/27/20151227-lk-init/">内核启动过程分析(基于mini2440和linux v2.6.32.6)</a>一文中的“内核启动第二阶段，正式启动前的准备工作”一章的子章节<code>处理器类型检查__lookup_processor_type</code>。</p>
+<h3 id="内核中支持开发板对应的机器类型-machine-type"><a href="#内核中支持开发板对应的机器类型-machine-type" class="headerlink" title="内核中支持开发板对应的机器类型(machine_type)"></a>内核中支持开发板对应的机器类型(<code>machine_type</code>)</h3><p>要从零添加一个新开发板的支持，需要做如下工作，以mini2440为例：</p>
+<ul>
+<li><p>增加一个新的文件<code>arch/arm/mach-s3c2440/mach-mini2440.c</code></p>
+<p>  系统移植过程中，为支持目标开发板，程序员需要自己为开发板定义一套结构体和回调函数。其中首先需要定义一个<code>struct machine_desc</code>类型的变量并添加到内核中。在该文件中实现对整个开发板的配置和初始化，包括开发板上我们关心的外设等等。具体的原因可以参考<a href="/2015/12/27/20151227-lk-init/">内核启动过程分析(基于mini2440和linux v2.6.32.6)</a>一文中的”内核启动第二阶段，正式启动前的准备工作”一章的子章节<code>机器类型检查__lookup_machine_type</code>。</p>
+</li>
+<li><p>修改<code>arch/arm/mach-s3c2440/Makefile</code>文件</p>
+<pre><code>obj-$(CONFIG_MACH_MINI2440) += mach-mini2440.o
+</code></pre><p>  利用宏开关<code>CONFIG_MACH_MINI2440</code>控制<code>mach-mini2440.c</code>编译链接入内核。</p>
+</li>
+<li><p>修改<code>arch/arm/mach-s3c2440/Kconfig</code>文件，添加如下内容，</p>
+<pre><code>config MACH_MINI2440
+    bool &quot;MINI2440 development board&quot;
+    ...
+</code></pre><p>  这样在<code>make menuconfig</code>时就能看到对mini2440的支持选项，选中该项后，就会在<code>.config</code>中生成对应的<code>CONFIG_MACH_MINI2440=y</code>配置宏开关。  </p>
+</li>
+<li><p>手动配置内核后生成一个自己的缺省配置文件<code>arch/arm/configs/mini2440_defconfig</code></p>
+<p>  有关如何生成自己的缺省配置文件的问题，网上有很多很好的建议，譬如</p>
+<ul>
+<li><a href="http://stackoverflow.com/questions/27899104/creating-defconfig-file-from-config" target="_blank" rel="external">Creating defconfig file from .config</a></li>
+<li><p><a href="http://blog.csdn.net/kangear/article/details/39553337" target="_blank" rel="external">正确地保存编译内核产生的.config文件-使用make savedefconfig</a></p>
+<p>但我在v2.6.32.2里试了一下，似乎这个savedefconfig方法不存在，应该是我这个内核版本还不支持，具体可以运行<code>make help</code>查看。</p>
+</li>
+</ul>
+</li>
+</ul>
+<font color="red">注意：关于机器码</font>
+
+<p>很关键的一点，内核在启动时，是通过bootloader传入的机器码(<code>MACH_TYPE</code>)确定应启动哪种目标平台的。友善之臂已经为mini2440 申请了自己的机器码为1999，它位于<code>linux-2.6.32.2/arch/arm/tools/mach-types</code>文件中。</p>
+<p>如果内核的机器码和bootloader 传入的不匹配，就会经常出现下面的错误：</p>
+<pre><code>Uncompressing Linux................................................................................................................................. done, booting the kernel.
+</code></pre><p>运行到这就停住了。</p>
+<p>目前U-boot 的<a href="http://www.denx.de/wiki/U-Boot/WebHome" target="_blank" rel="external">官方网站</a>从2009.06 版本开始，也已经加入了mini2440 的机器码定义，因此很多其他网友移植的u-boot，包括我测试使用的U-boot都可以直接启动我们将要移植的内核。提示：在U-boot的<code>include/asm-arm/mach-types.h</code>中可以看到mini2440 的机器码定义。所以这里只关注内核的改动。</p>
+<h2 id="先剔除原内核中对mini2440开发板的支持。"><a href="#先剔除原内核中对mini2440开发板的支持。" class="headerlink" title="先剔除原内核中对mini2440开发板的支持。"></a>先剔除原内核中对mini2440开发板的支持。</h2><p>下面开始我的制作。</p>
+<p>由于我使用的v2.6.32.2内核中原生支持mini2440开发板，而我们目前是要从头开始做一个干净的系统，所以首先将原先内核中相对mini2440的修改剔除掉。</p>
+<ul>
+<li><p>删除或备份原mini2440的内核配置文件</p>
+<pre><code>$ mv arch/arm/configs/mini2440_defconfig arch/arm/configs/mini2440_defconfig.bak
+</code></pre><p>  我们后面会新建一个新的同名文件。</p>
+</li>
+<li><p>删除或备份原mini2440的板级支持源代码</p>
+<pre><code>$ mv arch/arm/mach-s3c2440/mach-mini2440.c arch/arm/mach-s3c2440/mach-mini2440.c.bak
+</code></pre><p> 我们后面会新建一个新的同名文件。</p>
+</li>
+<li><p>原内核对mini2440的支持还体现在对<code>arch/arm/mach-s3c2440/Makefile</code>文件和<code>arch/arm/mach-s3c2440/Kconfig</code>文件的修改上，这里我们暂时不清除，在后面的操作中直接在当前文件基础上修改。</p>
+</li>
+</ul>
+<h2 id="开始从头添加自己对mini2440的支持"><a href="#开始从头添加自己对mini2440的支持" class="headerlink" title="开始从头添加自己对mini2440的支持"></a>开始从头添加自己对mini2440的支持</h2><p>一般所谓的从零开始也不是真的从一无所有基础上搭建，毕竟大部分情况下都是基于一个demo板或者基础版本开始添加。这里我们可以以三星对s3c2440的demo开发板smdk2440为基础添加修改成为自己的配置版本。</p>
+<ul>
+<li><p>增加一个新对应目标板的板级支持文件<code>arch/arm/mach-s3c2440/mach-mini2440.c</code></p>
+<p>  将<code>linux-2.6.32.2/arch/arm/mach-s3c2440/</code>目录下的<code>mach-smdk2440.c</code>复制一份，命名为<code>mach-mini2440.c</code>作为我们修改的基础。</p>
+<pre><code>$ cp arch/arm/mach-s3c2440/mach-smdk2440.c arch/arm/mach-s3c2440/mach-mini2440.c
+</code></pre><p>  因为我们要制作自己的mini2440平台体系，因此把<code>mach-mini2440.c</code>中所有的smdk2440字样改为mini2440，可以使用批处理命令修改，在vim 的命令模式下输入：<code>%s/smdk2440/mini2440/g</code>。上面这句的意思是：把所有和<code>smdk2440</code>匹配的字符串全部替换为<code>mini2440</code>，前面的<code>%s</code>代表字符串匹配，最后的<code>g</code>代表global，是全局的意思。</p>
+<p>  修改<code>mach-mini2440.c</code>文件，将<code>MACHINE_START</code>的宏括号里面的名字换成MINI2440，这个ID最终会被扩展为<code>MACH_TYPE_MINI2440</code>，对应<code>arch/arm/tools/mach_types</code>里面对应的mini2440的机器号，具体的机器号是从U-boot传递过来的，这样就可以通过内核启动中对机器类型(<code>machine_type</code>)的检查了。</p>
+</li>
+</ul>
+<pre><code>    MACHINE_START(MINI2440, &quot;MINI2440&quot;)
+        /* Maintainer: Your name &lt;your email address&gt; */
+        .phys_io    = S3C2410_PA_UART,
+        .io_pg_offst    = (((u32)S3C24XX_VA_UART) &gt;&gt; 18) &amp; 0xfffc,
+        .boot_params    = S3C2410_SDRAM_PA + 0x100,
+        .init_irq    = s3c24xx_init_irq,
+        .map_io        = mini2440_map_io,
+        .init_machine    = mini2440_machine_init,
+        .timer        = &amp;s3c24xx_timer,
+    MACHINE_END
+
+有关这个结构体的具体说明，可以参考[machine_desc结构体](/2016/05/12/20160512-machine_desc)一文中的“machine_desc结构体中的几个重要的成员的设置”章节的描述。
+
+因为我们不需要测试lcd的内容，所以可以先把所有和lcd相关的内容全部删除。
+
+`mini2440_devices`中的内容也可以全部删除，我们只需要做一个最小系统，这些东西统统可以不要。
+
+在`mini2440_machine_init(void)`函数中，删除lcd的初始化代码，以及把`smdk_machine_init()`函数调用注释掉，因为我们后面会编写自己的初始化函数，不需要调用smdk2440原来的初始化。只需要保留框架代码的`platform_add_devices`部分。
+
+读代码时注意到`mini2440_map_io()`这个回调函数，不是简简单单地只是初始化io，在其代码中还会初始化cpu的一些东西。这些东西包括了cpu的初始化回调函数的设置，而真正的cpu初始化设置作为`arch_initcall`段的一部分在`do_initcalls`的时候会被调用，这也是我们在启动日志中看到如下打印的地方：`S3C2440: Initialising architecture`。具体对应的函数在`s3c_arch_init()@arch/arm/plat-s3c/init.c`，这个函数会调用`cpu-&gt;init`。
+</code></pre><ul>
+<li><p>修改<code>arch/arm/mach-s3c2440/Makefile</code>文件</p>
+<p>  利用宏开关<code>CONFIG_MACH_MINI2440</code>控制<code>mach-mini2440.c</code>编译链接入内核。</p>
+<p>  这个修改已经有了，保留。注意这一行要添加在<code>obj-$(CONFIG_ARCH_S3C2440)+= smdk-s3c2440.o</code>后面，否则会编译错误。</p>
+</li>
+<li><p>修改<code>arch/arm/mach-s3c2440/Kconfig</code>文件，添加mini2440的菜单配置项：</p>
+<pre><code>config MACH_MINI2440
+    bool &quot;MINI2440 development board&quot;
+    select CPU_S3C2440
+    help
+      Say Y here to select support for the MINI2440. Is a 10cm x 10cm board
+      available via various sources. It can come with a 3.5&quot; or 7&quot; touch LCD.
+</code></pre><p>  从最小配置开始，我们只要设置配置名称”MACH_MINI2440”，这个对应前面Makefile中的宏开关<code>CONFIG_MACH_MINI2440</code>。</p>
+<p>  注：针对我们最小化内核配置的要求，只需要选中CPU的类型是2440即可，其他的配置选项这里一概不要。</p>
+</li>
+<li><p>生成自己的内核配置文件</p>
+<p>  还是以缺省的s3c2410的配置文件为模版基础制作我自己的配置。在内核树根目录下，执行：</p>
+<pre><code>$ make s3c2410_defconfig
+</code></pre><p>  执行完毕后会在内核根目录下生成一个<code>.config</code>文件</p>
+<pre><code>$ make menuconfig
+</code></pre><p>  进入菜单<code>System Type  ---&gt;S3C2440 Machines  ---&gt;</code>，就应该会在列表中看到：</p>
+<pre><code>[*] MINI2440 development board
+</code></pre><p>  这项就对应着我们在<code>arch/arm/mach-s3c2440/Kconfig</code>文件添加的内容。</p>
+<p>  确认该项选中后回退到顶级菜单，选中<code>Save an Alternate Configuration File</code>后将当前配置保存到<code>arch/arm/configs/mini2440_defconfig</code>。</p>
+</li>
+<li><p>然后开始编译：</p>
+<pre><code>$ make zImage -j4
+</code></pre><p>  如果能够正常编译，已经能够将mini2440板文件编译进内核了，生成<code>arch/arm/boot/zImage</code>。然后自己运行mkimage命令生成uImage</p>
+<pre><code>$ mkimage -n &apos;unicornx&apos; -A arm -O linux -T kernel -C none -a 0x30008000 -e 0x30008040 -d arch/arm/boot/zImage ../../tftp/uImage
+</code></pre><p>  简单测试启动一下，内核会启动，但串口上输出全是乱码，猜测是波特率的原因。这些问题都需要在后面的步骤中逐渐细化，但至少目前内核已经pass了启动的第二阶段，进入了第三阶段。参考<a href="/2015/12/27/20151227-lk-init/">内核启动过程分析(基于mini2440和linux v2.6.32.6)</a>一文。</p>
+</li>
+</ul>
+<h1 id="逐步细化"><a href="#逐步细化" class="headerlink" title="逐步细化:"></a>逐步细化:</h1><h2 id="解决串口乱码的问题"><a href="#解决串口乱码的问题" class="headerlink" title="解决串口乱码的问题"></a>解决串口乱码的问题</h2><p>在<code>mach-mini2440.c</code>(就是我们刚刚通过复制mach-smdk2440.c 得到的)的<code>mini2440_map_io()</code>函数中，把其中的16934400(代表原SMDK2440目标板上的晶振是16.9344MHz)改为mini2440开发板上实际使用的12000000(代表mini2440开发板上的晶振12MHz，元器件标号为X2)。</p>
+<p>重新编译一下，这时就能在串口上看到详细的启动输出信息了。当然最后内核还是会panic，因为</p>
+<h2 id="移植DM9000网卡驱动"><a href="#移植DM9000网卡驱动" class="headerlink" title="移植DM9000网卡驱动"></a>移植DM9000网卡驱动</h2><p>Linux-2..6.32.2 已经自带了完善的DM9000 网卡驱动驱动(源代码位置：<code>drivers/net/dm9000.c</code>)，它也是一个平台设备，因此在目标平台初始化代码中，只要填写好相应的结构表即可。</p>
+<p>具体参考《Mini2440 Linux移植开发实战指南》的3.9.1章节对<code>arch/arm/mach-s3c2440/mach-mini2440.c</code>进行修改。</p>
+<p>因为2.6.32.2的DM9000网卡驱动并不是专门为mini2440准备的，所以还要在其源代码<code>drivers/net/dm9000.c</code>中做一些移植工作，具体参考《Mini2440 Linux移植开发实战指南》的3.9.2，3.9.3章节。</p>
+<p>配置内核加入DM9000，具体参考《Mini2440 Linux移植开发实战指南》的3.9.4章节。2.6.32.2默认的内核配置已经加入了DM9000的支持。</p>
+<h2 id="修改EABI"><a href="#修改EABI" class="headerlink" title="修改EABI"></a>修改EABI</h2><p>此时直接编译运行，串口打印会看到如下输出：</p>
+<pre><code>...
+Freeing init memory: 128K
+Kernel panic - not syncing: Attempted to kill init!
+...
+</code></pre><p>原因是因为根文件系统在编译的时候启用了EABI特性,内核和文件系统需要对上，所以文件系统用了EABI，内核也要用EABI。如果内核不用EABI 也只能读取不用EABI的文件系统。具体参考<a href="http://blog.sina.com.cn/s/blog_7090b8670101b1ew.html" target="_blank" rel="external">Kernel panic - not syncing: Attempted to kill init!</a>。</p>
+<p>修改方法，运行<code>make menuconfig</code>。进入<code>Kernel Features</code>，选上</p>
+<pre><code>[*] Use the ARM EABI to compile the kernel
+[*]   Allow old ABI binaries to run with this kernel (EXPERIMENTAL) 
+</code></pre><h1 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h1><p>基本上完成如上操作后，内核就可以加载成功，文件系统也可以挂载。</p>
+<p>应该说这么做一遍其实还是比较粗糙的，但结合一些知识点还是了解了不少内核的知识，特别是内核启动的过程。</p>
+<p>相关的知识点还需要静下心来再总结一下，特别是某些修改点背后隐藏的内核在框架和接口上的设计思想。</p>
+<h1 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h1><h2 id="make-xxx-Is-a-directory-Stop-的原因"><a href="#make-xxx-Is-a-directory-Stop-的原因" class="headerlink" title="make xxx Is a directory. Stop. 的原因"></a><code>make xxx Is a directory. Stop.</code> 的原因</h2><p>编译内核时候的一个错误提示</p>
+<p><code>make: *** /home/fs/ws/mini2440/kernel/linux-2.6.32.2/arch/arm: Is a directory.  Stop.</code></p>
+<p>这个错误是由在Makefile的</p>
+<pre><code>ARCH        ?= $(SUBARCH)
+</code></pre><p>这行的后面多了一个空格造成的。总而言之，在编辑Makefile时候，每行结尾，一定要确认没有空格，直接是换行。</p>
+<h2 id="看了一些有关系统移植的文章，先总结在这里备忘"><a href="#看了一些有关系统移植的文章，先总结在这里备忘" class="headerlink" title="看了一些有关系统移植的文章，先总结在这里备忘"></a>看了一些有关系统移植的文章，先总结在这里备忘</h2><ul>
+<li><a href="http://blog.sciencenet.cn/blog-39626-332382.html" target="_blank" rel="external">嵌入式Linux系统移植过程概述</a></li>
+<li><a href="http://patton.spaces.eepw.com.cn/articles/article/item/28955" target="_blank" rel="external">Linux系统移植详解</a> 感觉讲的都是经验之谈，需要时间慢慢消化。</li>
+</ul>
+<p>嵌入式Linux系统的移植主要包括U-Boot、Linux内核、文件系统这三部分。</p>
+<p>可将Linux系统移植过程大致需要分成6个步骤： </p>
+<ul>
+<li>1) 准备工作，包括下载源码、建立交叉编译环境等。交叉开发是指在开发主机上安装开发工具，编辑、编译目标板的引导程序、内核和文件系统，使其能在目标板上运行。 </li>
+<li>2) 配置和编译bootloader（引导装载程序）。通过这段小程序，可以初始化硬件设备、建立内存空间的映射表，从而建立适当的系统硬件环境，为最终调用操作系统内核做好准备。 </li>
+<li>3) 配置和编译Linux内核，对其进行相应的裁剪，修改内核以支持相关的硬件设备。 </li>
+<li>4) 为大容量NAND Flash移植YAFFS文件系统，并将该文件系统加入Linux内核中； </li>
+<li>5) 制作RAMdisk来挂载根文件系统。Linux系统中的文件和设备是通过文件系统来组织的。文件系统的存在使得数据和设备可以被有效而透明地存取访问。一个linux的最简根文件系统应该包括支持linux系统正常运行的基本内容，包括系统使用的软件和库，以及所有用来为用户提供基本支持的架构和指令。 </li>
+<li>6) 烧写、调试系统；如果调试出错，则需要重新配置，返回上述步骤（2）。 </li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/05/13/20160513-start_kernel_init/" rel="next" title="内核初始化－从start_kernel到init">
+                <i class="fa fa-chevron-left"></i> 内核初始化－从start_kernel到init
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/05/25/20160525-nodejs-mongodb-envsetup/" rel="prev" title="Node.js + MongoDB 开发环境搭建">
+                Node.js + MongoDB 开发环境搭建 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/05/17/20160517-make-kernel/"
+           data-title="针对mini2440制作一个最小化的可启动的内核" data-url="http://unicornx.github.io/2016/05/17/20160517-make-kernel/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#搭建开发环境"><span class="nav-number">1.</span> <span class="nav-text">搭建开发环境</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#获取Linux内核源代码"><span class="nav-number">2.</span> <span class="nav-text">获取Linux内核源代码</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#搭建交叉编译环境"><span class="nav-number">3.</span> <span class="nav-text">搭建交叉编译环境</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#获取工具链"><span class="nav-number">3.1.</span> <span class="nav-text">获取工具链</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#指定交叉编译环境变量"><span class="nav-number">3.2.</span> <span class="nav-text">指定交叉编译环境变量</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#简单测试一下编译是否通过"><span class="nav-number">4.</span> <span class="nav-text">简单测试一下编译是否通过</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#从零开始建立一个支持mini2440最小内核系统"><span class="nav-number">5.</span> <span class="nav-text">从零开始建立一个支持mini2440最小内核系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#启动内核的最小配置分析"><span class="nav-number">5.1.</span> <span class="nav-text">启动内核的最小配置分析</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内核中支持开发板对应的处理器类型-processor-type"><span class="nav-number">5.1.1.</span> <span class="nav-text">内核中支持开发板对应的处理器类型(processor_type)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内核中支持开发板对应的机器类型-machine-type"><span class="nav-number">5.1.2.</span> <span class="nav-text">内核中支持开发板对应的机器类型(machine_type)</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#先剔除原内核中对mini2440开发板的支持。"><span class="nav-number">5.2.</span> <span class="nav-text">先剔除原内核中对mini2440开发板的支持。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#开始从头添加自己对mini2440的支持"><span class="nav-number">5.3.</span> <span class="nav-text">开始从头添加自己对mini2440的支持</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#逐步细化"><span class="nav-number">6.</span> <span class="nav-text">逐步细化:</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#解决串口乱码的问题"><span class="nav-number">6.1.</span> <span class="nav-text">解决串口乱码的问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#移植DM9000网卡驱动"><span class="nav-number">6.2.</span> <span class="nav-text">移植DM9000网卡驱动</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改EABI"><span class="nav-number">6.3.</span> <span class="nav-text">修改EABI</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结"><span class="nav-number">7.</span> <span class="nav-text">总结</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#其他"><span class="nav-number">8.</span> <span class="nav-text">其他</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#make-xxx-Is-a-directory-Stop-的原因"><span class="nav-number">8.1.</span> <span class="nav-text">make xxx Is a directory. Stop. 的原因</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#看了一些有关系统移植的文章，先总结在这里备忘"><span class="nav-number">8.2.</span> <span class="nav-text">看了一些有关系统移植的文章，先总结在这里备忘</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1032 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="mini2440,rootfs," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-10">
+<meta property="og:type" content="article">
+<meta property="og:title" content="针对mini2440制作根文件系统">
+<meta property="og:url" content="http://unicornx.github.io/2016/04/10/20160410-make-rootfs/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-10">
+<meta property="og:updated_time" content="2016-04-10T09:38:37.417Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="针对mini2440制作根文件系统">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-10">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/04/10/20160410-make-rootfs/"/>
+
+  <title> 针对mini2440制作根文件系统 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                针对mini2440制作根文件系统
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-04-10T00:00:12+08:00" content="2016-04-10">
+              2016-04-10
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux系统移植/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux系统移植</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/04/10/20160410-make-rootfs/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/10/20160410-make-rootfs/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-10</p>
+<a id="more"></a>
+<h1 id="根文件系统的概念"><a href="#根文件系统的概念" class="headerlink" title="根文件系统的概念"></a>根文件系统的概念</h1><p>理论上说一个嵌入式设备如果内核能够运行起来，且不需要运行用户进程的话，是不需要文件系统的。</p>
+<p>但是内核只是运行在内存中，如果内核需要访问外存，譬如存放计算的结果，执行存放在外存上的程序，那就必须配合文件系统。文件系统的用词有好几层意思，在不同的上下文中含义不同。</p>
+<p>在外存上下文中，文件系统常常指的是外部存储介质本身，譬如一个磁盘分区，U盘等。<br>在内核上下文中，文件系统指的是内核中的一个子模块，该模块的功能是负责将外存，譬如一个磁盘分区上存储的数据以一定的方式组织起来，以一棵逻辑树的形式展现给上层应用，以便上层应用访问物理存储介质上的数据同时又不必关心具体的物理介质特性。</p>
+<p>按照内核文件系统子模块管理组织外存的方式可以将文件系统划分为很多种类型，括ext2、ext3、vfat、ntfs、iso9660、jffs、romfs和nfs等。一个外存介质采用一种文件系统方式进行管理，一个计算机系统上可能需要管理多个物理外存介质，譬如一个硬盘分区用ext3，另一个硬盘分区用ntfs，还有一个光驱用iso9660。这些文件系统都是采用挂载的方式在内核启动引导过程中和内核建立连接。</p>
+<p>第一个挂载的文件系统称为”<strong>根文件系统</strong>“，其他的文件系统则以子树的形式挂载在根文件系统的挂载点上(目录)。</p>
+<p>根文件系统的布局原则上都需要遵循FHSFHS(Filesystem<br>Hierarchy Standard)标准的建议规定。该标准规定了根目录下各个子目录的名称及其存放的内容：</p>
+<table>
+<thead>
+<tr>
+<th>目录名</th>
+<th>存放的内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>/bin</td>
+<td>必备的用户命令，例如ls、cp等</td>
+</tr>
+<tr>
+<td>/sbin</td>
+<td>必备的系统管理员命令，例如ifconfig、reboot等</td>
+</tr>
+<tr>
+<td>/dev</td>
+<td>设备文件，例如mtdblock0、tty1等</td>
+</tr>
+<tr>
+<td>/etc</td>
+<td>系统配置文件，包括启动文件，例如inittab等</td>
+</tr>
+<tr>
+<td>/lib</td>
+<td>必要的链接库，例如C链接库、内核模块</td>
+</tr>
+<tr>
+<td>/home</td>
+<td>普通用户主目录</td>
+</tr>
+<tr>
+<td>/root</td>
+<td>root用户主目录</td>
+</tr>
+<tr>
+<td>/usr/bin</td>
+<td>非必备的用户程序，例如find、du等</td>
+</tr>
+<tr>
+<td>/usr/sbin</td>
+<td>非必备的管理员程序，例如chroot、inetd等</td>
+</tr>
+<tr>
+<td>/usr/lib</td>
+<td>库文件</td>
+</tr>
+<tr>
+<td>/var</td>
+<td>守护程序和工具程序所存放的可变，例如日志文件</td>
+</tr>
+<tr>
+<td>/proc</td>
+<td>用来提供内核与进程信息的虚拟文件系统，由内核自动生成目录下的内容</td>
+</tr>
+<tr>
+<td>/sys</td>
+<td>用来提供内核与设备信息的虚拟文件系统，由内核自动生成目录下的内容</td>
+</tr>
+<tr>
+<td>/mnt</td>
+<td>文件系统挂接点，用于临时安装文件系统</td>
+</tr>
+<tr>
+<td>/tmp</td>
+<td>临时性的文件，重启后将自动清除</td>
+</tr>
+</tbody>
+</table>
+<p>制作根文件系统就是要建立以上的目录，并在其这些目录中根据内核的需要和实际项目的需要创建各种文件，建立完整目录内容。比如在<code>/bin</code>、<code>/sbin</code>目录下存放各种可执行程序，在<code>/etc</code>目录下存放配置文件，在<code>/lib</code>目录下存放库文件等等。其过程大体包括：</p>
+<ul>
+<li>Step1: 利用busybox来生成<code>/bin</code>、<code>/sbin</code>、<code>/usr/bin</code>、<code>/usr/sbin</code>目录下的可执行文件</li>
+<li>Step2: 利用交叉编译工具链中的glibc库来构建<code>/lib</code>目录</li>
+<li>Step3: 手工构建<code>/etc</code>目录</li>
+<li>Step4: 手工构建最简化的/dev目录</li>
+<li>Step5: 配置系统自动生成/proc目录</li>
+<li>Step6: 创建/sys目录并利用udev构建完整的/dev目录</li>
+<li>Step7: 创建其它目录(可选)</li>
+<li>Step8: 制作根文件系统的yaffs2映像文件</li>
+</ul>
+<p>下面就来详细介绍根据这个过程，针对mini2440这个嵌入式系统制作一个最简单的根文件系统，不针对任何实际的项目需要，仅仅满足内核启动后能够正常运行即可。</p>
+<p>以下步骤描述中注意以下几点：</p>
+<ul>
+<li>实验过程中的内核镜像直接使用了FriendlyARM提供的内核。</li>
+<li>在Step7之前测试根文件系统时都是采用的nfs的挂载方式。有关nfs环境的设置，具体参考<a href="/2016/04/04/20160404-mini2440-dev-env-setup/">mini2440开发环境搭建总结</a>。</li>
+<li>给出的命令操作例子中，如果是以<code>$</code>作为shell的提示符开头，表示是在ubuntu主机中执行的命令；如果是以<code>#</code>作为shell的提示符开头，表示是在mini2440目标板系统中执行的命令。</li>
+</ul>
+<h1 id="Step1-利用busybox来生成-bin、-sbin、-usr-bin、-usr-sbin目录下的可执行文件"><a href="#Step1-利用busybox来生成-bin、-sbin、-usr-bin、-usr-sbin目录下的可执行文件" class="headerlink" title="Step1: 利用busybox来生成/bin、/sbin、/usr/bin、/usr/sbin目录下的可执行文件"></a>Step1: 利用busybox来生成<code>/bin</code>、<code>/sbin</code>、<code>/usr/bin</code>、<code>/usr/sbin</code>目录下的可执行文件</h1><p>这些目录下存储的主要是常用命令的二进制文件。如果要自己编写这几百个常用命令的源程序，不仅工作量巨大而且生成的文件的容量也往往很大，而我们主要针对的是嵌入式系统，对容量的大小也是有限制和考量的，好在我们有嵌入式Linux系统的瑞士军刀——busybox，事情就简单很多。</p>
+<p>使用Busybox 可以自动生成根文件系统所需的bin、sbin、usr 目录和linuxrc文件。</p>
+<p>1、从<a href="https://busybox.net/" target="_blank" rel="external">busybox官网</a>下载busybox的tar包<code>busybox-1.13.3.tar.bz2</code>。</p>
+<p>2、解包，<code>tar xjvf busybox-1.13.3.tar.bz2</code></p>
+<p>3、修改Makefile文件</p>
+<pre><code>CROSS_COMPILE   ?= arm-linux-
+...
+ARCH            ?= arm //这个感觉可以不要
+</code></pre><p>4、执行<code>make menuconfig</code>对busybox进行make之前的配置。</p>
+<p>busybox配置主要分两部分。</p>
+<p>第一部分是<code>Busybox Settings</code>，主要编译和安装busybox的一些选项。这里主要需要配置：</p>
+<ul>
+<li><p><code>Build Options -- Build BusyBox as a static binary (no shared libs)</code>，表示编译busybox时，是否静态链接C库。我们选择动态链接C库，所以该项无需选中。</p>
+</li>
+<li><p><code>Installation Options -- Applets links (as soft-links) -- (X) as soft-links</code>，表示安装busybox时，将各个命令安装为指向busybox的软链接还是硬链接7。我们选择软链接。</p>
+</li>
+<li><p><code>Installation Options -- BusyBox installation prefix，表示busybox的安装位置。我们可以根据自己的需要指定一个安装目录，譬如</code>/work/nfs_root/fs_mini3<code>。如果没有指定安装位置则会在busybox目录下生成</code>_install`文件夹并放在这里。</p>
+</li>
+<li><p><code>Busybox Library Tuning</code>。保留<code>Command line editing</code>以支持命令行编辑；保留<code>History size</code>以支持记忆历史命令；选中<code>Tab completion</code>和<code>Username completion</code>以支持命令自动补全。</p>
+</li>
+</ul>
+<p>第二部分是Applets，他将busybox的支持的几百个命令分门别类。我们只要在各个门类下选择想要的命令即可。这里我们基本保持默认设置，其中</p>
+<ul>
+<li>选中<code>Networking Utilities -- httpd</code>下的<code>Enable -u &lt;user&gt; option</code>，以启用http服务器的功能<code>allows the server to run as a specific user</code></li>
+</ul>
+<p>5、编译和安装</p>
+<pre><code>make all install
+</code></pre><p>安装完成后，可以看到在<code>/work/nfs_root/fs_mini3</code>目录下生成了<code>bin</code>,<code>sbin</code>,<code>usr/bin</code>和<code>usr/sbin</code>目录，其下包含了我们常用的命令，这些命令都是指向<code>bin/busybox</code>的软链接，而busybox本身的大小不到800K：</p>
+<pre><code>$ ls
+bin  linuxrc  sbin  usr
+$  ls -l bin
+total 740
+lrwxrwxrwx 1 dennis dennis      7 2010-04-03 23:57 addgroup -&gt; busybox
+lrwxrwxrwx 1 dennis dennis      7 2010-04-03 23:57 adduser -&gt; busybox
+lrwxrwxrwx 1 dennis dennis      7 2010-04-03 23:57 ash -&gt; busybox
+-rwxr-xr-x 1 dennis dennis 749632 2010-04-03 23:57 busybox
+lrwxrwxrwx 1 dennis dennis      7 2010-04-03 23:57 cat –&gt; busybox
+</code></pre><p>而普通PC机上的ls命令就有差不多80K的大小：</p>
+<p>busybox以它娇小的身躯容纳了数以百计的命令代码，实在是让人佩服不已，其不愧嵌入式系统瑞士军刀之美誉。</p>
+<h1 id="Step2-利用交叉编译工具链中的glibc库来构建-lib目录"><a href="#Step2-利用交叉编译工具链中的glibc库来构建-lib目录" class="headerlink" title="Step2: 利用交叉编译工具链中的glibc库来构建/lib目录"></a>Step2: 利用交叉编译工具链中的glibc库来构建<code>/lib</code>目录</h1><p>光有应用程序（<code>bin/busybox</code>）是不够的，因为应用程序本身需要使用C库的库函数，由于我们在配置busy时指定的是动态链接，因此还需要制作for ARM的C库(共享库)，并将其放置于<code>/lib</code>目录。</p>
+<p>交叉编译工具链下for ARM的C库是现成的，我们只需要拷贝过来就可以了。我们也不需要C库目录下的所有的文件，具体需要哪些，参考<a href="/2016/04/08/20160408-toolchain-libc/">交叉工具链中的c库</a> </p>
+<p>我使用的是FriendlyARM提供的工具链<code>arm-linux-gcc-4.4.3.tar.gz</code>，解压开后，主要关注<code>D:\ws\mini2440\rootfs\opt\FriendlyARM\toolschain\4.4.3\arm-none-linux-gnueabi\sys-root\lib</code>下的内容。</p>
+<p>我们拷贝的内容主要包括：</p>
+<ul>
+<li>(1) 后缀为<code>.so</code>的共享库文件本身以及运行时动态链接需要的符号链接</li>
+<li>(2) 动态链接库加载器ld共享库及其符号链接</li>
+</ul>
+<p>第1类文件的大小也相当大。并不需要全部拷贝。需要哪些库完全取决于要运行的应用程序使用了哪些库函数。如果我们只制作最简单的系统，那么我们只需要运行busybox这一个应用程序即可。通过执行</p>
+<pre><code>$ arm-linux-readelf -a ../bin/busybox | grep &quot;Shared&quot;
+ 0x00000001 (NEEDED)                     Shared library: [libm.so.6]
+ 0x00000001 (NEEDED)                     Shared library: [libc.so.6]
+</code></pre><p>可知：busybox只用到了2个库：通用C库（libc）、数学库（libm），因此我们只需要拷贝这2个库及其符号链接文件即可。加上第2类文件，一共6个文件。</p>
+<pre><code>$ ls -l
+total 2316
+-r-xr-xr-x 2 fs fs  154710 Jul 24  2010 ld-2.9.so
+lrwxrwxrwx 2 fs fs       9 Jul 24  2010 ld-linux.so.3 -&gt; ld-2.9.so
+-r-xr-xr-x 2 fs fs 1479594 Jul 24  2010 libc-2.9.so
+lrwxrwxrwx 2 fs fs      11 Jul 24  2010 libc.so.6 -&gt; libc-2.9.so
+-r-xr-xr-x 1 fs fs  730551 Apr  8 05:50 libm-2.9.so
+lrwxrwxrwx 2 fs fs      11 Jul 24  2010 libm.so.6 -&gt; libm-2.9.so
+</code></pre><h1 id="Step3-手工构建-etc目录"><a href="#Step3-手工构建-etc目录" class="headerlink" title="Step3: 手工构建/etc目录"></a>Step3: 手工构建<code>/etc</code>目录</h1><p><code>/etc</code>目录存放的是系统程序的主配置文件，因此需要哪些配置文件取决于要运行哪些系统程序。</p>
+<h2 id="编写init的主配置文件inittab"><a href="#编写init的主配置文件inittab" class="headerlink" title="编写init的主配置文件inittab"></a>编写init的主配置文件inittab</h2><p>即使最小的系统也一定会运行1号用户进程init，所以我们至少要手工编写init的主配置文件inittab。在这里我们有必要回顾一下内核初始化过程中涉及启动init进程的过程。这个要专门写一篇文章总结一下。总之内核会在启动的最后阶段尝试调用init进程，而在busybox环境下也就是调用busybox有关init的代码，可以参考busybox的<code>init/init.c</code>过程。</p>
+<p>如果文件系统中存在<code>/etc/inittab</code>文件，busybox的init代码就会解析它，否则使用默认的配置。但注意我们使用的是busybox，busybox所识别的inittab文件的语法、语义与传统的SYSV的inittab有所不同。这个具体可以参考busybox源码中的<code>examples/inittab</code>文件，里面有详细的说明和例子，我们可以直接模仿编写自己的inittab文件。</p>
+<p>inittab文件中每个条目用来定义一个需要init启动的子进程，并确定它的启动方式，格式为</p>
+<pre><code>&lt;id&gt;:&lt;runlevel&gt;:&lt;action&gt;:&lt;process&gt;。
+</code></pre><p>例如：ttySAC0::askfirst:-/bin/sh</p>
+<ul>
+<li><code>&lt;id&gt;</code>：表示子进程要使用的控制台，若省略则使用与init进程一样的控制台</li>
+<li><code>&lt;runlevel&gt;</code>：表示运行级别，busybox init程序这个字段没有意义</li>
+<li><code>&lt;action&gt;</code>：表示init进程如何控制这个子进程，可以取以下值：</li>
+</ul>
+<pre><code>|action | 含义 |
+|-------|------|
+|sysinit   |系统启动后最先执行，只执行一次，init进程等待它结束后才继续执行其它动作|
+|wait      |系统执行完sysinit条目后执行，只执行一次，init进程等待它结束后才继续执行其它动作|
+|once      |系统执行完wait条目后执行，只执行一次，init进程不等待它结束|
+|respawn   |启动完once进程后，init进程监测发现子进程退出时，重新启动它|
+|askfirst  |启动完respawn进程后，与respawn类似，不过init进程先输出” Please press Enter to activate this console“，等用户输入回车后才启动子进程|
+|shutdown  |当系统重启，关机时|
+|restart   |Busybox中配置了CONFIG_FEATURE_USE_INITAB，并且init进程接收到SIGUP信号时执行，先重新读取、解析/etc/inittab文件，再执行restart程序|
+|ctrlaltdel|按下ctrl+alt+del键时执行，不过在串口控制台中无法输入它|
+</code></pre><ul>
+<li><code>&lt;process&gt;</code>：表示进程对应的二进制文件。如果前面有<code>-</code>号，表示该程序是“可以与用户进行交互的”</li>
+</ul>
+<p>我们制作最简单的<code>/etc/inittab</code>文件，其内容如下：</p>
+<pre><code>::sysinit:/etc/init.d/rcS
+::askfirst:-/bin/sh
+::ctrlaltdel:/sbin/reboot
+::shutdown:/bin/umount -a –r
+</code></pre><p>第一行表示init进程启动的第一个子进程是<code>/etc/init.d/rcS</code>，它是一个脚本，可以在里面指定用户想要执行的操作<br>第二行表示在sysinit完成之后会启动shell，由于没有指定<id>则使用与init进程一样的控制台，即<code>/dev/console</code>，也可以指定自己的控制台。(TBD，控制台的概念有待理清)<br>第三行表示按下ctrl+alt+del键时执行<code>/sbin/reboot</code>，不过在串口控制台中无法输入它<br>第四行表示当系统重启，关机时执行umount操作。</id></p>
+<h2 id="制作最简单的脚本程序文件-etc-init-d-rcS"><a href="#制作最简单的脚本程序文件-etc-init-d-rcS" class="headerlink" title="制作最简单的脚本程序文件/etc/init.d/rcS"></a>制作最简单的脚本程序文件<code>/etc/init.d/rcS</code></h2><p>前面在编写<code>/etc/inittab</code>文件时已经看到，我们已经指定init进程启动的第一个子进程是<code>/etc/init.d/rcS</code>，它是一个脚本，可以在里面指定用户想要执行的操作，譬如配置IP地址，挂载其他的文件系统等。<br>目前为简化操作，可以先设置为空，其内容如下，等我们后面再慢慢完善它：</p>
+<pre><code>#!/bin/sh
+</code></pre><p>修改shell脚本文件<code>/etc/init.d/rcS</code>的权限，以使其可被执行：</p>
+<pre><code>$ chmod a+x /etc/init.d/rcS
+</code></pre><h1 id="Step4-手工构建最简化的-dev目录"><a href="#Step4-手工构建最简化的-dev目录" class="headerlink" title="Step4: 手工构建最简化的/dev目录"></a>Step4: 手工构建最简化的/dev目录</h1><h2 id="先创建-dev目录"><a href="#先创建-dev目录" class="headerlink" title="先创建/dev目录"></a>先创建<code>/dev</code>目录</h2><pre><code>$ mkdir /dev
+</code></pre><p>我们先手动创建一些必需的设备文件，之所以称为必需是因为没有这些文件，内核启动过程中会报错。这样我们可以先快速测试一下这个最简单的根文件系统。</p>
+<h2 id="创建-dev-console设备文件"><a href="#创建-dev-console设备文件" class="headerlink" title="创建/dev/console设备文件"></a>创建/dev/console设备文件</h2><p>前面我们也看到了，参考内核<code>init/main.c</code>文件的<code>init_post()</code>函数。该函数会在启动init进程之前先尝试打开<code>/dev/console</code>文件。如果不存在这个文件会导致启动Linux操作系统时显示：</p>
+<pre><code>VFS: Mounted root (nfs filesystem).
+Freeing init memory: 112K
+Warning: unable to open an initial console.
+</code></pre><p>创建方法:</p>
+<pre><code>$ sudo mknod console c 5 1
+</code></pre><h2 id="创建-dev-null设备文件"><a href="#创建-dev-null设备文件" class="headerlink" title="创建/dev/null设备文件"></a>创建/dev/null设备文件</h2><p>参考busybox的<code>init/init.c</code>，如果内核提供的控制台打不开，就会尝试打开<code>/dev/null</code>，如果不存在这个文件会导致启动Linux操作系统时显示：</p>
+<pre><code>VFS: Mounted root (nfs filesystem).
+Freeing init memory: 112K
+init: can&apos;t open &apos;/dev/null&apos;: No such file or directory
+</code></pre><p>创建方法:</p>
+<pre><code>$ sudo mknod null c 1 3
+</code></pre><p>此时再次重启开发板上的linux，应该已经可以看到系统启动成功进入控制台。</p>
+<pre><code>VFS: Mounted root (nfs filesystem).
+Freeing init memory: 112K
+init started: BusyBox v1.7.0 (2010-04-03 23:53:55 CST)
+starting pid 229, tty &apos;&apos;: &apos;/etc/init.d/rcS&apos;
+
+Please press Enter to activate this console.
+starting pid 231, tty &apos;&apos;: &apos;/bin/sh&apos;
+#
+</code></pre><p>注意: 其他的设备文件可以利用Step6介绍的方法在<code>/dev</code>下自动创建。</p>
+<h1 id="Step5-配置系统自动生成-proc目录"><a href="#Step5-配置系统自动生成-proc目录" class="headerlink" title="Step5: 配置系统自动生成/proc目录"></a>Step5: 配置系统自动生成/proc目录</h1><p>proc文件系统是一个重要的用来提供内核与进程信息的虚拟文件系统，它没有实际的存储设备，里面的内容，包括子目录和文件都是由内核自动在访问的时候临时生成的，用来读取系统的运行状态，也可以设置一些文件的内容来控制系统的行为。很多命令都是通过解析<code>/proc</code>目录里的内容来工作的，比如最常用的ps命令，如果该目录不存在或者内容为空的话，这些命令都会工作不正常。</p>
+<p>这个文件系统一般挂载在<code>/proc</code>目录下。所以我们要做的事情就是在根目录下创建一个名字叫做proc的目录作为该虚拟文件系统的挂载点，然后执行如下命令挂载该文件系统：</p>
+<pre><code>mount -t proc none /proc
+</code></pre><p>对于<code>mount -t proc none /proc</code>的解释：通常情况下mount命令应该写为<code>mount –t ext2 /dev/hdb1 /proc</code>。但由于现在挂载的<code>/proc</code>是虚拟文件系统，它不与任何物理硬盘分区相对应，因此在表示物理硬盘分区的位置用占位符none来表示。</p>
+<p>更方便，也是标准的做法是将该文件系统在init进程的sysinit阶段完成该文件系统的挂载：</p>
+<p>具体操作如下：</p>
+<ol>
+<li><p>创建<code>/proc</code>目录</p>
+<pre><code>$ mkdir /proc
+</code></pre></li>
+<li><p>修改<code>/etc/init.d/rcS</code>文件，添加一句话<code>mount -a</code>如下:</p>
+<pre><code>#!/bin/sh
+mount -a
+</code></pre><p> <code>mount -a</code>命令会读取<code>/etc/fstab</code>文件的内容，根据该文件指定挂载的文件系统实现在启动初期的自动挂载。所以为此我们要实现一个配套的<code>/etc/fstab</code>文件。具体有关mount命令和<code>/etc/fstab</code>的信息，参考man手册的<code>mount(8)</code>和<code>fstab(5)</code>。</p>
+</li>
+<li><p>创建<code>/etc/fstab</code>文件，可以从已有系统，如Ubuntu上拷贝一个做为模版，清除已有的内容，添加一行如下：</p>
+<pre><code>proc            /proc           proc    defaults        0       0
+</code></pre></li>
+</ol>
+<p>重启开发板上的linux，执行ps显示成功了：</p>
+<pre><code>Please press Enter to activate this console.
+# ps
+  PID USER       VSZ STAT COMMAND
+    1 0         3008 S    init
+    2 0            0 SW   [kthreadd]
+    3 0            0 SW   [ksoftirqd/0]
+    4 0            0 SW   [events/0]
+    5 0            0 SW   [khelper]
+   11 0            0 SW   [async/mgr]
+  209 0            0 SW   [sync_supers]
+  211 0            0 SW   [bdi-default]
+  213 0            0 SW   [kblockd/0]
+  222 0            0 SW   [khubd]
+  228 0            0 SW   [kmmcd]
+  244 0            0 SW   [rpciod/0]
+  251 0            0 SW   [kswapd0]
+  298 0            0 SW   [aio/0]
+  302 0            0 SW   [nfsiod]
+  306 0            0 SW   [crypto/0]
+  416 0            0 SW   [mtdblockd]
+  630 0            0 SW   [usbhid_resumer]
+  656 0         3012 S    -/bin/sh
+  657 0         3012 R    ps
+#
+</code></pre><h1 id="Step6-创建-sys目录并利用udev构建完整的-dev目录"><a href="#Step6-创建-sys目录并利用udev构建完整的-dev目录" class="headerlink" title="Step6: 创建/sys目录并利用udev构建完整的/dev目录"></a>Step6: 创建/sys目录并利用udev构建完整的/dev目录</h1><p>在第4步中我们在<code>/dev</code>目录下手动地创建了两个设备文件，但是仅有这两个文件是远远不够的，在Linux系统中每一个用户可以访问的设备都必须在<code>/dev</code>目录下有一个名字，否则无法访问。在任何一台linux机器上，执行<code>ls /dev</code>都可以看到几百个设备文件。那么我们如何为所有的需要访问的物理设备创建设备文件呢？方法一共有三种：</p>
+<ul>
+<li>第一种是手动创建静态设备文件：就和我们在Step4中做得一样，需要使用mknod命令事先创建很多设备文件，麻烦不说，而且是静态创建，无法支持热插拔。</li>
+<li>第二种是使用devfs：但由于在使用上存在一些问题，在2.6.13后已被废弃。</li>
+<li>第三种就是使用udev(user dev)，这也是我们在Step6中将采用的方法。</li>
+</ul>
+<p>udev的工作原理是：内核基于一个特殊的虚拟文件系统<code>sysfs</code>，该文件系统一般挂载在<code>/sys</code>目录下，讷河在启动的时候将识别到的所有设备的信息自动导出到<code>/sys</code>目录，然后用户态的应用程序udev根据<code>/sys</code>中的设备信息，按照一定的规则自动在<code>/dev</code>目录下创建对应的设备文件。</p>
+<p>在busybox的环境下，采用的是一个udev的简化版本mdev。具体mdev的用法可以参考busybox源码下的<code>docs/mdev.txt</code>文件。</p>
+<p>在Step5操作完成之后启动的开发板系统shell下先做一些简单的测试尝试如下操作：</p>
+<pre><code># mkdir /sys
+# mount -t sysfs none /sys
+# ls /sys
+block     class     firmware  kernel    power
+bus       devices   fs        module
+# ls /dev
+console  null
+# mdev -s
+# ls -l dev | wc -l
+140
+</code></pre><p>我们发现运行<code>mdev -s</code>后，原本只有两个文件console和null的dev目录下出现了很多的设备文件。</p>
+<p>高兴地插入U盘，内核显示识别到了U盘：</p>
+<pre><code># usb 1-1: new full speed USB device using s3c2410-ohci and address 2
+usb 1-1: not running at top speed; connect to a high speed hub
+usb 1-1: configuration #1 chosen from 1 choice
+scsi0 : SCSI emulation for USB Mass Storage devices
+scsi 0:0:0:0: Direct-Access     Teclast  CoolFlash        0.00 PQ: 0 ANSI: 2
+sd 0:0:0:0: [sda] 12560384 512-byte hardware sectors (6431 MB)
+sd 0:0:0:0: [sda] Write Protect is off
+sd 0:0:0:0: [sda] Assuming drive cache: write through
+sd 0:0:0:0: [sda] 12560384 512-byte hardware sectors (6431 MB)
+sd 0:0:0:0: [sda] Write Protect is off
+sd 0:0:0:0: [sda] Assuming drive cache: write through
+sda: sda1
+sd 0:0:0:0: [sda] Attached SCSI removable disk
+</code></pre><p>运行如下命令，可以看到mdev自动识别到新设备并且帮助我们在<code>/dev</code>目录下创建了对应文件。</p>
+<pre><code># ls /dev/sda*
+/dev/sda   /dev/sda1
+</code></pre><p>可是，当我们将U盘拔出后，发现<code>/dev/sda1</code>并不自动消失；手工删除<code>/dev/sda1</code>后，再重新插入U盘，<code>/dev/sda1</code>也不会自动生成。我们需进行如下操作，以使系统能够实现即插即用：</p>
+<pre><code># echo /sbin/mdev &gt; /proc/sys/kernel/hotplug
+</code></pre><p>这样插拔U盘就工作正常了。</p>
+<p>当然我们需要将以上操作在系统启动过程中自动化完成。具体的正式步骤如下，注意这里我将Step4和Step6合并起来描述我们应该如何在根文件系统中创建<code>/dev</code>目录及其内容，所以假设当前还不存在<code>/dev</code>目录。</p>
+<ol>
+<li><p>创建<code>/dev</code>目录</p>
+<pre><code>$ mkdir /dev
+</code></pre></li>
+<li><p>手动创建<code>/dev/console</code>和<code>/dev/null</code>这两个文件。</p>
+<p> 这两个文件必须要手动创建，即使我们在后继步骤中会将<code>/dev</code>目录挂载为tmpfs文件系统，也必须要保证这两个文件，原因就在于还在内核开始挂载根文件系统之前(自然也在挂在其他文件系统之前)的启动过程中就要求着两个文件存在，否则启动会失败并报错。</p>
+<pre><code>$ cd /dev
+$ sudo mknod console c 5 1
+$ sudo mknod null c 1 3
+</code></pre></li>
+<li><p>创建<code>/sys</code>目录，即为sysfs文件系统准备好挂载点。</p>
+<pre><code>$ mkdir /sys
+</code></pre></li>
+<li><p>修改<code>/etc/fstab</code>文件，支持自动挂载sysfs文件系统</p>
+<p> 添加如下一行在<code>/etc/fstab</code>文件里：</p>
+<pre><code>sysfs           /sys            sysfs   defaults        0       0
+</code></pre></li>
+<li><p>修改<code>/etc/init.d/rcS</code>文件，启动mdev</p>
+<p> 添加如下两行在<code>/etc/init.d/rcS</code>文件里：</p>
+<pre><code>echo /sbin/mdev &gt; /proc/sys/kernel/hotplug
+mdev -s
+</code></pre><p> 重启系统，测试一下，上电后会发现目标板启动正常，并在<code>/sys</code>和<code>/dev</code>下都出现了很多文件。</p>
+<p> 插拔U盘，会看到相应的设备文件被自动创建和删除。</p>
+<p> 关电后查看Ubuntu主机上nfs目录下的根文件系统，在<code>/dev</code>下同样出现了很多文件，但<code>/sys</code>和<code>/proc</code>下依然空空如也，道理很简单，<code>/sys</code>和<code>/proc</code>是虚拟文件系统。</p>
+</li>
+<li><p>使用tmpfs挂载<code>/dev</code>目录</p>
+<p> 做完上面的测试，似乎我们的根文件系统已经相当完善了。但仔细想一想，对于<code>/dev</code>下的文件，只要有设备插拔发生，就会在该目录下创建删除文件，即会刷新实际的存储设备nandflash芯片，再想想Nand flash的擦写寿命是有限的这个事实。似乎担心起存储设备的使用寿命的问题来。</p>
+<p> 解决这个问题的方法就是使用tmpfs文件系统来存放<code>/dev</code>目录下的内容。</p>
+<p> 有关tmpfs的介绍，参考以下内容：<br> <a href="http://blog.csdn.net/wxwsixis/article/details/5752186" target="_blank" rel="external">Linux的tmpfs文件系统</a><br> <a href="http://www.2cto.com/os/201411/354888.html" target="_blank" rel="external">Linux下的tmpfs文件系统</a></p>
+<p> 结合参考文献中提到的tmpfs这个文件系统的作用，我们就应该明白，我们应该将一些内容经常会更新，而且只在上电运行阶段才关心的目录，譬如这里的<code>/dev</code>目录挂载为tmpfs文件系统就好了。</p>
+<p> 修改<code>/etc/fstab</code>文件，添加如下一行在<code>/etc/fstab</code>文件里：</p>
+<pre><code>tmpfs           /dev            tmpfs   defaults        0       0
+</code></pre><p> 注意，修改完后如果要测试效果，并且如果已经执行过Step6中的以上步骤，记得将Ubuntu主机上的<code>/dev</code>目录清空一下同时保证<code>/dev/console</code>和<code>/dev/null</code>两个文件还是要手动先创建好了的。</p>
+<p> 重启系统，测试一下，上电后会发现目标板启动正常，并在<code>/sys</code>和<code>/dev</code>下都出现了很多文件。</p>
+<p> 但是关电后查看Ubuntu主机上nfs目录下的根文件系统，此时<code>/dev</code>下就只剩下两个console和null文件，其他的设备文件都不见了。</p>
+</li>
+</ol>
+<h1 id="Step7-创建其它目录-可选"><a href="#Step7-创建其它目录-可选" class="headerlink" title="Step7: 创建其它目录(可选)"></a>Step7: 创建其它目录(可选)</h1><p>作为一个最简单的测试用根文件系统，这步不一定要做。</p>
+<p>注意如果要建一些譬如<code>/tmp</code>和<code>/var</code>目录，依然可以挂载为tmpfs文件系统。</p>
+<h1 id="Step8-制作根文件系统的yaffs2映像文件"><a href="#Step8-制作根文件系统的yaffs2映像文件" class="headerlink" title="Step8: 制作根文件系统的yaffs2映像文件"></a>Step8: 制作根文件系统的yaffs2映像文件</h1><p>根文件系统已经制作完毕，但目前开发板只能将其作为网络根文件系统通过nfs挂载启动，如果要烧入开发板，最后一个步骤是将其打包生成一个映像文件，以供bootloader将其烧录到nand flash上。</p>
+<p>这个我目前还没做完，以后做了再补上。</p>
+<h1 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h1><p>有关busybox</p>
+<ul>
+<li><a href="https://busybox.net/" target="_blank" rel="external">busybox官网</a></li>
+<li><a href="http://wenku.baidu.com/link?url=z2x_S5axMNMkUxyeIAcPWUhL5ZAmY-uA18GSR7enLgOtqlCN6dnpaugjSlX8x0lJ7px_D4AdlojtKhNSWY-wZEyw20eOU8vT6c1T0ofylJ3" target="_blank" rel="external">busybox 详解(一篇讲busybox很详细的文章)</a></li>
+</ul>
+<p>rootfs的详细制作过程</p>
+<ul>
+<li><a href="http://www.cnblogs.com/hicjiajia/archive/2012/07/10/2582642.html" target="_blank" rel="external">嵌入式根文件系统的移植和制作详解</a> 针对根文件系统的背景介绍很不错，而且介绍了针对2440的制作过程</li>
+<li><a href="http://fangjian0518.blog.163.com/blog/static/5591965620112171420757/" target="_blank" rel="external">详解制作根文件系统</a> 非常详细的利用busybox的制作过程，但最后制作镜像是jffs2。</li>
+<li><a href="http://huang-tomey.blog.163.com/blog/static/1247505732009916437175/" target="_blank" rel="external">Yaffs2文件系统移植</a>: 友善之臂系统移植手册推荐</li>
+<li><a href="http://wenku.baidu.com/link?url=3mV_ZuUBA0Y5OL8lWzW_bHrl30soPGt6C1MpfHFLWKWaVUbwHFni4LGAL9G5wetUniE-wGHn1Z3_qqGD8FAHo0oZ-PR2AL5-Gbmlyb4MDR_" target="_blank" rel="external">嵌入式Linux根文件系统的建立</a> ppt做的不错</li>
+</ul>
+<p>其他一些原理性的东西</p>
+<ul>
+<li><a href="http://www.360doc.com/content/14/0921/19/7377734_411299264.shtml" target="_blank" rel="external">根文件系统及Busybox详解之一</a> 五星</li>
+</ul>
+<p>Linux内核引导参数</p>
+<ul>
+<li><a href="http://www.jinbuguo.com/kernel/boot_parameters.html" target="_blank" rel="external">Linux 内核引导参数简介</a> 感觉是对<code>Documentation/kernel-parameters.txt</code>的翻译，很详细</li>
+<li><a href="http://www.cnblogs.com/hping07/archive/2009/07/17/1525708.html" target="_blank" rel="external">Linux操作系统内核启动参数详细解析</a> 一些常用的启动参数的解释</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+            <a href="/tags/rootfs/" rel="tag">#rootfs</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/08/20160408-toolchain-libc/" rel="next" title="交叉工具链中的c库">
+                <i class="fa fa-chevron-left"></i> 交叉工具链中的c库
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/19/20160419-lk-drv-th-bh/" rel="prev" title="Linux驱动开发中的上半部和下半部的概念">
+                Linux驱动开发中的上半部和下半部的概念 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/04/10/20160410-make-rootfs/"
+           data-title="针对mini2440制作根文件系统" data-url="http://unicornx.github.io/2016/04/10/20160410-make-rootfs/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#根文件系统的概念"><span class="nav-number">1.</span> <span class="nav-text">根文件系统的概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step1-利用busybox来生成-bin、-sbin、-usr-bin、-usr-sbin目录下的可执行文件"><span class="nav-number">2.</span> <span class="nav-text">Step1: 利用busybox来生成/bin、/sbin、/usr/bin、/usr/sbin目录下的可执行文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step2-利用交叉编译工具链中的glibc库来构建-lib目录"><span class="nav-number">3.</span> <span class="nav-text">Step2: 利用交叉编译工具链中的glibc库来构建/lib目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step3-手工构建-etc目录"><span class="nav-number">4.</span> <span class="nav-text">Step3: 手工构建/etc目录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#编写init的主配置文件inittab"><span class="nav-number">4.1.</span> <span class="nav-text">编写init的主配置文件inittab</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#制作最简单的脚本程序文件-etc-init-d-rcS"><span class="nav-number">4.2.</span> <span class="nav-text">制作最简单的脚本程序文件/etc/init.d/rcS</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step4-手工构建最简化的-dev目录"><span class="nav-number">5.</span> <span class="nav-text">Step4: 手工构建最简化的/dev目录</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#先创建-dev目录"><span class="nav-number">5.1.</span> <span class="nav-text">先创建/dev目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-dev-console设备文件"><span class="nav-number">5.2.</span> <span class="nav-text">创建/dev/console设备文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#创建-dev-null设备文件"><span class="nav-number">5.3.</span> <span class="nav-text">创建/dev/null设备文件</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step5-配置系统自动生成-proc目录"><span class="nav-number">6.</span> <span class="nav-text">Step5: 配置系统自动生成/proc目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step6-创建-sys目录并利用udev构建完整的-dev目录"><span class="nav-number">7.</span> <span class="nav-text">Step6: 创建/sys目录并利用udev构建完整的/dev目录</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step7-创建其它目录-可选"><span class="nav-number">8.</span> <span class="nav-text">Step7: 创建其它目录(可选)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step8-制作根文件系统的yaffs2映像文件"><span class="nav-number">9.</span> <span class="nav-text">Step8: 制作根文件系统的yaffs2映像文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考资料"><span class="nav-number">10.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

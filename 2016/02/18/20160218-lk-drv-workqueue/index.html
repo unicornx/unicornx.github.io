@@ -1,0 +1,776 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,driver,workqueue," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+
+LKD3 第8章
+LDD3 第7章和第10章都有描述。
+Kernel APIs, Part 2: Deferrable functions, kernel tasklets, and work queues 一个简单的介绍，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核中的下半部机制之工作队列(workqueue)">
+<meta property="og:url" content="http://unicornx.github.io/2016/02/18/20160218-lk-drv-workqueue/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+
+LKD3 第8章
+LDD3 第7章和第10章都有描述。
+Kernel APIs, Part 2: Deferrable functions, kernel tasklets, and work queues 一个简单的介绍，">
+<meta property="og:image" content="http://unicornx.github.io/img/20160218-lk-drv-workqueue/wq.png">
+<meta property="og:updated_time" content="2016-04-19T12:57:11.358Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核中的下半部机制之工作队列(workqueue)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+
+LKD3 第8章
+LDD3 第7章和第10章都有描述。
+Kernel APIs, Part 2: Deferrable functions, kernel tasklets, and work queues 一个简单的介绍，">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20160218-lk-drv-workqueue/wq.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/02/18/20160218-lk-drv-workqueue/"/>
+
+  <title> Linux内核中的下半部机制之工作队列(workqueue) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux内核中的下半部机制之工作队列(workqueue)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-02-18T13:43:12+08:00" content="2016-02-18">
+              2016-02-18
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux驱动开发/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux驱动开发</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/02/18/20160218-lk-drv-workqueue/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/18/20160218-lk-drv-workqueue/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-19</p>
+<p>主要参考</p>
+<ul>
+<li>LKD3 第8章</li>
+<li>LDD3 第7章和第10章都有描述。</li>
+<li><a href="http://www.ibm.com/developerworks/library/l-tasklets/" target="_blank" rel="external">Kernel APIs, Part 2: Deferrable functions, kernel tasklets, and work queues</a> 一个简单的介绍，但后面有很多不错的参考文章。</li>
+<li><a href="http://blog.csdn.net/zirconsdu/article/details/8440735" target="_blank" rel="external">linux tasklet和workqueue的应用情景</a></li>
+<li>内核代码v2.6.32.6</li>
+</ul>
+<a id="more"></a>
+<h1 id="工作队列的运行机制"><a href="#工作队列的运行机制" class="headerlink" title="工作队列的运行机制"></a>工作队列的运行机制</h1><p>在LKD3的第8章基本上说得还是蛮清楚的了。笔记如下，结合以下几个核心结构体总结一下。具体的代码参考：<code>&lt;include/linux/workqueue.h&gt;</code>以及<code>kernel/workqueue.c</code>。</p>
+<p>同时结合这张图，和LKD3上的那张图是一个意思，但我觉得LKD3上的图说得不清楚，所以自己画了一张。</p>
+<p><img src="/img/20160218-lk-drv-workqueue/wq.png" alt=""></p>
+<h2 id="workqueue-struct"><a href="#workqueue-struct" class="headerlink" title="workqueue_struct"></a><code>workqueue_struct</code></h2><p>一个<code>workqueue_struct</code>代表一类工作队列，我们可以根据需要自己创建新的工作队列类型，或者直接使用内核缺省创建的一个叫做event的工作类型。除非缺省的队列不能满足我们的需要，否则直接使用该缺省的工作队列event比较简单方便。这个结构体从v3.10开始在最新的内核里面变化很大，目前只能先按照v2.6.32.6的版本来看。另外一个有趣的现象是，从v3.10开始，这部分的头文件中的函数开始增加比较详细的注释，哪位高人开始让代码变得容易阅读了？实在是做了一件好事。</p>
+<pre><code>struct workqueue_struct {
+    struct cpu_workqueue_struct *cpu_wq;
+    struct list_head list;
+    const char *name;
+    int singlethread;
+    int freezeable;        /* Freeze threads during suspend */
+    int rt;
+#ifdef CONFIG_LOCKDEP
+    struct lockdep_map lockdep_map;
+#endif
+};
+</code></pre><p>所有的<code>workqueue_struct</code>以链表的方式链接起来，挂在全局变量<code>workqueues</code>下。</p>
+<pre><code>/* Serializes the accesses to the list of workqueues. */
+static DEFINE_SPINLOCK(workqueue_lock);
+static LIST_HEAD(workqueues);
+</code></pre><p>对于每一类工作队列，内核维护一个工作(work)的队列(queue)，这也是为何我们称其为工作队列的原因。考虑到存在SMP多核处理器的情况，严格的说法是内核为每个CPU维护一个工作队列。每CPU的工作队列的概念封装在另一个结构体<code>cpu_workqueue_struct</code>里，所以<code>workqueue_struct</code>这个结构体可以认为是对实际的工作队列结构体<code>cpu_workqueue_struct</code>的封装，或许称其为<strong><code>工作队列类型</code></strong>更为恰当。参考<code>workqueue_struct</code>结构体类型定义处内核注释原文<code>The externally visible workqueue abstraction is an array of per-CPU workqueues</code></p>
+<p><code>workqueue_struct</code>对<code>cpu_workqueue_struct</code>的封装体现在其<code>cpu_wq</code>成员上，它是一个指针，在创建某一种工作队列类型时，<code>__create_workqueue_key</code>，会动态分配其空间，其形式类似于一个<code>cpu_workqueue_struct</code>的数组，成员的个数和CPU的个数一致，并用<code>cpu_wq</code>指向。以上图为例，演示的是一个双核系统，所以<code>cpu_wq</code>所指向的<code>cpu_workqueue_struct</code>的数组包含两个成员。</p>
+<h2 id="cpu-workqueue-struct"><a href="#cpu-workqueue-struct" class="headerlink" title="cpu_workqueue_struct"></a><code>cpu_workqueue_struct</code></h2><p><code>cpu_workqueue_struct</code>结构体的核心就是内部维护了一个<code>work</code>的队列，采用链表实现，并用其成员<code>worklist</code>指向。同时对每一个<code>cpu_workqueue_struct</code>，也就是每CPU，内核创建一个内核线程，其成员<code>thread</code>就是指向该线程。内核线程负责扫描<code>worklist</code>。</p>
+<pre><code>struct cpu_workqueue_struct {
+
+    spinlock_t lock;
+
+    struct list_head worklist;
+    wait_queue_head_t more_work;
+    struct work_struct *current_work;
+
+    struct workqueue_struct *wq;
+    struct task_struct *thread;
+} ____cacheline_aligned;
+</code></pre><h2 id="work-struct"><a href="#work-struct" class="headerlink" title="work_struct"></a><code>work_struct</code></h2><p>每一个work采用<code>work_struct</code>结构体表示：</p>
+<pre><code>struct work_struct {
+    atomic_long_t data;
+    struct list_head entry;
+    work_func_t func;
+#ifdef CONFIG_LOCKDEP
+    struct lockdep_map lockdep_map;
+#endif
+};
+</code></pre><p>其核心的成员就是<code>work_func_t func</code>这是一个函数的指针，它指向一个函数，而正是这个函数负责处理需要推后执行的具体任务。内核线程在扫描<code>cpu_workqueue_struct</code>结构的<code>worklist</code>链表时，针对该链表上的每个<code>work</code>对象，调用其<code>func</code>函数。这个函数是一个回调函数，需要驱动模块自己定义，并在创建自己的<code>work</code>对象时注册到内核系统中。具体的注册方法见下文”使用工作队列”的第二步和第三步的描述。</p>
+<h1 id="使用工作队列"><a href="#使用工作队列" class="headerlink" title="使用工作队列"></a>使用工作队列</h1><p>至此我们看到了内核为我们搭建的整个工作队列子系统的框架。对于具体的一个驱动模块开发，如果要使用工作队列实现中断工作的下半部时，所要做的事情大概就是如下几步：</p>
+<h2 id="第一步：创建自己的工作对列类型，对应workqueue-struct。"><a href="#第一步：创建自己的工作对列类型，对应workqueue-struct。" class="headerlink" title="第一步：创建自己的工作对列类型，对应workqueue_struct。"></a>第一步：创建自己的工作对列类型，对应<code>workqueue_struct</code>。</h2><p>大部分情况下这步不需要。前面说过内核已经在框架中内建了一个缺省的工作队列类型<code>event</code>，没有特殊需要，直接使用该现成的工作队列类型。</p>
+<p>如果要创建自己的新的工作队列，需要调用<code>create_workqueue</code>，它实际是一个宏，最终调用的是函数：</p>
+<pre><code>struct workqueue_struct *__create_workqueue_key(const char *name,
+                    int singlethread,
+                    int freezeable,
+                    int rt,
+                    struct lock_class_key *key,
+                    const char *lock_name)
+</code></pre><p>如果直接使用子系统缺省创建的events工作队列，则可以免去上面这步操作。子系统在内核初始化过程中已经帮助我们缺省创建了events，具体执行在<code>init_workqueues</code>函数里，也就是初始化工作队列子系统的地方，同样还是调用的<code>create_workqueue</code>。</p>
+<pre><code>keventd_wq = create_workqueue(&quot;events&quot;);
+</code></pre><p>如果使用缺省的events要注意的一点，具体参考LDD3第七章中有关“共享队列”的描述：原文摘录如下：</p>
+<pre><code>在许多情况下，设备驱动不需要有自己的工作队列。如果我们只是偶尔需要向队列中提交任务,则一种更简单，更有效的办法是使用内核提供的共享的默认工作队列（即events）。但是，如果我们使用这个队列，则应该记住我们正在和其他人共享该工作队列。这意味着，我们不应该长时间独占该队列，即不能够长时间睡眠，而且我们的任务可能要更长的时间才能获得处理器时间得到执行。
+</code></pre><h2 id="第二步：创建自己的工作处理函数"><a href="#第二步：创建自己的工作处理函数" class="headerlink" title="第二步：创建自己的工作处理函数"></a>第二步：创建自己的工作处理函数</h2><p>就是要注册到结构体<code>work_struct</code>的<code>func</code>成员的回调函数。</p>
+<p>回调函数的原型：</p>
+<pre><code>typedef void (*work_func_t)(struct work_struct *work);
+</code></pre><p>该函数会由每个CPU对应的内核线程执行，因此，该函数会运行在任务上下文中。默认情况下，允许响应中断，而且在该函数中可以睡眠。但需要注意的是虽然该函数运行在任务上下文中，但由于是被内核创建的内核线程所运行，而内核线程在用户空间没有内存映射，所以在该函数中无法访问用户空间。</p>
+<h2 id="第三步：创建自己的工作对象，对应结构体work-struct"><a href="#第三步：创建自己的工作对象，对应结构体work-struct" class="headerlink" title="第三步：创建自己的工作对象，对应结构体work_struct"></a>第三步：创建自己的工作对象，对应结构体<code>work_struct</code></h2><p>在创建的同时将上一步创建的回调函数注册到内核。</p>
+<p>静态创建方式：</p>
+<pre><code>#define DECLARE_WORK(n, f)                    \
+    struct work_struct n = __WORK_INITIALIZER(n, f)
+
+#define DECLARE_DELAYED_WORK(n, f)                \
+    struct delayed_work n = __DELAYED_WORK_INITIALIZER(n, f)
+</code></pre><p>动态初始化方式：</p>
+<pre><code>#define INIT_WORK(_work, _func)    \ ...
+...
+</code></pre><h2 id="第四步：创建好工作后，就可以调度它了。"><a href="#第四步：创建好工作后，就可以调度它了。" class="headerlink" title="第四步：创建好工作后，就可以调度它了。"></a>第四步：创建好工作后，就可以调度它了。</h2><p>具体的调度应该发生在中断的上半部。</p>
+<p>参考第一步，通用情况下，调度一个工作的函数是，这里需要通过第一个参数指定针对的是那一类工作队列：</p>
+<pre><code>extern int queue_work(struct workqueue_struct *wq, struct work_struct *work);
+</code></pre><p>注意该函数还有其他的变化形式，这里不一一列举，具体参考<code>&lt;include/linux/workqueue.h&gt;</code>。</p>
+<p>但大部分情况下我们使用默认的<code>events</code>工作队列类型，则对应的调度函数是：</p>
+<pre><code>extern int schedule_work(struct work_struct *work);
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/driver/" rel="tag">#driver</a>
+          
+            <a href="/tags/workqueue/" rel="tag">#workqueue</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/14/20160214-lk-drv-miscdevice/" rel="next" title="linux中的misc设备">
+                <i class="fa fa-chevron-left"></i> linux中的misc设备
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/20/20160220-drv-bsp/" rel="prev" title="BSP和Driver的区别">
+                BSP和Driver的区别 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/02/18/20160218-lk-drv-workqueue/"
+           data-title="Linux内核中的下半部机制之工作队列(workqueue)" data-url="http://unicornx.github.io/2016/02/18/20160218-lk-drv-workqueue/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#工作队列的运行机制"><span class="nav-number">1.</span> <span class="nav-text">工作队列的运行机制</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#workqueue-struct"><span class="nav-number">1.1.</span> <span class="nav-text">workqueue_struct</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#cpu-workqueue-struct"><span class="nav-number">1.2.</span> <span class="nav-text">cpu_workqueue_struct</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#work-struct"><span class="nav-number">1.3.</span> <span class="nav-text">work_struct</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#使用工作队列"><span class="nav-number">2.</span> <span class="nav-text">使用工作队列</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#第一步：创建自己的工作对列类型，对应workqueue-struct。"><span class="nav-number">2.1.</span> <span class="nav-text">第一步：创建自己的工作对列类型，对应workqueue_struct。</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第二步：创建自己的工作处理函数"><span class="nav-number">2.2.</span> <span class="nav-text">第二步：创建自己的工作处理函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第三步：创建自己的工作对象，对应结构体work-struct"><span class="nav-number">2.3.</span> <span class="nav-text">第三步：创建自己的工作对象，对应结构体work_struct</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#第四步：创建好工作后，就可以调度它了。"><span class="nav-number">2.4.</span> <span class="nav-text">第四步：创建好工作后，就可以调度它了。</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

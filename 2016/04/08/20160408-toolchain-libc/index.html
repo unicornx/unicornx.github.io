@@ -1,0 +1,700 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="toolchain,libc," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-08">
+<meta property="og:type" content="article">
+<meta property="og:title" content="交叉工具链中的c库">
+<meta property="og:url" content="http://unicornx.github.io/2016/04/08/20160408-toolchain-libc/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-08">
+<meta property="og:updated_time" content="2016-04-08T21:39:34.370Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="交叉工具链中的c库">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-08">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/04/08/20160408-toolchain-libc/"/>
+
+  <title> 交叉工具链中的c库 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                交叉工具链中的c库
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-04-08T14:29:12+08:00" content="2016-04-08">
+              2016-04-08
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux系统移植/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux系统移植</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/04/08/20160408-toolchain-libc/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/08/20160408-toolchain-libc/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-08</p>
+<a id="more"></a>
+<p>参考：</p>
+<ul>
+<li><a href="http://book.2cto.com/201309/33408.html" target="_blank" rel="external">编译目标系统的C库</a></li>
+<li><a href="http://stackoverflow.com/questions/14791341/crosstool-ng-directory-structure-and-sysroot" target="_blank" rel="external">crosstool-ng, directory structure, and sysroot</a></li>
+</ul>
+<p>作为Linux操作系统中最底层的API，几乎运行于Linux操作系统上的任何程序都会依赖于C库。Glibc除了封装Linux内核所提供的系统服务外，也提供了C标准规定的必要功能的实现，如字符串处理、数学计算等。</p>
+<p>下面介绍一下Glibc安装的主要文件。</p>
+<h1 id="C库"><a href="#C库" class="headerlink" title="C库"></a>C库</h1><p>Glibc除了将最基本、最常用的函数封装在libc中外，又将功能相近的一些函数封装到一些子库里，比如将线程相关函数封装在libpthread中，将与加密算法相关的函数封装在libcrypt中，等等。</p>
+<p>Glibc除了安装库文件本身外，还建立了符号链接，包括：</p>
+<p>动态链接时使用的共享库的符号链接。其命名格式一般为：<code>libLIBRARY_NAME.so.MAJOR</code>。</p>
+<p>开发时使用的共享库的符号链接。其命名格式一般为：<code>libLIBRARY_NAME.so</code>。</p>
+<p>它们都会指向实际的共享库文件</p>
+<p>比如数学库的共享库及其符号链接如下, 其中，libm-2.15.so是数学库的共享库本身，libm.so.6是程序运行时使用的符号链接，libm.so是编译链接时使用的符号链接。</p>
+<pre><code>fs@ubuntu$ ls -l libm*
+-rwxr-xr-x 1 fs fs 792815 Jan 23 10:29 libm-2.15.so
+lrwxrwxrwx 1 fs fs     12 Jan 23 10:29 libm.so.6 -&gt; libm-2.15.so
+-rwxr-xr-x 1 fs fs  42195 Jan 23 10:29 libmemusage.so
+</code></pre><p>也有一些共享库的名称是形如<code>libLIBRARY_NAME.so.MAJOR_REVISION_VERSION</code>，如下所示：</p>
+<pre><code>lrwxrwxrwx 1 fs fs     16 Jul 24  2010 libgomp.so -&gt; libgomp.so.1.0.0
+lrwxrwxrwx 1 fs fs     16 Jul 24  2010 libgomp.so.1 -&gt; libgomp.so.1.0.0
+-r-xr-xr-x 1 fs fs 264156 Jul 24  2010 libgomp.so.1.0.0
+</code></pre><p>Glibc将运行时使用的库安装在<code>$SYSROOT/lib</code>目录下，其中包括共享库文件本身及动态链接器需要的符号链接。将开发时使用的库安装在<code>$SYSROOT/usr/lib</code>目录下，包括开发时需要的符号链接及静态库等。如此的安排在工具链中也有所体现。</p>
+<h1 id="动态链接器"><a href="#动态链接器" class="headerlink" title="动态链接器"></a>动态链接器</h1><p>Glibc亦提供了加载共享库的工具——动态加载器。2.15版的Glibc提供的动态加载器为ld-2.15.so，其符号链接是ld-linux.so.2，也安装在$SYSROOT/lib目录下，ld-linux.so.2为程序运行时动态链接所需要。</p>
+<h1 id="头文件"><a href="#头文件" class="headerlink" title="头文件"></a>头文件</h1><p>Glibc为应用程序的开发提供了头文件，安装在$SYSROOT/usr/include目录下。</p>
+<h1 id="工具"><a href="#工具" class="headerlink" title="工具"></a>工具</h1><p>Glibc也提供了一些可执行的便利工具，这类工具一般安装在<code>sbin</code>、<code>usr/bin</code>、<code>usr/sbin</code>目录下，比如用来转换文件字符编码的工具iconv，在<code>usr/lib/gconv</code>目录下安装了工具iconv使用的进行字符编码转换的各种库（如支持GB18030的GB18030.so），如果不打算在目标系统上转换文件的字符编码，完全不必安装该工具。另外还有比如查看共享库依赖的工具ldd，创建共享库缓存以提高共享库搜索效率的ldconfig程序等。</p>
+<p>除此之外，usr目录下还有支持国际化、时区设置需要的文件等。</p>
+<h1 id="启动文件"><a href="#启动文件" class="headerlink" title="启动文件"></a>启动文件</h1><p>Glibc提供了启动文件，包括<code>crt1.o</code>、<code>crti.o</code>、<code>crtn.o</code>等，这类文件在编译链接时所使用，将被链接器链接到最后的可执行文件中，Glibc将其安装在<code>$SYSROOT/usr/lib</code>目录下。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/toolchain/" rel="tag">#toolchain</a>
+          
+            <a href="/tags/libc/" rel="tag">#libc</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/04/04/20160404-mini2440-dev-env-setup/" rel="next" title="mini2440开发环境搭建总结">
+                <i class="fa fa-chevron-left"></i> mini2440开发环境搭建总结
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/10/20160410-make-rootfs/" rel="prev" title="针对mini2440制作根文件系统">
+                针对mini2440制作根文件系统 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/04/08/20160408-toolchain-libc/"
+           data-title="交叉工具链中的c库" data-url="http://unicornx.github.io/2016/04/08/20160408-toolchain-libc/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#C库"><span class="nav-number">1.</span> <span class="nav-text">C库</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#动态链接器"><span class="nav-number">2.</span> <span class="nav-text">动态链接器</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#头文件"><span class="nav-number">3.</span> <span class="nav-text">头文件</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#工具"><span class="nav-number">4.</span> <span class="nav-text">工具</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#启动文件"><span class="nav-number">5.</span> <span class="nav-text">启动文件</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

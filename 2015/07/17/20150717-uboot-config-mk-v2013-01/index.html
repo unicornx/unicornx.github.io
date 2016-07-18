@@ -1,0 +1,1085 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="bootloader,U-boot,make," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+参考：u-boot2013.01.01 for s5pv210：《mkconfig分析》
+顶层目录下的config.mk文件会被u-boot的主Makefile所调用，主要提供的功能如下：
+
+配置工具运行环境
+
+导入各级配置文件(.mk)">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解u-boot的顶层config.mk(基于v2013.01)">
+<meta property="og:url" content="http://unicornx.github.io/2015/07/17/20150717-uboot-config-mk-v2013-01/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+参考：u-boot2013.01.01 for s5pv210：《mkconfig分析》
+顶层目录下的config.mk文件会被u-boot的主Makefile所调用，主要提供的功能如下：
+
+配置工具运行环境
+
+导入各级配置文件(.mk)">
+<meta property="og:updated_time" content="2016-03-18T23:02:49.284Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="理解u-boot的顶层config.mk(基于v2013.01)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-7-20
+参考：u-boot2013.01.01 for s5pv210：《mkconfig分析》
+顶层目录下的config.mk文件会被u-boot的主Makefile所调用，主要提供的功能如下：
+
+配置工具运行环境
+
+导入各级配置文件(.mk)">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/07/17/20150717-uboot-config-mk-v2013-01/"/>
+
+  <title> 理解u-boot的顶层config.mk(基于v2013.01) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                理解u-boot的顶层config.mk(基于v2013.01)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-07-17T16:13:36+08:00" content="2015-07-17">
+              2015-07-17
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Bootloader/" itemprop="url" rel="index">
+                    <span itemprop="name">Bootloader</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/07/17/20150717-uboot-config-mk-v2013-01/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/17/20150717-uboot-config-mk-v2013-01/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-7-20</p>
+<p>参考：<br><a href="http://m.blog.csdn.net/blog/zsy2020314/9312719" target="_blank" rel="external">u-boot2013.01.01 for s5pv210：《mkconfig分析》</a></p>
+<p>顶层目录下的config.mk文件会被u-boot的主Makefile所调用，主要提供的功能如下：</p>
+<ul>
+<li><p><a href="#tools_run_env">配置工具运行环境</a></p>
+</li>
+<li><p><a href="#import_mk">导入各级配置文件(.mk)，实现平台的定制化</a></p>
+</li>
+<li><p><a href="#tools_options">设置运行制作工具命令时携带的选项参数</a></p>
+</li>
+</ul>
+<a id="more"></a>
+<p>文件开始的这段逻辑暂不仔细分析，无非是根据是否指定外部输出目录决定是否要在外部输出目录内闯将相应子目录。从简化出发，我们默认输出目录即为顶层目录，所以这里执行完后obj和src都是空。</p>
+<pre><code>#########################################################################
+
+include $(TOPDIR)/helper.mk
+
+ifeq ($(CURDIR),$(SRCTREE))
+dir :=
+else
+dir := $(subst $(SRCTREE)/,,$(CURDIR))
+endif
+
+ifneq ($(OBJTREE),$(SRCTREE))
+# Create object files for SPL in a separate directory
+ifeq ($(CONFIG_SPL_BUILD),y)
+obj := $(if $(dir),$(SPLTREE)/$(dir)/,$(SPLTREE)/)
+else
+obj := $(if $(dir),$(OBJTREE)/$(dir)/,$(OBJTREE)/)
+endif
+src := $(if $(dir),$(SRCTREE)/$(dir)/,$(SRCTREE)/)
+
+$(shell mkdir -p $(obj))
+else
+# Create object files for SPL in a separate directory
+ifeq ($(CONFIG_SPL_BUILD),y)
+obj := $(if $(dir),$(SPLTREE)/$(dir)/,$(SPLTREE)/)
+
+$(shell mkdir -p $(obj))
+else
+obj :=
+endif
+src :=
+endif
+</code></pre><p>以下这三个变量是提供给各级配置文件设置的，用于平台的定制化，这里先初始化为空。</p>
+<pre><code># clean the slate ...
+PLATFORM_RELFLAGS =
+PLATFORM_CPPFLAGS =
+PLATFORM_LDFLAGS =
+</code></pre><p><a name="tools_run_env" id="tools_run_env"></a></p>
+<h2 id="配置工具运行环境"><a href="#配置工具运行环境" class="headerlink" title="配置工具运行环境"></a>配置工具运行环境</h2><h3 id="主机host侧编译器基本选项"><a href="#主机host侧编译器基本选项" class="headerlink" title="主机host侧编译器基本选项"></a>主机host侧编译器基本选项</h3><pre><code>#########################################################################
+
+
+HOSTCFLAGS    = -Wall -Wstrict-prototypes -O2 -fomit-frame-pointer \
+          $(HOSTCPPFLAGS)
+HOSTSTRIP    = strip
+</code></pre><ul>
+<li>HOSTCFLAG: 编译选项<ul>
+<li>-Wall: 打印出编译时所有的错误或警告信息</li>
+<li>-Wstrict-prototypes: 编译时，若产生与数据类型不相符的问题，打印出提示或警告信息。当在不同体系结构间移植时，加上该选项可避免很多错误</li>
+<li>-O: 编译代码时的优化等级，共有五种：-O0、-O1、-O2、-O3和-Os</li>
+<li>-fomit-frame-pointer: 对于不需要帧指针的函数,不要在寄存器中保存帧指针。代码优化时打开-fomit-frame-pointer，函数调用时不保存frame指针，也就不能用backtrace()来查看函数栈调用，backtrace()系列函数见<a href="Linux中backtrace(">http://blog.csdn.net/u013686019/article/details/42128771</a>系列函数的应用实例)</li>
+</ul>
+</li>
+<li>HOSTSTRIP: strip工具名称。strip能清除执行文件中不必要的内容，比如符号表或者调试信息，可减小文件大小而不影响正常使用，与压缩不同的是，文件一旦strip后就不能恢复原样。</li>
+</ul>
+<p>下面这一块是为Mac OS专门设置的，包括如下变量<br>HOSTCC: 主机host侧编译工具名称，不出意外，都是gcc。  </p>
+<pre><code>#
+# Mac OS X / Darwin&apos;s C preprocessor is Apple specific.  It
+# generates numerous errors and warnings.  We want to bypass it
+# and use GNU C&apos;s cpp.    To do this we pass the -traditional-cpp
+# option to the compiler.  Note that the -traditional-cpp flag
+# DOES NOT have the same semantics as GNU C&apos;s flag, all it does
+# is invoke the GNU preprocessor in stock ANSI/ISO C fashion.
+#
+# Apple&apos;s linker is similar, thanks to the new 2 stage linking
+# multiple symbol definitions are treated as errors, hence the
+# -multiply_defined suppress option to turn off this error.
+#
+
+ifeq ($(HOSTOS),darwin)
+# get major and minor product version (e.g. &apos;10&apos; and &apos;6&apos; for Snow Leopard)
+DARWIN_MAJOR_VERSION    = $(shell sw_vers -productVersion | cut -f 1 -d &apos;.&apos;)
+DARWIN_MINOR_VERSION    = $(shell sw_vers -productVersion | cut -f 2 -d &apos;.&apos;)
+
+os_x_before    = $(shell if [ $(DARWIN_MAJOR_VERSION) -le $(1) -a \
+    $(DARWIN_MINOR_VERSION) -le $(2) ] ; then echo &quot;$(3)&quot;; else echo &quot;$(4)&quot;; fi ;)
+
+# Snow Leopards build environment has no longer restrictions as described above
+HOSTCC         = $(call os_x_before, 10, 5, &quot;cc&quot;, &quot;gcc&quot;)
+HOSTCFLAGS    += $(call os_x_before, 10, 4, &quot;-traditional-cpp&quot;)
+HOSTLDFLAGS    += $(call os_x_before, 10, 5, &quot;-multiply_defined suppress&quot;)
+else
+HOSTCC        = gcc
+endif
+
+ifeq ($(HOSTOS),cygwin)
+HOSTCFLAGS    += -ansi
+endif
+
+# We build some files with extra pedantic flags to try to minimize things
+# that won&apos;t build on some weird host compiler -- though there are lots of
+# exceptions for files that aren&apos;t complaint.
+
+HOSTCFLAGS_NOPED = $(filter-out -pedantic,$(HOSTCFLAGS))
+HOSTCFLAGS    += -pedantic
+</code></pre><h3 id="定义用于测试编译选项的工具"><a href="#定义用于测试编译选项的工具" class="headerlink" title="定义用于测试编译选项的工具"></a>定义用于测试编译选项的工具</h3><pre><code>#########################################################################
+#
+# Option checker, gcc version (courtesy linux kernel) to ensure
+# only supported compiler options are used
+#
+CC_OPTIONS_CACHE_FILE := $(OBJTREE)/include/generated/cc_options.mk
+CC_TEST_OFILE := $(OBJTREE)/include/generated/cc_test_file.o
+
+-include $(CC_OPTIONS_CACHE_FILE)
+
+cc-option-sys = $(shell mkdir -p $(dir $(CC_TEST_OFILE)); \
+        if $(CC) $(CFLAGS) $(1) -S -xc /dev/null -o $(CC_TEST_OFILE) \
+        &gt; /dev/null 2&gt;&amp;1; then \
+        echo &apos;CC_OPTIONS += $(strip $1)&apos; &gt;&gt; $(CC_OPTIONS_CACHE_FILE); \
+        echo &quot;$(1)&quot;; fi)
+
+ifeq ($(CONFIG_CC_OPT_CACHE_DISABLE),y)
+cc-option = $(strip $(if $(call cc-option-sys,$1),$1,$2))
+else
+cc-option = $(strip $(if $(findstring $1,$(CC_OPTIONS)),$1,\
+        $(if $(call cc-option-sys,$1),$1,$2)))
+endif
+</code></pre><p>cc-option用于检查编译器CC是否支持某选项。将2个选项作为参数传递给cc-option函数，该函数调用CC编译器检查参数1是否支持，若支持则函数返回参数1，否则返回参数2<br>举个使用该变量的例子，如有以下语句：</p>
+<pre><code># Explicitly specifiy 32-bit ARM ISA since toolchain default can be -mthumb:
+PLATFORM_CPPFLAGS += $(call cc-option,-marm,)
+</code></pre><p>表示先测试一下-marm这个选项运行是否ok，如果ok，则$(call cc-option,-marm,)的值就是“-marm”，PLATFORM_CPPFLAGS作为一个编译选项字符串就会追加“-marm”这个编译选项，否则就不使用该选项（$(2)是空）。</p>
+<p>2013.01版本的cc-option实现和2009.11有点差别，但基本原理差别不大，看上去是借鉴了linux的做法。可以直接参考<a href="2015/06/28/20150628-notes-uboot-config-mk-v2009-11">理解u-boot的顶层config.mk(基于v2009.11)</a></p>
+<h3 id="定义make过程中和工具相关的变量"><a href="#定义make过程中和工具相关的变量" class="headerlink" title="定义make过程中和工具相关的变量"></a>定义make过程中和工具相关的变量</h3><pre><code># cc-version
+# Usage gcc-ver := $(call cc-version)
+cc-version = $(shell $(SHELL) $(SRCTREE)/tools/gcc-version.sh $(CC))
+binutils-version = $(shell $(SHELL) $(SRCTREE)/tools/binutils-version.sh $(AS))
+</code></pre><p>根据CROSS_COMPILE重定义某些预定义变量。<br>这些变量都和制作uboot过程中用到的工具名称有关，CROSS_COMPILE在顶层Makefile中定义。有趣的是CPP不涉及交叉工具链。</p>
+<pre><code>#
+# Include the make variables (CC, etc...)
+#
+AS    = $(CROSS_COMPILE)as
+
+# Always use GNU ld
+LD    = $(shell if $(CROSS_COMPILE)ld.bfd -v &gt; /dev/null 2&gt;&amp;1; \
+        then echo &quot;$(CROSS_COMPILE)ld.bfd&quot;; else echo &quot;$(CROSS_COMPILE)ld&quot;; fi;)
+
+CC    = $(CROSS_COMPILE)gcc
+CPP    = $(CC) -E
+AR    = $(CROSS_COMPILE)ar
+NM    = $(CROSS_COMPILE)nm
+LDR    = $(CROSS_COMPILE)ldr
+STRIP    = $(CROSS_COMPILE)strip
+OBJCOPY = $(CROSS_COMPILE)objcopy
+OBJDUMP = $(CROSS_COMPILE)objdump
+RANLIB    = $(CROSS_COMPILE)RANLIB
+DTC    = dtc
+CHECK    = sparse
+</code></pre><p><a name="import_mk" id="import_mk"></a></p>
+<h2 id="导入各级配置文件-mk-，实现平台的定制化"><a href="#导入各级配置文件-mk-，实现平台的定制化" class="headerlink" title="导入各级配置文件(.mk)，实现平台的定制化"></a>导入各级配置文件(.mk)，实现平台的定制化</h2><p>注意如果是第一次build，可能没有，所以全都是用的sinclude。<br><code>include/autoconf.mk</code>文件里全都是形如<code>CONFIG_xxx</code>的配置开关，<code>include/config.mk</code>文件里则是保存的执行“make xxx、_config”时产生的ARCH，CPU，SOC这些变量的值。</p>
+<pre><code>#########################################################################
+
+# Load generated board configuration
+sinclude $(OBJTREE)/include/autoconf.mk
+sinclude $(OBJTREE)/include/config.mk
+</code></pre><p>下面导入的这些配置文件是分级别的，级别的划分根据的是保存在<code>include/config.mk</code>中的ARCH，CPU，SOC这些变量。<br>注意v2013.01引入的新的变量CPUDIR的含义，参考注释。</p>
+<pre><code># Some architecture config.mk files need to know what CPUDIR is set to,
+# so calculate CPUDIR before including ARCH/SOC/CPU config.mk files.
+# Check if arch/$ARCH/cpu/$CPU exists, otherwise assume arch/$ARCH/cpu contains
+# CPU-specific code.
+CPUDIR=arch/$(ARCH)/cpu/$(CPU)
+ifneq ($(SRCTREE)/$(CPUDIR),$(wildcard $(SRCTREE)/$(CPUDIR)))
+CPUDIR=arch/$(ARCH)/cpu
+endif
+
+sinclude $(TOPDIR)/arch/$(ARCH)/config.mk    # include architecture dependend rules
+sinclude $(TOPDIR)/$(CPUDIR)/config.mk        # include  CPU    specific rules
+
+ifdef    SOC
+sinclude $(TOPDIR)/$(CPUDIR)/$(SOC)/config.mk    # include  SoC    specific rules
+endif
+ifdef    VENDOR
+BOARDDIR = $(VENDOR)/$(BOARD)
+else
+BOARDDIR = $(BOARD)
+endif
+ifdef    BOARD
+sinclude $(TOPDIR)/board/$(BOARDDIR)/config.mk    # include board specific rules
+endif
+</code></pre><p>特别地，对于我使用的目标板versatilepb，“include/config.mk”文件中的内容是：</p>
+<pre><code>ARCH   = arm
+CPU    = arm926ejs
+BOARD  = versatile
+VENDOR = armltd
+SOC    = versatile
+</code></pre><p>即<code>CPUDIR</code>的值为<code>arch/arm/cpu/arm926ejs</code>。</p>
+<p>则各级别对应的配置文件清单如下，注意2013.01版本的目录安排较之2009.11有较大调整，将众多<code>lib_xxx</code>目录和<code>cpu</code>目录合并到了一个arch目录下再细分，并按照ARCH/CPU/SOC的层次进行了重新组织，更加有层次性了。板(board)一级别的配置还是统一放在board目录下。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">级别</th>
+<th style="text-align:left">对应的配置文件在代码树中的路径</th>
+<th style="text-align:left">注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">ARCH</td>
+<td style="text-align:left">arch/arm/config.mk</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">CPU</td>
+<td style="text-align:left">arch/arm/cpu/arm926ejs/config.mk</td>
+<td style="text-align:left"></td>
+</tr>
+<tr>
+<td style="text-align:left">SOC</td>
+<td style="text-align:left">arch/arm/cpu/arm926ejs/versatile/config.mk</td>
+<td style="text-align:left">该文件并不存在</td>
+</tr>
+<tr>
+<td style="text-align:left">BOARD</td>
+<td style="text-align:left">board/armltd/versatile/config.mk</td>
+<td style="text-align:left">该文件并不存在</td>
+</tr>
+</tbody>
+</table>
+<p><a name="tools_options" id="tools_options"></a></p>
+<h2 id="设置运行制作工具命令时携带的选项参数"><a href="#设置运行制作工具命令时携带的选项参数" class="headerlink" title="设置运行制作工具命令时携带的选项参数"></a>设置运行制作工具命令时携带的选项参数</h2><pre><code>#########################################################################
+</code></pre><h3 id="ar命令的选项"><a href="#ar命令的选项" class="headerlink" title="ar命令的选项"></a>ar命令的选项</h3><p>仔细读一下注释，看上去$(ARFLAGS)已经不再使用了</p>
+<pre><code># We don&apos;t actually use $(ARFLAGS) anywhere anymore, so catch people
+# who are porting old code to latest mainline but not updating $(AR).
+ARFLAGS = $(error update your Makefile to use cmd_link_o_target and not AR)
+</code></pre><h3 id="一些通用选项"><a href="#一些通用选项" class="headerlink" title="一些通用选项"></a>一些通用选项</h3><p>会被别的选项引用</p>
+<pre><code>RELFLAGS= $(PLATFORM_RELFLAGS)
+DBGFLAGS= -g # -DDEBUG
+OPTFLAGS= -Os #-fomit-frame-pointer
+
+OBJCFLAGS += --gap-fill=0xff
+
+gccincdir := $(shell $(CC) -print-file-name=include)
+</code></pre><h3 id="cpp命令（预处理）的选项"><a href="#cpp命令（预处理）的选项" class="headerlink" title="cpp命令（预处理）的选项"></a>cpp命令（预处理）的选项</h3><p>CPPFLAGS 引用了前面定义的$(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)，</p>
+<p>此外还定义了新的宏</p>
+<p>__KERNEL__</p>
+<p>CONFIG_SYS_TEXT_BASE，这是一个新的配置宏，替代了原来2009.11版本中的TEXT_BASE，看上去和其他的配置开关的命名更统一了。并且定义的位置也全都统一到<code>.h</code>文件中，不再放在<code>config.mk</code>里,譬如对versatile开发板是定义在<code>include/configs/versatile.h</code>里。</p>
+<pre><code>CPPFLAGS := $(DBGFLAGS) $(OPTFLAGS) $(RELFLAGS)        \
+    -D__KERNEL__
+
+# Enable garbage collection of un-used sections for SPL
+ifeq ($(CONFIG_SPL_BUILD),y)
+CPPFLAGS += -ffunction-sections -fdata-sections
+LDFLAGS_FINAL += --gc-sections
+endif
+
+ifneq ($(CONFIG_SYS_TEXT_BASE),)
+CPPFLAGS += -DCONFIG_SYS_TEXT_BASE=$(CONFIG_SYS_TEXT_BASE)
+endif
+
+ifneq ($(CONFIG_SPL_TEXT_BASE),)
+CPPFLAGS += -DCONFIG_SPL_TEXT_BASE=$(CONFIG_SPL_TEXT_BASE)
+endif
+
+ifneq ($(CONFIG_SPL_PAD_TO),)
+CPPFLAGS += -DCONFIG_SPL_PAD_TO=$(CONFIG_SPL_PAD_TO)
+endif
+
+ifeq ($(CONFIG_SPL_BUILD),y)
+CPPFLAGS += -DCONFIG_SPL_BUILD
+endif
+
+ifneq ($(RESET_VECTOR_ADDRESS),)
+CPPFLAGS += -DRESET_VECTOR_ADDRESS=$(RESET_VECTOR_ADDRESS)
+endif
+
+ifneq ($(OBJTREE),$(SRCTREE))
+CPPFLAGS += -I$(OBJTREE)/include2 -I$(OBJTREE)/include
+endif
+
+CPPFLAGS += -I$(TOPDIR)/include
+CPPFLAGS += -fno-builtin -ffreestanding -nostdinc    \
+    -isystem $(gccincdir) -pipe $(PLATFORM_CPPFLAGS)
+</code></pre><h3 id="compile（编译）的选项"><a href="#compile（编译）的选项" class="headerlink" title="compile（编译）的选项"></a>compile（编译）的选项</h3><pre><code>ifdef BUILD_TAG
+CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes \
+    -DBUILD_TAG=&apos;&quot;$(BUILD_TAG)&quot;&apos;
+else
+CFLAGS := $(CPPFLAGS) -Wall -Wstrict-prototypes
+endif
+
+CFLAGS_SSP := $(call cc-option,-fno-stack-protector)
+CFLAGS += $(CFLAGS_SSP)
+# Some toolchains enable security related warning flags by default,
+# but they don&apos;t make much sense in the u-boot world, so disable them.
+CFLAGS_WARN := $(call cc-option,-Wno-format-nonliteral) \
+           $(call cc-option,-Wno-format-security)
+CFLAGS += $(CFLAGS_WARN)
+
+# Report stack usage if supported
+CFLAGS_STACK := $(call cc-option,-fstack-usage)
+CFLAGS += $(CFLAGS_STACK)
+</code></pre><h3 id="as（汇编）的选项"><a href="#as（汇编）的选项" class="headerlink" title="as（汇编）的选项"></a>as（汇编）的选项</h3><pre><code># $(CPPFLAGS) sets -g, which causes gcc to pass a suitable -g&lt;format&gt;
+# option to the assembler.
+AFLAGS_DEBUG :=
+
+# turn jbsr into jsr for m68k
+ifeq ($(ARCH),m68k)
+ifeq ($(findstring 3.4,$(shell $(CC) --version)),3.4)
+AFLAGS_DEBUG := -Wa,-gstabs,-S
+endif
+endif
+
+AFLAGS := $(AFLAGS_DEBUG) -D__ASSEMBLY__ $(CPPFLAGS)
+</code></pre><h3 id="ld（链接）的选项"><a href="#ld（链接）的选项" class="headerlink" title="ld（链接）的选项"></a>ld（链接）的选项</h3><pre><code>LDFLAGS += $(PLATFORM_LDFLAGS)
+LDFLAGS_FINAL += -Bstatic
+</code></pre><p>注意下面的语句，如果我们没有定义自己的CONFIG_SYS_TEXT_BASE这个宏的话，链接时就直接以ARCH级别定义的lds文件来链接，但如果我们打开了CONFIG_SYS_TEXT_BASE，则<code>LDFLAGS_u-boot += -Ttext $(CONFIG_SYS_TEXT_BASE)</code>会覆盖lds文件的定义。这也是为何对versatilepb开发板，我们最后生成的uboot的起始运行地址不是0的原因。</p>
+<pre><code>LDFLAGS_u-boot += -T $(obj)u-boot.lds $(LDFLAGS_FINAL)
+ifneq ($(CONFIG_SYS_TEXT_BASE),)
+LDFLAGS_u-boot += -Ttext $(CONFIG_SYS_TEXT_BASE)
+endif
+
+LDFLAGS_u-boot-spl += -T $(obj)u-boot-spl.lds $(LDFLAGS_FINAL)
+ifneq ($(CONFIG_SPL_TEXT_BASE),)
+LDFLAGS_u-boot-spl += -Ttext $(CONFIG_SPL_TEXT_BASE)
+endif
+
+# Linus&apos; kernel sanity checking tool
+CHECKFLAGS     := -D__linux__ -Dlinux -D__STDC__ -Dunix -D__unix__ \
+                  -Wbitwise -Wno-return-void -D__CHECK_ENDIAN__ $(CF)
+
+# Location of a usable BFD library, where we define &quot;usable&quot; as
+# &quot;built for ${HOST}, supports ${TARGET}&quot;.  Sensible values are
+# - When cross-compiling: the root of the cross-environment
+# - Linux/ppc (native): /usr
+# - NetBSD/ppc (native): you lose ... (must extract these from the
+#   binutils build directory, plus the native and U-Boot include
+#   files don&apos;t like each other)
+#
+# So far, this is used only by tools/gdb/Makefile.
+
+ifeq ($(HOSTOS),darwin)
+BFD_ROOT_DIR =        /usr/local/tools
+else
+ifeq ($(HOSTARCH),$(ARCH))
+# native
+BFD_ROOT_DIR =        /usr
+else
+#BFD_ROOT_DIR =        /LinuxPPC/CDK        # Linux/i386
+#BFD_ROOT_DIR =        /usr/pkg/cross        # NetBSD/i386
+BFD_ROOT_DIR =        /opt/powerpc
+endif
+endif
+</code></pre><p><a name="export" id="export"></a></p>
+<h2 id="收尾工作"><a href="#收尾工作" class="headerlink" title="收尾工作"></a>收尾工作</h2><p>准备完毕，现在可以导出所有的变量定义了。</p>
+<pre><code>#########################################################################
+
+export    HOSTCC HOSTCFLAGS HOSTLDFLAGS PEDCFLAGS HOSTSTRIP CROSS_COMPILE \
+    AS LD CC CPP AR NM STRIP OBJCOPY OBJDUMP MAKE
+export    CONFIG_SYS_TEXT_BASE PLATFORM_CPPFLAGS PLATFORM_RELFLAGS CPPFLAGS CFLAGS AFLAGS
+
+#########################################################################
+
+# Allow boards to use custom optimize flags on a per dir/file basis
+BCURDIR = $(subst $(SRCTREE)/,,$(CURDIR:$(obj)%=%))
+ALL_AFLAGS = $(AFLAGS) $(AFLAGS_$(BCURDIR)/$(@F)) $(AFLAGS_$(BCURDIR))
+ALL_CFLAGS = $(CFLAGS) $(CFLAGS_$(BCURDIR)/$(@F)) $(CFLAGS_$(BCURDIR))
+EXTRA_CPPFLAGS = $(CPPFLAGS_$(BCURDIR)/$(@F)) $(CPPFLAGS_$(BCURDIR))
+ALL_CFLAGS += $(EXTRA_CPPFLAGS)
+
+# The _DEP version uses the $&lt; file target (for dependency generation)
+# See rules.mk
+EXTRA_CPPFLAGS_DEP = $(CPPFLAGS_$(BCURDIR)/$(addsuffix .o,$(basename $&lt;))) \
+        $(CPPFLAGS_$(BCURDIR))
+$(obj)%.s:    %.S
+    $(CPP) $(ALL_AFLAGS) -o $@ $&lt;
+$(obj)%.o:    %.S
+    $(CC)  $(ALL_AFLAGS) -o $@ $&lt; -c
+$(obj)%.o:    %.c
+ifneq ($(CHECKSRC),0)
+    $(CHECK) $(CHECKFLAGS) $(ALL_CFLAGS) $&lt;
+endif
+    $(CC)  $(ALL_CFLAGS) -o $@ $&lt; -c
+$(obj)%.i:    %.c
+    $(CPP) $(ALL_CFLAGS) -o $@ $&lt; -c
+$(obj)%.s:    %.c
+    $(CC)  $(ALL_CFLAGS) -o $@ $&lt; -c -S
+
+#########################################################################
+
+# If the list of objects to link is empty, just create an empty built-in.o
+cmd_link_o_target = $(if $(strip $1),\
+              $(LD) $(LDFLAGS) -r -o $@ $1,\
+              rm -f $@; $(AR) rcs $@ )
+
+#########################################################################
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/bootloader/" rel="tag">#bootloader</a>
+          
+            <a href="/tags/U-boot/" rel="tag">#U-boot</a>
+          
+            <a href="/tags/make/" rel="tag">#make</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/07/17/20150717-uboot-makefile-v2013-01/" rel="next" title="理解u-boot的Makefile(基于v2013.01)">
+                <i class="fa fa-chevron-left"></i> 理解u-boot的Makefile(基于v2013.01)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/20/20150720-uboot-readme-2013-01/" rel="prev" title="U-boot的README文件(v2013.01)">
+                U-boot的README文件(v2013.01) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/07/17/20150717-uboot-config-mk-v2013-01/"
+           data-title="理解u-boot的顶层config.mk(基于v2013.01)" data-url="http://unicornx.github.io/2015/07/17/20150717-uboot-config-mk-v2013-01/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#配置工具运行环境"><span class="nav-number">1.</span> <span class="nav-text">配置工具运行环境</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#主机host侧编译器基本选项"><span class="nav-number">1.1.</span> <span class="nav-text">主机host侧编译器基本选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义用于测试编译选项的工具"><span class="nav-number">1.2.</span> <span class="nav-text">定义用于测试编译选项的工具</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#定义make过程中和工具相关的变量"><span class="nav-number">1.3.</span> <span class="nav-text">定义make过程中和工具相关的变量</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#导入各级配置文件-mk-，实现平台的定制化"><span class="nav-number">2.</span> <span class="nav-text">导入各级配置文件(.mk)，实现平台的定制化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置运行制作工具命令时携带的选项参数"><span class="nav-number">3.</span> <span class="nav-text">设置运行制作工具命令时携带的选项参数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#ar命令的选项"><span class="nav-number">3.1.</span> <span class="nav-text">ar命令的选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#一些通用选项"><span class="nav-number">3.2.</span> <span class="nav-text">一些通用选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#cpp命令（预处理）的选项"><span class="nav-number">3.3.</span> <span class="nav-text">cpp命令（预处理）的选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#compile（编译）的选项"><span class="nav-number">3.4.</span> <span class="nav-text">compile（编译）的选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#as（汇编）的选项"><span class="nav-number">3.5.</span> <span class="nav-text">as（汇编）的选项</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#ld（链接）的选项"><span class="nav-number">3.6.</span> <span class="nav-text">ld（链接）的选项</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#收尾工作"><span class="nav-number">4.</span> <span class="nav-text">收尾工作</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

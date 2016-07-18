@@ -1,0 +1,886 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,make," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-02
+这里总结了一些make内核时的经验
+主要的参考文章：
+
+韦东山 《嵌入式Linux应用开发完全手册》
+Linux 内核配置方式详解 值得以后在更多实践中参考。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核的Make(基于v2.6.32.2)">
+<meta property="og:url" content="http://unicornx.github.io/2016/01/02/20160102-lk-make/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-02
+这里总结了一些make内核时的经验
+主要的参考文章：
+
+韦东山 《嵌入式Linux应用开发完全手册》
+Linux 内核配置方式详解 值得以后在更多实践中参考。">
+<meta property="og:updated_time" content="2016-03-18T23:02:52.441Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核的Make(基于v2.6.32.2)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-01-02
+这里总结了一些make内核时的经验
+主要的参考文章：
+
+韦东山 《嵌入式Linux应用开发完全手册》
+Linux 内核配置方式详解 值得以后在更多实践中参考。">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/01/02/20160102-lk-make/"/>
+
+  <title> Linux内核的Make(基于v2.6.32.2) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux内核的Make(基于v2.6.32.2)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-02T21:28:12+08:00" content="2016-01-02">
+              2016-01-02
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/02/20160102-lk-make/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/02/20160102-lk-make/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-01-02</p>
+<p>这里总结了一些make内核时的经验</p>
+<p>主要的参考文章：</p>
+<ul>
+<li>韦东山 《嵌入式Linux应用开发完全手册》</li>
+<li><a href="http://www.51testing.com/html/38/225738-237838.html" target="_blank" rel="external">Linux 内核配置方式详解</a> 值得以后在更多实践中参考。</li>
+</ul>
+<a id="more"></a>
+<h1 id="内核代码的获取"><a href="#内核代码的获取" class="headerlink" title="内核代码的获取"></a>内核代码的获取</h1><h2 id="下载内核"><a href="#下载内核" class="headerlink" title="下载内核"></a>下载内核</h2><p>内核主页<code>http://kernel.org</code></p>
+<pre><code>wget http://kernel.org/pub/linux/kernel/...
+wget http://kernel.org/.../.../linux-*.bz2.sign
+gpg –verify linux-2.xx.tar.bz2.sign
+tar xvf  linux-2.xx.tar.bz2
+</code></pre><h2 id="使用补丁升级"><a href="#使用补丁升级" class="headerlink" title="使用补丁升级"></a>使用补丁升级</h2><p>如果你有了一个内核的版本，就可以到kernel.org上下载相应的升级补丁。譬如：如果想从2.4.26 升级到 2.4.27 则可以</p>
+<pre><code>wget -c ftp://ftp.kernel.org/pub/linux/kernel/v2.4/patch-2.4.27.bz2
+wget ftp://ftp.kernel.org/pub/linux/kernel/v2.4/patch-2.4.27.bz2.sign
+</code></pre><p>如果想从 2.6.11 升级到  2.6.11.12 则可以</p>
+<pre><code>wget http://www.kernel.org/pub/linux/kernel/v2.6/patch-2.6.11.12.bz2
+wget http://www.kernel.org/pub/linux/kernel/v2.6/patch-2.6.11.12.bz2.sign
+</code></pre><p>确认下载的补丁是否正确</p>
+<pre><code>gpg –verify patch-2.4.27.bz2.sign
+</code></pre><p>为内核代码打补丁</p>
+<pre><code>cd linux2.4.26/
+bzcat ../patch-2.4.27.bz2 | patch -p1
+cd ..
+mv linux-2.4.26 linux-2.4.27
+</code></pre><h1 id="Makefile分析"><a href="#Makefile分析" class="headerlink" title="Makefile分析"></a>Makefile分析</h1><p>有关这个主题我觉得韦东山的《嵌入式Linux应用开发完全手册》中的16.2章节分析的还是不错的。</p>
+<p>Linux内核源码树中包含有多个Makefile文件，这些文件又包含其他文件（譬如配置信息，通用规则等），所有的这些文件构成了Linux内核的Makefile体系，详细的参考，可以看内核文档<code>Documentation/kbuild/makefiles.txt</code>。总结如下表所示：</p>
+<table>
+<thead>
+<tr>
+<th>名称</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>顶层Makefile</td>
+<td>是所有Makefile文件的核心，从总体上控制着内核的编译、链接。内核的编译过程从顶层Makefile文件开始，然后递归地进入各级子目录调用它们自己的Makefile。</td>
+</tr>
+<tr>
+<td>.config</td>
+<td>这个配置文件是通过运行诸如<code>make menuconfig</code>命令自动生成的，会影响所有Makefile文件的处理。</td>
+</tr>
+<tr>
+<td>arch/$(ARCH)/Makefile</td>
+<td>对应体系架构的Makefile，用于决定某体系架构相关的文件参与内核生成，并提供一些规则来生成特定格式的内核镜像</td>
+</tr>
+<tr>
+<td>scripts/Makefile.*</td>
+<td>Makefile公用的通用规则、脚本等</td>
+</tr>
+<tr>
+<td>kbuild Makefiles</td>
+<td>各级子目录下的Makefile，它们相对简单，被上一层Makefile调用来编译当前目录下的文件。</td>
+</tr>
+</tbody>
+</table>
+<p>从最简单的角度总结Makefile的作用，有以下3点：</p>
+<ul>
+<li>决定编译哪些文件</li>
+<li>决定怎样编译这些文件，生成.o或者lib</li>
+<li>决定怎样链接这些.o或者lib文件，最重要的是链接这些文件的顺序。</li>
+</ul>
+<p>然后从这三点出发娓娓道来。</p>
+<h2 id="Makefile是如何决定编译哪些文件"><a href="#Makefile是如何决定编译哪些文件" class="headerlink" title="Makefile是如何决定编译哪些文件"></a>Makefile是如何决定编译哪些文件</h2><p>顶层Makefile里定义了如下变量<code>init-y</code>，</p>
+<p>顶层Makefile决定内核的根目录下哪些子目录将被编进内核。在顶层Makefile中可以看到如下内容：<br>`</p>
+<pre><code># Objects we will link into vmlinux / subdirs we need to visit
+init-y        := init/
+drivers-y    := drivers/ sound/ firmware/
+net-y        := net/
+libs-y        := lib/
+core-y        := usr/
+
+...
+
+include $(srctree)/arch/$(SRCARCH)/Makefile
+
+...
+
+core-y        += kernel/ mm/ fs/ ipc/ security/ crypto/ block/
+
+vmlinux-dirs    := $(patsubst %/,%,$(filter %/, $(init-y) $(init-m) \
+             $(core-y) $(core-m) $(drivers-y) $(drivers-m) \
+             $(net-y) $(net-m) $(libs-y) $(libs-m)))
+
+...
+
+all: modules
+
+...
+
+modules: $(vmlinux-dirs) $(if $(KBUILD_BUILTIN),vmlinux)
+</code></pre><p>从顶层Makefile的逐级依赖关系里我们可以看出终极目标<code>all</code>依赖于<code>modules</code>，而<code>modules</code>依赖于<code>vmlinux-dirs</code>，并进而依赖于<code>init-y</code>，<code>drivers-y</code>，<code>net-y</code>，<code>libs-y</code>，<code>core-y</code>五个变量。也就是说这里Makefile把顶层目录下的13个子目录，（总共17个，除去<code>include</code>，<code>arch</code>和后面两个不包含内核代码的目录）分为5大类。<code>arch</code>目录通过<code>include $(srctree)/arch/$(SRCARCH)/Makefile</code>这条语句包含进顶层Makefile文件，以arm体系结构为例，就是<code>include arch/arm/Makefile</code>。这个文件的内容如下：</p>
+<pre><code>...
+
+head-y        := arch/arm/kernel/head$(MMUEXT).o arch/arm/kernel/init_task.o
+
+...
+
+machine-$(CONFIG_ARCH_S3C2410)        := s3c2410 s3c2400 s3c2412 s3c2440 s3c2442 s3c2443
+
+...
+
+plat-$(CONFIG_PLAT_S3C24XX)    := s3c24xx s3c
+
+...
+
+machdirs := $(patsubst %,arch/arm/mach-%/,$(machine-y))
+platdirs := $(patsubst %,arch/arm/plat-%/,$(plat-y))
+
+...
+
+# If we have a machine-specific directory, then include it in the build.
+core-y                += arch/arm/kernel/ arch/arm/mm/ arch/arm/common/
+core-y                += $(machdirs) $(platdirs)
+core-$(CONFIG_FPE_NWFPE)    += arch/arm/nwfpe/
+core-$(CONFIG_FPE_FASTFPE)    += $(FASTFPE_OBJ)
+core-$(CONFIG_VFP)        += arch/arm/vfp/
+
+drivers-$(CONFIG_OPROFILE)      += arch/arm/oprofile/
+
+libs-y                := arch/arm/lib/ $(libs-y)
+</code></pre><p><code>arch/arm/Makefile</code>进一步扩展了<code>core-y</code>，<code>drivers-</code>和<code>libs-y</code>的内容，这些都是和体系架构相关的东西。其中<code>core-y                += $(machdirs) $(platdirs)</code>所引入的<code>machdirs</code>和<code>platdirs</code>说明这里会递归依赖子目录的Makefile文件。这一点和韦东山参考的内核版本不太一样。</p>
+<p>以上所描述的是顶层Makefile是如何决定了一级子目录。关于各级子目录下的内容如何参与编译，和内核编译前执行的配置过程有关。在配置内核时，会生成配置文件.config。在顶层Makefile中有如下语句：</p>
+<pre><code>-include include/config/auto.conf
+</code></pre><p>这个文件是从.config文件转化而来，它只是将.config文件中的注释去掉，并根据顶层Makefile中定义的变量增加了一些而已。其中绝大多数都是形如<code>CONFIG_XXX</code>的变量。作为控制编译的开关变量存在，供Makefile使用</p>
+<p>同时在编译过程中，还会根据auto.conf文件生成<code>include/linux/autoconf.h</code>和<code>include/linux/config.h</code>，其中<code>include/linux/config.h</code>文件中包含引用了<code>include/linux/autoconf.h</code>文件。头文件中会根据手动的配置生成类似<code>#define CONFIG_xxx，#undef CONFIG_xxx</code>这样的宏。所以这些<code>CONFIG_XXX</code>也会直接影响代码的编译和生成。</p>
+<h2 id="Makefile是如何决定怎样编译这些文件，生成-o或者lib"><a href="#Makefile是如何决定怎样编译这些文件，生成-o或者lib" class="headerlink" title="Makefile是如何决定怎样编译这些文件，生成.o或者lib"></a>Makefile是如何决定怎样编译这些文件，生成.o或者lib</h2><p>直接参考韦东山的书先，暂时没有什么感觉需要注意的。</p>
+<h2 id="Makefile是如何决定怎样链接这些-o或者lib文件，最重要的是链接这些文件的顺序。"><a href="#Makefile是如何决定怎样链接这些-o或者lib文件，最重要的是链接这些文件的顺序。" class="headerlink" title="Makefile是如何决定怎样链接这些.o或者lib文件，最重要的是链接这些文件的顺序。"></a>Makefile是如何决定怎样链接这些.o或者lib文件，最重要的是链接这些文件的顺序。</h2><p>直接参考韦东山的书先，值得关注的是<code>arch/$(ARCH)/kernel/vmlinux.lds</code>。这个文件定义了链接方式。该文件由文件<code>arch/$(ARCH)/kernel/vmlinux.lds.S</code>生成，规则在<code>scripts/Makefile.build</code>中定义。</p>
+<p>参考：</p>
+<p>顶层Makefile和各层目录下的Makefile </p>
+<h1 id="内核配置"><a href="#内核配置" class="headerlink" title="内核配置"></a>内核配置</h1><p>在内核目录下执行<code>make menuconfig</code>会出现菜单，菜单的内容和代码树中的<code>Kconfig</code>文件有关。</p>
+<p>Kconfig语法，详细信息参看相关内核文档：<code>Documentation/kbuild/*</code></p>
+<ul>
+<li>1、make mrproper</li>
+<li><p>2、完全从头配置太耗费时间，一般的做法是在某个默认配置文件的基础上进行修改，比如选择一个和开发板接近的缺省配置进行加载，改好后保存为.config文件<br>如：<code>arch/arm/configs/xxxx_defconfig</code></p>
+<pre><code>cp  arch/arm/configs/xxxx_defconfig  .config
+</code></pre></li>
+<li><p>3、修改 makefile </p>
+<pre><code>ARCH = arm
+CROSS_COMPILE = arm-linux-
+</code></pre></li>
+<li><p>4、执行配置命令</p>
+<pre><code>make [menuconfig|config|xconfig| gconfig|oldconfig]
+</code></pre></li>
+</ul>
+<p>3和4可以合并为以下命令</p>
+<pre><code>make ARCH=arm CROSS_COMPILE=arm-linux- menuconfig
+</code></pre><p>2和4可以合并为以下命令</p>
+<pre><code>make ARCH=arm CROSS_COMPILE=arm-linux- xxxx_defconfig
+</code></pre><h1 id="编译内核常用命令"><a href="#编译内核常用命令" class="headerlink" title="编译内核常用命令"></a>编译内核常用命令</h1><p>参考另一篇我的博文：<a href="/2015/12/30/20151230-lk-make-commands">编译内核常用命令</a>  </p>
+<h1 id="编译生成的文件"><a href="#编译生成的文件" class="headerlink" title="编译生成的文件"></a>编译生成的文件</h1><table>
+<thead>
+<tr>
+<th>文件名称</th>
+<th>解释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>vmlinux</td>
+<td>未压缩的Linux内核</td>
+</tr>
+<tr>
+<td>arch/$(ARCH)/boot/zImage</td>
+<td>经zlib压缩后的Linux内核</td>
+</tr>
+<tr>
+<td>arch/$(ARCH)/boot/bzImage</td>
+<td>经zlib压缩后的Linux内核，b是指big，压缩比更高</td>
+</tr>
+<tr>
+<td>arch/$(ARCH)/boot/uImage</td>
+<td>Uboot格式的内核文件（会用到uboot工具mkimage）</td>
+</tr>
+<tr>
+<td>System.map</td>
+<td>内核符号地址</td>
+</tr>
+<tr>
+<td>modules.order</td>
+<td>编译生成的模块名称</td>
+</tr>
+<tr>
+<td>lib/modules/<version></version></td>
+<td>缺省模块安装路径</td>
+</tr>
+<tr>
+<td>modules.dep</td>
+<td>模块依赖文件</td>
+</tr>
+<tr>
+<td>arch/$(ARCH)/boot/dts/*.dtb</td>
+<td>编译生成的设备树文件(从3.x内核开始支持)，参考<a href="http://www.mcuos.com/thread-9193-1-1.html" target="_blank" rel="external">ARM Linux 3.x的设备树</a></td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/make/" rel="tag">#make</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/01/20151230-lk-make-commands/" rel="next" title="编译内核常用命令">
+                <i class="fa fa-chevron-left"></i> 编译内核常用命令
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/02/20160102-lk-drv-module-op/" rel="prev" title="Linux内核驱动开发中和模块相关操作总结">
+                Linux内核驱动开发中和模块相关操作总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/01/02/20160102-lk-make/"
+           data-title="Linux内核的Make(基于v2.6.32.2)" data-url="http://unicornx.github.io/2016/01/02/20160102-lk-make/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#内核代码的获取"><span class="nav-number">1.</span> <span class="nav-text">内核代码的获取</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#下载内核"><span class="nav-number">1.1.</span> <span class="nav-text">下载内核</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#使用补丁升级"><span class="nav-number">1.2.</span> <span class="nav-text">使用补丁升级</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Makefile分析"><span class="nav-number">2.</span> <span class="nav-text">Makefile分析</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Makefile是如何决定编译哪些文件"><span class="nav-number">2.1.</span> <span class="nav-text">Makefile是如何决定编译哪些文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Makefile是如何决定怎样编译这些文件，生成-o或者lib"><span class="nav-number">2.2.</span> <span class="nav-text">Makefile是如何决定怎样编译这些文件，生成.o或者lib</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Makefile是如何决定怎样链接这些-o或者lib文件，最重要的是链接这些文件的顺序。"><span class="nav-number">2.3.</span> <span class="nav-text">Makefile是如何决定怎样链接这些.o或者lib文件，最重要的是链接这些文件的顺序。</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核配置"><span class="nav-number">3.</span> <span class="nav-text">内核配置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#编译内核常用命令"><span class="nav-number">4.</span> <span class="nav-text">编译内核常用命令</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#编译生成的文件"><span class="nav-number">5.</span> <span class="nav-text">编译生成的文件</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

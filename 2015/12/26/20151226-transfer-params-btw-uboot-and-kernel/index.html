@@ -1,0 +1,826 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,U-boot," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+参考文章：
+
+U-boot如何向kernel传递参数 + kernel如何读取参数
+Linux内核参数传递Tag(init_tags)
+
+在2.4（具体哪个版本记不清了）以后的Linux内核中引入了一种新的向内核传递参数的方法tag标记。以下代码参考的是Linux内核v">
+<meta property="og:type" content="article">
+<meta property="og:title" content="U-boot和内核之间传递复杂参数的TAG方式">
+<meta property="og:url" content="http://unicornx.github.io/2015/12/26/20151226-transfer-params-btw-uboot-and-kernel/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+参考文章：
+
+U-boot如何向kernel传递参数 + kernel如何读取参数
+Linux内核参数传递Tag(init_tags)
+
+在2.4（具体哪个版本记不清了）以后的Linux内核中引入了一种新的向内核传递参数的方法tag标记。以下代码参考的是Linux内核v">
+<meta property="og:image" content="http://unicornx.github.io/img/20151226-transfer-params-btw-uboot-and-kernel/tags.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:51.879Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="U-boot和内核之间传递复杂参数的TAG方式">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+参考文章：
+
+U-boot如何向kernel传递参数 + kernel如何读取参数
+Linux内核参数传递Tag(init_tags)
+
+在2.4（具体哪个版本记不清了）以后的Linux内核中引入了一种新的向内核传递参数的方法tag标记。以下代码参考的是Linux内核v">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20151226-transfer-params-btw-uboot-and-kernel/tags.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/12/26/20151226-transfer-params-btw-uboot-and-kernel/"/>
+
+  <title> U-boot和内核之间传递复杂参数的TAG方式 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                U-boot和内核之间传递复杂参数的TAG方式
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-12-26T23:20:17+08:00" content="2015-12-26">
+              2015-12-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/12/26/20151226-transfer-params-btw-uboot-and-kernel/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/12/26/20151226-transfer-params-btw-uboot-and-kernel/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>参考文章：</p>
+<ul>
+<li><a href="http://zqwt.012.blog.163.com/blog/static/12044684201332535457347/" target="_blank" rel="external">U-boot如何向kernel传递参数 + kernel如何读取参数</a></li>
+<li><a href="http://blog.chinaunix.net/uid-9543173-id-1989004.html" target="_blank" rel="external">Linux内核参数传递Tag(init_tags)</a></li>
+</ul>
+<p>在2.4（具体哪个版本记不清了）以后的Linux内核中引入了一种新的向内核传递参数的方法tag标记。以下代码参考的是Linux内核v2.6.32.6。参考的主要文件集中在<code>arch/arm/kernel/setup.c</code>，该文件中有下面这么一段注释，基本说清楚了当时引入TAG的思想。</p>
+<pre><code>/*
+ *  Tag parsing.
+ *
+ * This is the new way of passing data to the kernel at boot time.  Rather
+ * than passing a fixed inflexible structure to the kernel, we pass a list
+ * of variable-sized tags to the kernel.  The first tag must be a ATAG_CORE
+ * tag for the list to be recognised (to distinguish the tagged list from
+ * a param_struct).  The list is terminated with a zero-length tag (this tag
+ * is not parsed in any way).
+ */
+</code></pre><h1 id="用于传递复杂参数的TAG内存区"><a href="#用于传递复杂参数的TAG内存区" class="headerlink" title="用于传递复杂参数的TAG内存区"></a>用于传递复杂参数的TAG内存区</h1><p>在ARM架构上，bootloader向Linux内核传递参数利用了R0，R1和R2三个寄存器，并采用如下约定：</p>
+<table>
+<thead>
+<tr>
+<th>寄存器</th>
+<th>约定</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>R0</td>
+<td>暂时不用，缺省放0</td>
+</tr>
+<tr>
+<td>R1</td>
+<td>机器号，标识计算机系统的型号，内核支持的所有使用ARM处理器的设备ID号定义在<code>arch/arm/tools/mach-types</code>文件中，编译内核过程中会被转换为一个头文件<code>include/asm-arm/mach-types.h</code>供其他文件包含使用。</td>
+</tr>
+<tr>
+<td>R2</td>
+<td>R2寄存器传递的是一个地址，也就是指针的概念，这个指针指向一个TAG区域．UBOOT和Linux内核之间正是通过这个扩展了的TAG区域来进行复杂参数的传递，如 command line，文件系统信息等等，用户也可以扩展这个TAG来进行更多参数的传递。</td>
+</tr>
+</tbody>
+</table>
+<a id="more"></a>
+<p>TAG区域由一个TAG数组构成，每一个TAG传递一种特定类型的参数。参考<code>arch/arm/include/asm/setup.h</code>，每个TAG对应的结构体类型定义如下：</p>
+<pre><code>struct tag {
+    struct tag_header hdr;
+    union {
+        struct tag_core        core;
+        struct tag_mem32    mem;
+        struct tag_videotext    videotext;
+        ... //各种TAG的结构体类型定义
+    } u;
+};
+</code></pre><p>其中<code>tag_header</code>的定义包括了size和tag两部分，如下：</p>
+<pre><code>struct tag_header {
+    __u32 size;
+    __u32 tag;
+};
+</code></pre><p>size指的是每个TAG的大小，单位为字节；tag是每个TAG的标识，都定义在<code>arch/arm/include/asm/setup.h</code>里，譬如：</p>
+<pre><code>#define ATAG_NONE    0x00000000
+...
+#define ATAG_CORE    0x54410001
+...
+#define ATAG_MEM    0x54410002
+...
+</code></pre><p>并且规定该TAG数组必须以ATAG_CORE为第一个，以ATAG_NONE结束。下面是一个TAG区的例子：</p>
+<p><img src="/img/20151226-transfer-params-btw-uboot-and-kernel/tags.png" alt=""></p>
+<p>我们可以看到一共有四个TAG：</p>
+<ul>
+<li>第一个TAG的长度是5个字，类型是ATAG_CORE（0x54410001），对应<code>tag_core</code>的三个成员，均为全零．TAG区必须以这个TAG开头．</li>
+<li>第二个TAG的长度是F个字，类型是ATAG_CMDLINE（0x54410009），对应<code>tag_cmdline</code>，这是一个字符串，是向内核传递的kernel command line</li>
+<li>第三个TAG的长度是4个字，类型是ATAG_INITRD2（0x54420005），对应<code>tag_initrd</code>，有两个成员，第一个start，表示物理起始地址为0x30300040，第二个是size，表示compressed ramdisk image的大小是0x200000字节（2M）。</li>
+<li>第四个TAG就是末尾的两个全零，这是TAG结束的标志ATAG_NONE（0x00000000）。</li>
+</ul>
+<h1 id="U-boot如何设置TAG参数区"><a href="#U-boot如何设置TAG参数区" class="headerlink" title="U-boot如何设置TAG参数区"></a>U-boot如何设置TAG参数区</h1><p>参考U-boot v2009.11，这些TAG是在函数<code>do_bootm_linux</code>函数中建立起来的。具体建立哪些TAG，由相应的控制宏决定。具体可以参考相应代码。<br>文件<code>lib_arm/bootm.c</code>的函数<code>do_bootm_linux</code>。就在跳转到内核的入口函数之前执行了所有的TAG填写的工作，注意以下摘录的代码中的<code>setup_xxxx_tag</code>函数调用：</p>
+<pre><code>int do_bootm_linux(int flag, int argc, char *argv[], bootm_headers_t *images)
+{
+    ...
+
+#if defined (CONFIG_SETUP_MEMORY_TAGS) || \
+    defined (CONFIG_CMDLINE_TAG) || \
+    defined (CONFIG_INITRD_TAG) || \
+    defined (CONFIG_SERIAL_TAG) || \
+    defined (CONFIG_REVISION_TAG) || \
+    defined (CONFIG_LCD) || \
+    defined (CONFIG_VFD)
+    setup_start_tag (bd);
+#ifdef CONFIG_SERIAL_TAG
+    setup_serial_tag (&amp;params);
+#endif
+#ifdef CONFIG_REVISION_TAG
+    setup_revision_tag (&amp;params);
+#endif
+    ...
+
+    setup_end_tag (bd);
+#endif
+
+    /* we assume that the kernel is in place */
+    printf (&quot;\nStarting kernel ...\n\n&quot;);
+
+//#ifdef CONFIG_USB_DEVICE
+#if 0
+    {
+        extern void udc_disconnect (void);
+        udc_disconnect ();
+    }
+#endif
+
+    cleanup_before_linux ();
+
+    theKernel (0, machid, bd-&gt;bi_boot_params);
+    /* does not return */
+
+    return 1;
+}
+</code></pre><h1 id="Kernel如何读取U-boot传递的ATAG参数"><a href="#Kernel如何读取U-boot传递的ATAG参数" class="headerlink" title="Kernel如何读取U-boot传递的ATAG参数"></a>Kernel如何读取U-boot传递的ATAG参数</h1><p>参考内核的<code>arch/arm/kernel/setup.c</code>文件，里面定义了很多形如<code>parse_tag_xxxx</code>的函数，每个函数对应一种TAG。譬如：</p>
+<pre><code>static int __init parse_tag_core(const struct tag *tag)
+{
+    ... //略
+    return 0;
+}
+
+__tagtable(ATAG_CORE, parse_tag_core);
+</code></pre><p>注意每个<code>parse_tag_xxxx</code>函数后面都跟着一句<code>__tagtable(ATAG_XXXX, parse_tag_xxxx);</code>。查看<code>__tagtable</code>这个宏的定义:</p>
+<pre><code>struct tagtable {
+    __u32 tag;
+    int (*parse)(const struct tag *);
+};
+...
+#define __tag __used __attribute__((__section__(&quot;.taglist.init&quot;)))
+#define __tagtable(tag, fn) \
+static struct tagtable __tagtable_##fn __tag = { tag, fn }
+</code></pre><p>可以知道。内核将这些parse函数的函数地址以数组的方式，具体是<code>struct tagtable</code>数组的形式在链接时全部放在内核的<code>&quot;.taglist.init&quot;</code>段中。然后在内核启动后，最终会走到<code>start_kernel</code>函数，查看函数的调用栈，顺序依次为：</p>
+<pre><code>start_kernel()
+|__setup_arch()
+   |__parse_tags()
+      |__parse_tag()
+</code></pre><p><code>parse_tag</code>这个函数里会遍历<code>&quot;.taglist.init&quot;</code>段中的数组，按照tag寻找匹配项，如果找到则根据parse函数的函数地址调用对应parse函数进行解析。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/U-boot/" rel="tag">#U-boot</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/12/24/20150808-bootup-linux/" rel="next" title="在mini2440上实验U-boot的USB下载到nandflash并通过nandflash引导Linux内核">
+                <i class="fa fa-chevron-left"></i> 在mini2440上实验U-boot的USB下载到nandflash并通过nandflash引导Linux内核
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/12/27/20151227-lk-init/" rel="prev" title="内核启动过程分析(基于mini2440和linux v2.6.32.2)">
+                内核启动过程分析(基于mini2440和linux v2.6.32.2) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/12/26/20151226-transfer-params-btw-uboot-and-kernel/"
+           data-title="U-boot和内核之间传递复杂参数的TAG方式" data-url="http://unicornx.github.io/2015/12/26/20151226-transfer-params-btw-uboot-and-kernel/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#用于传递复杂参数的TAG内存区"><span class="nav-number">1.</span> <span class="nav-text">用于传递复杂参数的TAG内存区</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#U-boot如何设置TAG参数区"><span class="nav-number">2.</span> <span class="nav-text">U-boot如何设置TAG参数区</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Kernel如何读取U-boot传递的ATAG参数"><span class="nav-number">3.</span> <span class="nav-text">Kernel如何读取U-boot传递的ATAG参数</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

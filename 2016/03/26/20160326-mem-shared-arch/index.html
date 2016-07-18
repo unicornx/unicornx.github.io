@@ -1,0 +1,793 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,多处理器,SMP,NUMA," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-26
+主要参考
+
+LKD3
+玩转CPU Topology
+
+有关SMP的介绍
+
+对称多处理SMP
+SMP对称多处理结构
+SMP bring up on ARM SoCs
+
+有关NUMA的介绍
+
+NUMA
+Non-uniform memory">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多处理器并行运算中的内存共享方式">
+<meta property="og:url" content="http://unicornx.github.io/2016/03/26/20160326-mem-shared-arch/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-26
+主要参考
+
+LKD3
+玩转CPU Topology
+
+有关SMP的介绍
+
+对称多处理SMP
+SMP对称多处理结构
+SMP bring up on ARM SoCs
+
+有关NUMA的介绍
+
+NUMA
+Non-uniform memory">
+<meta property="og:image" content="http://www.searchtb.com/wp-content/uploads/2012/12/Intel%E5%88%B6%E7%A8%8B0.jpg">
+<meta property="og:image" content="http://www.searchtb.com/wp-content/uploads/2012/12/cpu-term0.jpg">
+<meta property="og:updated_time" content="2016-03-26T15:27:25.991Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="多处理器并行运算中的内存共享方式">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-26
+主要参考
+
+LKD3
+玩转CPU Topology
+
+有关SMP的介绍
+
+对称多处理SMP
+SMP对称多处理结构
+SMP bring up on ARM SoCs
+
+有关NUMA的介绍
+
+NUMA
+Non-uniform memory">
+<meta name="twitter:image" content="http://www.searchtb.com/wp-content/uploads/2012/12/Intel%E5%88%B6%E7%A8%8B0.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/03/26/20160326-mem-shared-arch/"/>
+
+  <title> 多处理器并行运算中的内存共享方式 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                多处理器并行运算中的内存共享方式
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-03-26T22:55:12+08:00" content="2016-03-26">
+              2016-03-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/26/20160326-mem-shared-arch/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/26/20160326-mem-shared-arch/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-26</p>
+<p>主要参考</p>
+<ul>
+<li>LKD3</li>
+<li><a href="http://www.searchtb.com/2012/12/%E7%8E%A9%E8%BD%ACcpu-topology.html" target="_blank" rel="external">玩转CPU Topology</a></li>
+</ul>
+<p>有关SMP的介绍</p>
+<ul>
+<li><a href="http://baike.baidu.com/view/1074089.htm" target="_blank" rel="external">对称多处理SMP</a></li>
+<li><a href="http://baike.baidu.com/link?url=Z6GbmwxFDhHJWfkUXAcY0OXjlLtgW9xT7st9pmQpfb0lpNo-IzIG6TN3Cr-JJbl-Y2qYSeJ-gHiGxRuO5Ds97q" target="_blank" rel="external">SMP对称多处理结构</a></li>
+<li><a href="http://wenku.baidu.com/link?url=rZpZehh7-zimqiKp23Q0sogGEQ1AGNJPq_YYbW3JL-SCP94RBaxVwiQ3joKgOo84bnAPmRcvbnlUdK67nGKdDcB2VPaj4mK7Mjk1sHRYgsq" target="_blank" rel="external">SMP bring up on ARM SoCs</a></li>
+</ul>
+<p>有关NUMA的介绍</p>
+<ul>
+<li><a href="http://baike.baidu.com/link?url=I_LYKdZmXkX5ic5dngjdqv7hyvKCdYSYozvaUMTAKs2guQIIl_S0WcpZaKkJJN4KWAAEfXoQra0iLMQknnVdLa" target="_blank" rel="external">NUMA</a></li>
+<li><a href="https://en.wikipedia.org/wiki/Non-uniform_memory_access" target="_blank" rel="external">Non-uniform memory access - Wiki</a></li>
+<li><a href="https://technet.microsoft.com/en-us/library/ms178144(v=sql.105" target="_blank" rel="external">Understanding Non-uniform Memory Access - MSDN</a>.aspx)</li>
+</ul>
+<a id="more"></a>
+<h1 id="几个基本概念"><a href="#几个基本概念" class="headerlink" title="几个基本概念"></a>几个基本概念</h1><h2 id="NUMA和UMA以及SMP"><a href="#NUMA和UMA以及SMP" class="headerlink" title="NUMA和UMA以及SMP"></a>NUMA和UMA以及SMP</h2><p>以下基本概念摘自Wiki</p>
+<p><a href="https://en.wikipedia.org/wiki/Non-uniform_memory_access" target="_blank" rel="external"><strong>NUMA</strong></a>：Non-Uniform Memory Access (NUMA) is a computer memory design used in multiprocessing, where the memory access time depends on the memory location relative to a processor. Under NUMA, a processor can access its own local memory faster than non-local memory, that is, memory local to another processor or memory shared between processors.NUMA architectures logically follow in scaling from symmetric multiprocessing (SMP) architectures.</p>
+<p>来自MSDN的一篇对NUMA的介绍<a href="https://technet.microsoft.com/en-us/library/ms178144(v=sql.105" target="_blank" rel="external">Understanding Non-uniform Memory Access</a>.aspx)也比较准确: The trend in hardware has been towards more than one system bus, each serving a small set of processors. Each group of processors has its own memory and possibly its own I/O channels. However, each CPU can access memory associated with the other groups in a coherent way. Each group is called a NUMA node. The number of CPUs within a NUMA node depends on the hardware vendor. It is faster to access local memory than the memory associated with other NUMA nodes. This is the reason for the name, non-uniform memory access architecture.</p>
+<p>和NUMA所对应的内存访问模型就是<a href="https://en.wikipedia.org/wiki/Uniform_memory_access" target="_blank" rel="external"><strong>UMA</strong></a>: Uniform memory access (UMA) is a shared memory architecture used in parallel computers. All the processors in the UMA model share the physical memory uniformly. In a UMA architecture, access time to a memory location is independent of which processor makes the request or which memory chip contains the transferred data. Uniform memory access computer architectures are often contrasted with non-uniform memory access (NUMA) architectures. In the UMA architecture, each processor may use a private cache. Peripherals are also shared in some fashion. The UMA model is suitable for general purpose and time sharing applications by multiple users. It can be used to speed up the execution of a single large program in time critical applications.</p>
+<p>我们经常听说的一个概念叫做<a href="http://en.wikipedia.org/wiki/Symmetric_multiprocessing" target="_blank" rel="external">SMP</a>：Symmetric multiprocessing (SMP) involves a multiprocessor computer hardware architecture where two or more identical processors are connected to a single shared main memory and are controlled by a single OS instance.</p>
+<p>根据Wiki的定义，参考<a href="https://en.wikipedia.org/wiki/Uniform_memory_access" target="_blank" rel="external"><strong>UMA</strong></a>，SMP应该可以归结为实现UMA的多种方式之一，当然也是我们最常见的形式。</p>
+<p>对NUMA和SMP的总结：</p>
+<p>计算机多处理器体系架构大致可以分为如下几种模式：</p>
+<ul>
+<li>SMP（对称多处理）模式</li>
+<li>MPP（大规模并行处理）模式</li>
+<li>NUMA模式</li>
+</ul>
+<p>为了全面的了解NUMA的优势，我们不妨先来考察一下这几种模式在处理器与存储器结构方面的区别。</p>
+<p>SMP模式将多个处理器与一个集中的存储器相连。在SMP模式下，所有处理器都可以访问同一个系统物理存储器，这就意味着SMP系统只运行操作系统的一个拷贝。因此SMP系统有时也被称为一致存储器访问（UMA）结构体系，一致性意指无论在什么时候，处理器只能为内存的每个数据保持或共享唯一一个数值。很显然，SMP的缺点是可伸缩性有限，因为在存储器接口达到饱和的时候，增加处理器并不能获得更高的性能。</p>
+<p>MPP模式则是一种分布式存储器模式，能够将更多的处理器纳入一个系统的存储器。一个分布式存储器模式具有多个节点，每个节点都有自己的存储器，可以配置为SMP模式，也可以配置为非SMP模式。单个的节点相互连接起来就形成了一个总系统。MPP体系结构对硬件开发商颇具吸引力，因为它们出现的问题比较容易解决，开发成本比较低。由于没有硬件支持共享内存或高速缓存一致性的问题，所以比较容易实现大量处理器的连接。</p>
+<p>可见，单一SMP模式与MPP模式的关键区别在于，在SMP模式中，数据一致性是由硬件专门管理的，这样做比较容易实现，但成本较高；在MPP模式中，节点之间的一致性是由软件来管理，因此，它的速度相对较慢，但成本却低得多。</p>
+<p>NUMA模式，也采用了分布式存储器模式，不同的是所有节点中的处理器都可以访问全部的系统物理存储器。然而，每个处理器访问本节点内的存储器所需要的时间，可能比访问某些远程节点内的存储器所花的时间要少得多。换句话说，也就是访问存储器的时间是不一致的，这也就是这种模式之所以被称为“NUMA”的原因。简而言之，NUMA既保持了SMP模式单一操作系统拷贝、简便的应用程序编程模式以及易于管理的特点，又继承了MPP模式的可扩充性，可以有效地扩充系统的规模。这也正是NUMA的优势所在。</p>
+<p>本文主要关注NUMA以及SMP的概念。根据上面的描述大致可以认为SMP和NUMA的区别在于，NMUA可以认为是SMP的增强版本，部分处理器被聚合在一起成为一个一个的节点node，每个节点拥有自己专属的内存等资源，本节点内访问使用这些专属的资源可以实现本地的效率最大化，这是NUMA相对于SMP的改进。但NUMA的多个节点之间也有共享的通道，而且是硬件级别的，这点相对于单纯的MPP模式对于节点之间的一致性效率更高。</p>
+<h2 id="CPU与多核"><a href="#CPU与多核" class="headerlink" title="CPU与多核"></a>CPU与多核</h2><p>想当年CPU拼的是频率，频率越高越NB，但是提升频率和制程密切相关。</p>
+<p><img src="http://www.searchtb.com/wp-content/uploads/2012/12/Intel%E5%88%B6%E7%A8%8B0.jpg" alt=""></p>
+<p>但是制程这玩意有一个物理天花板，提升越来越难，有报道指出，现阶段普遍应用的硅晶体管在尺寸上有一个10nm的物理极限。为了提升性能cpu走上了多核的道路，即在一个封装（socket或者processor）里放多个core。这还不够，又发明了超线程技术Hyper-threading: HT Technology is used to improve parallelization of computations (doing multiple tasks at once) performed on PC microprocessors. For each processor core that is physically present, the operating system addresses two virtual or logical cores, and shares the workload between them when possible. They appear to the OS as two processors, thus the OS can schedule two processes at once. 一个core 在HT之后OS看到的就是2个Logical Processor。</p>
+<p>下图展示了这些术语之间的逻辑关系：</p>
+<p><img src="http://www.searchtb.com/wp-content/uploads/2012/12/cpu-term0.jpg" alt=""></p>
+<p>一个计算机系统包括多个NUMA节点(node)，一个NUMA node包括一个或者多个Socket，以及与之相连的local memory。一个多核的Socket有多个Core。如果CPU支持HT，OS还会把这个Core看成 2个Logical Processor。</p>
+<h1 id="在Linux中查看计算机系统的处理器Topology"><a href="#在Linux中查看计算机系统的处理器Topology" class="headerlink" title="在Linux中查看计算机系统的处理器Topology"></a>在Linux中查看计算机系统的处理器Topology</h1><p>基本上是利用sys文件系统和proc文件系统，其实我觉得sys文件系统中的信息还是最最全的：</p>
+<p>但注意不是所有的计算机系统都支持Node的概念，普通的桌面系统可能没有Node，可以忽略查看node这一层，直接进入第二层Socket。</p>
+<ul>
+<li><p>NUMA node</p>
+<p>  方法一：安装<code>numactl</code>，然后运行<code>numactl --show</code>，如果系统报告<code>No NUMA support available on this system.</code>则说明当前系统不支持NUMA，否则如果支持，可以继续运行<code>numactl --hardware</code>查看详细信息。</p>
+<p>  方法二：查看sys文件系统，运行<code>ls /sys/devices/system/node/</code>，如果系统不支持NUMA则该路径不存在。</p>
+</li>
+<li><p>Socket</p>
+<p>  运行<code>cat /proc/cpuinfo|grep &quot;physical id&quot;</code>，puinfo里的physical id描述的就是Socket的编号。</p>
+</li>
+<li><p>Core</p>
+<p>  运行`cat /proc/cpuinfo | grep “core id”</p>
+</li>
+<li><p>Logical Processor</p>
+<p>  运行<code>cat /proc/cpuinfo | grep &quot;processor&quot;</code></p>
+</li>
+</ul>
+<p>其实要想查看这些信息也可以去sysfs的<code>/sys/devices/system/cpu</code></p>
+<p>譬如如果想查看更详细的每个CPU的cache的信息，我们知道CPU cache分为L1，L2，L3, L1一般还分为独立的指令cache和数据cache。可以运行<code>ls /sys/devices/system/cpu/cpu0/cache/</code>，该目录下4个目录</p>
+<ul>
+<li>index0:1级数据cache</li>
+<li>index1:1级指令cache</li>
+<li>index2:2级cache</li>
+<li>index3:3级cache ,对应cpuinfo里的cache</li>
+</ul>
+<p>以上内容主要参考了<a href="http://www.searchtb.com/2012/12/%E7%8E%A9%E8%BD%ACcpu-topology.html" target="_blank" rel="external">玩转CPU Topology</a>。这篇文章还介绍了更多NUMA架构下计算机系统的测试经验和技巧，但对于我来说可能更适合服务器端工程师去了解，至少目前在嵌入式开发侧，其实了解到SMP层次就足矣，也就是说我们可以忽略跨node的情况。但这并不意味着我们不需要了解node的概念，因为在最新的Linux内核里是支持这个概念并且其内存分配子系统也是基于这些概念设计的。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/多处理器/" rel="tag">#多处理器</a>
+          
+            <a href="/tags/SMP/" rel="tag">#SMP</a>
+          
+            <a href="/tags/NUMA/" rel="tag">#NUMA</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/25/20160325-cmd-free/" rel="next" title="物理内存的监控命令free">
+                <i class="fa fa-chevron-left"></i> 物理内存的监控命令free
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/02/20160402-lk-mm/" rel="prev" title="Linux内存管理">
+                Linux内存管理 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/03/26/20160326-mem-shared-arch/"
+           data-title="多处理器并行运算中的内存共享方式" data-url="http://unicornx.github.io/2016/03/26/20160326-mem-shared-arch/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#几个基本概念"><span class="nav-number">1.</span> <span class="nav-text">几个基本概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#NUMA和UMA以及SMP"><span class="nav-number">1.1.</span> <span class="nav-text">NUMA和UMA以及SMP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#CPU与多核"><span class="nav-number">1.2.</span> <span class="nav-text">CPU与多核</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在Linux中查看计算机系统的处理器Topology"><span class="nav-number">2.</span> <span class="nav-text">在Linux中查看计算机系统的处理器Topology</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

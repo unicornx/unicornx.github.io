@@ -1,0 +1,739 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,mjpg-streamer," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-14
+主要参考文章：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="mjpg-streamer使用总结">
+<meta property="og:url" content="http://unicornx.github.io/2016/03/14/20160314-mjpeg-streamer/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-14
+主要参考文章：">
+<meta property="og:image" content="http://bbs.elecfans.com/data/attachment/forum/201509/06/004101ag5tlm9ygzvu5jje.jpg.thumb.jpg">
+<meta property="og:updated_time" content="2016-03-18T23:02:48.224Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="mjpg-streamer使用总结">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-14
+主要参考文章：">
+<meta name="twitter:image" content="http://bbs.elecfans.com/data/attachment/forum/201509/06/004101ag5tlm9ygzvu5jje.jpg.thumb.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/03/14/20160314-mjpeg-streamer/"/>
+
+  <title> mjpg-streamer使用总结 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                mjpg-streamer使用总结
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-03-14T17:11:12+08:00" content="2016-03-14">
+              2016-03-14
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/基于Linux的视频处理/" itemprop="url" rel="index">
+                    <span itemprop="name">基于Linux的视频处理</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/14/20160314-mjpeg-streamer/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/14/20160314-mjpeg-streamer/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-14</p>
+<p>主要参考文章：</p>
+<a id="more"></a>
+<p>有关jpeg</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/Libjpeg" target="_blank" rel="external">libjpeg - Wikipedia, the free encyclopedia</a></li>
+<li><a href="https://zh.wikipedia.org/zh-cn/Libjpeg" target="_blank" rel="external">libjpeg - 维基百科，自由的百科全书</a></li>
+</ul>
+<p>有关ImageMagick</p>
+<ul>
+<li><a href="https://en.wikipedia.org/wiki/ImageMagick" target="_blank" rel="external">ImageMagick - Wikipedia, the free encyclopedia</a></li>
+</ul>
+<p>mjpg-streamer</p>
+<ul>
+<li><a href="https://sourceforge.net/projects/mjpg-streamer/" target="_blank" rel="external">mjpg-streamer的主页</a></li>
+<li><a href="http://blog.csdn.net/dongshutong/article/details/7184776" target="_blank" rel="external">Mjpeg-streamer源码分析（一）</a></li>
+<li><a href="http://blog.csdn.net/pengrui18/article/details/8146814" target="_blank" rel="external">mjpg-streamer项目源码分析</a> 一般般，不咋滴</li>
+<li><a href="http://blog.163.com/chenhongswing@126/blog/static/1335924432011825104144612/" target="_blank" rel="external">mjpg-streamer源码分析</a></li>
+<li><a href="http://www.armbbs.net/forum.php?mod=viewthread&amp;tid=17434" target="_blank" rel="external">[心得体会] 近日无聊分析一下mjpg-streamer源码，记录过程</a> <em>*</em></li>
+</ul>
+<h1 id="安装mjpg-streamer的步骤："><a href="#安装mjpg-streamer的步骤：" class="headerlink" title="安装mjpg-streamer的步骤："></a>安装mjpg-streamer的步骤：</h1><p>我这里是基于笔记本的系统测试的，如果需要移植到一些嵌入式开发板上，操作类似。<br>参考<a href="http://blog.chinaunix.net/uid-25885064-id-3463014.html" target="_blank" rel="external">Ubuntu 12.10下源码安装MJPG-Streamer及使用</a></p>
+<p>首先安装一些依赖的软件：</p>
+<pre><code>$ sudo apt-get install libjpeg-dev subversion imagemagick
+</code></pre><p>mjpg-strreamer依赖于libjpeg提供的函数。<br>subversion就是常说的svn，安装svn的目的是后面需要用svn下载mjpg-strreamer的源码<br>imagemagick具体不知道是为了啥，网上说是一个免费的创建、编辑、合成图片的软件。它可以读取、转换、写入多种格式的图片。</p>
+<p>其次下载源码，下载官方的源码方法如下：</p>
+<pre><code>$ mkdir download
+$ cd download
+$ svn co https://mjpg-streamer.svn.sourceforge.net/svnroot/mjpg-streamer mjpg-streamer
+</code></pre><p>网上有一些从github上下载的地址，但那些都是派生的版本。注意sourceforge上有一个缺省的下载包<code>mjpg-streamer-r63.tar.gz</code>，但这个包直接编译总是不过，特别是最后链接时老是报<code>undefined reference to</code>dlopen’`之类的错误，没功夫去解决，先放一边吧。</p>
+<pre><code>$ cd mjpg-streamer-code/mjpg-streamer
+$ make clean all
+</code></pre><p>测试的方法：</p>
+<pre><code>$ export LD_LIBRARY_PATH=.
+$ ./mjpg_streamer -i &quot;input_uvc.so&quot; -o &quot;output_http.so -w ./www&quot;
+</code></pre><p>想要查看视频，请在web页面中输入地址：<a href="http://127.0.0.1:8080" target="_blank" rel="external">http://127.0.0.1:8080</a></p>
+<p>参数说明：</p>
+<ul>
+<li>-i 指定输入插件内容</li>
+<li>-o 制定输出插件内容</li>
+<li>-y 表示数据为yuv格式</li>
+<li>-d (制定视频输入设备)</li>
+<li>-w 192.168.9.111:8080(网络视频输出使用ip 和端口号)</li>
+</ul>
+<h1 id="mjpg-streamer的工作流程，大致如下所示："><a href="#mjpg-streamer的工作流程，大致如下所示：" class="headerlink" title="mjpg-streamer的工作流程，大致如下所示："></a>mjpg-streamer的工作流程，大致如下所示：</h1><p><img src="http://bbs.elecfans.com/data/attachment/forum/201509/06/004101ag5tlm9ygzvu5jje.jpg.thumb.jpg" alt=""></p>
+<p>plugins\input_uvc</p>
+<p>input_init函数<br>input_init函数是在plugins\input_uvc.c里面</p>
+<p>5.init_videoIn函数<br>        init_videoIn函数本身不复杂，大部分都是对vdIn 结构变量vd初始化。<br>        接着掉用init_v4l2函数：</p>
+<p>6.init_v412函数<br>        init_v412里面主要是使用ioctl设置驱动相关属性。<br>有篇文章写得很清晰：<br><a href="http://www.cnblogs.com/emouse/archive/2013/03/04/2943243.html" target="_blank" rel="external">http://www.cnblogs.com/emouse/archive/2013/03/04/2943243.html</a></p>
+<p>8.input_run函数<br>定义在mjpg-streamer/plugins/input_uvc/input_uvc.c里面，这个函数比较简单，主要完成：<br>1.分配帧内存<br>2.创建线程cam，线程函数cam_thread主要完成视频抓取功能</p>
+<p>9.cam_thread函数<br>定义在mjpg-streamer/plugins/input_uvc/input_uvc.c里面，主要完成：<br>1.调用uvcGrab函数抓取视频帧数据。<br>2.调用compress_yuyv_to_jpeg或memcpy_picture拷贝帧数据到pglobal-&gt;buf，这2个都是系统提供的函数。</p>
+<p>10.uvcGrab函数<br>位置：在mjpg-streamer/plugins/input_uvc/input_uvc.c<br>功能：抓取视频帧</p>
+<p>11.memcpy_picture函数<br>位置：V4L2 接口提供的函数<br>功能：拷贝数据到指定内存中</p>
+<p>plugins/output_http</p>
+<p>output_init函数<br>定义在mjpg-streamer/plugins/output_http/output_http.c里面，这个函数比较简单，主要完成：<br>        1.解析–output参数项，这个和input_init函数几乎是一样的。<br>        2.初始化一些结构，包括侦听端口等信息</p>
+<p>12.output_run函数<br>位置：mjpg-streamer/plugins/output_http/output_http.c<br>功能：为客户端提供服务，传输视频数据</p>
+<p>函数结构比较简单，创建线程，线程函数为server_thread</p>
+<p>13.server_thread函数<br>位置：mjpg-streamer/plugins/output_http/httpd.c<br>功能：创建TCP socket，为客户端提供网络服务</p>
+<p>14.client_thread函数<br>位置：mjpg-streamer/plugins/output_http/httpd.c<br>功能：为客户端发送数据</p>
+<p>主要调用函数send_snapshot和send_stream发socket发送数据<br>772行：<br>   case A_SNAPSHOT:<br>      DBG(“Request for snapshot\n”);<br>      send_snapshot(lcfd.fd);   // 6.发送快照<br>      break;<br>    case A_STREAM:<br>      DBG(“Request for stream\n”);<br>      send_stream(lcfd.fd);    //7.发送数据</p>
+<p>15.send_snapshot和send_stream函数<br>位置：mjpg-streamer/plugins/output_http/httpd.c<br>功能：发送数据</p>
+<p>主要调用write发送数据，虽然兜来兜去，其实write的参数fd就是上面创建的socket:</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/mjpg-streamer/" rel="tag">#mjpg-streamer</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/12/20160312-v4l2-app/" rel="next" title="基于Linux的V4L2接口编写视频采集应用程序的方法">
+                <i class="fa fa-chevron-left"></i> 基于Linux的V4L2接口编写视频采集应用程序的方法
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/17/20160317-lk-sched/" rel="prev" title="Linux的任务调度">
+                Linux的任务调度 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/03/14/20160314-mjpeg-streamer/"
+           data-title="mjpg-streamer使用总结" data-url="http://unicornx.github.io/2016/03/14/20160314-mjpeg-streamer/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#安装mjpg-streamer的步骤："><span class="nav-number">1.</span> <span class="nav-text">安装mjpg-streamer的步骤：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mjpg-streamer的工作流程，大致如下所示："><span class="nav-number">2.</span> <span class="nav-text">mjpg-streamer的工作流程，大致如下所示：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

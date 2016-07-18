@@ -1,0 +1,888 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="kernel,mini2440," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-12">
+<meta property="og:type" content="article">
+<meta property="og:title" content="machine_desc结构体">
+<meta property="og:url" content="http://unicornx.github.io/2016/05/12/20160512-machine_desc/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-12">
+<meta property="og:updated_time" content="2016-05-13T06:54:56.110Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="machine_desc结构体">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-12">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/05/12/20160512-machine_desc/"/>
+
+  <title> machine_desc结构体 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                machine_desc结构体
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-12T09:50:12+08:00" content="2016-05-12">
+              2016-05-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux系统移植/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux系统移植</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/12/20160512-machine_desc/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/12/20160512-machine_desc/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-05-12</p>
+<a id="more"></a>
+<p>参考</p>
+<ul>
+<li>mini2440 Linux移植开发实战指南</li>
+<li>linux-2.6.32.2</li>
+<li><a href="http://blog.csdn.net/myarrow/article/details/8609564" target="_blank" rel="external">machine_desc结构体</a></li>
+<li><a href="http://herexuis0088.blog.163.com/blog/static/21385723920131285852922/" target="_blank" rel="external">machine_desc初始化setup_machine</a></li>
+</ul>
+<h1 id="machine-desc结构体"><a href="#machine-desc结构体" class="headerlink" title="machine_desc结构体"></a>machine_desc结构体</h1><p>针对ARM架构，内核提供了一个重要的结构体<code>struct machine_desc</code>，这个结构体在内核移植中起到相当重要的作用，内核通过<code>machine_desc</code>结构体来控制系统体系架构相关部分的初始化，注意这个结构体只针对ARM的体系架构，在内核启动初始化过程中，进入<code>setup_arch()</code>阶段后的处理和相关结构体都是由各个体系架构按照自己的理解设计的，相关代码都在内核代码树的<code>arch/$ARCH</code>下分别管理。</p>
+<p><code>machine_desc</code>结构体定义在<code>arch/arm/include/asm/mach/arch.h</code>，如下所示：</p>
+<pre><code>struct machine_desc {
+    /*
+     * Note! The first four elements are used
+     * by assembler code in head.S, head-common.S
+     */
+    unsigned int        nr;        /* architecture number    */
+    unsigned int        phys_io;    /* start of physical io    */
+    unsigned int        io_pg_offst;    /* byte offset for io 
+                         * page tabe entry    */
+
+    const char        *name;        /* architecture name    */
+    unsigned long        boot_params;    /* tagged list        */
+
+    unsigned int        video_start;    /* start of video RAM    */
+    unsigned int        video_end;    /* end of video RAM    */
+
+    unsigned int        reserve_lp0 :1;    /* never has lp0    */
+    unsigned int        reserve_lp1 :1;    /* never has lp1    */
+    unsigned int        reserve_lp2 :1;    /* never has lp2    */
+    unsigned int        soft_reboot :1;    /* soft reboot        */
+    void            (*fixup)(struct machine_desc *,
+                     struct tag *, char **,
+                     struct meminfo *);
+    void            (*map_io)(void);/* IO mapping function    */
+    void            (*init_irq)(void);
+    struct sys_timer    *timer;        /* system tick timer    */
+    void            (*init_machine)(void);
+};
+</code></pre><h1 id="板级初始化"><a href="#板级初始化" class="headerlink" title="板级初始化"></a>板级初始化</h1><p>查看针对smdk2440开发板初始化的代码例子，参考<code>arch/arm/mach-s3c2440/mach-smdk2440.c</code>，有这么一段话：</p>
+<pre><code>MACHINE_START(S3C2440, &quot;SMDK2440&quot;)
+    /* Maintainer: Ben Dooks &lt;ben@fluff.org&gt; */
+    .phys_io    = S3C2410_PA_UART,
+    .io_pg_offst    = (((u32)S3C24XX_VA_UART) &gt;&gt; 18) &amp; 0xfffc,
+    .boot_params    = S3C2410_SDRAM_PA + 0x100,
+
+    .init_irq    = s3c24xx_init_irq,
+    .map_io        = smdk2440_map_io,
+    .init_machine    = smdk2440_machine_init,
+    .timer        = &amp;s3c24xx_timer,
+MACHINE_END
+</code></pre><p><code>MACHINE_START</code>和<code>MACHINE_END</code>是两个宏，同样定义在<code>arch/arm/include/asm/mach/arch.h</code>，如下：</p>
+<pre><code>/*
+ * Set of macros to define architecture features.  This is built into
+ * a table by the linker.
+ */
+#define MACHINE_START(_type,_name)            \
+static const struct machine_desc __mach_desc_##_type    \
+ __used                            \
+ __attribute__((__section__(&quot;.arch.info.init&quot;))) = {    \
+    .nr        = MACH_TYPE_##_type,        \
+    .name        = _name,
+
+#define MACHINE_END                \
+};
+</code></pre><p>应用这两个宏后，上面的代码转化为：</p>
+<pre><code>static const struct machine_desc __mach_desc_S3C2440
+ __used                            
+ __attribute__((__section__(&quot;.arch.info.init&quot;))) = {
+    .nr        = MACH_TYPE_S3C2440,
+    .name        = &quot;SMDK2440&quot;,
+    /* Maintainer: Ben Dooks &lt;ben@fluff.org&gt; */
+    .phys_io    = S3C2410_PA_UART,
+    .io_pg_offst    = (((u32)S3C24XX_VA_UART) &gt;&gt; 18) &amp; 0xfffc,
+    .boot_params    = S3C2410_SDRAM_PA + 0x100,
+
+    .init_irq    = s3c24xx_init_irq,
+    .map_io        = smdk2440_map_io,
+    .init_machine    = smdk2440_machine_init,
+    .timer        = &amp;s3c24xx_timer,
+};
+</code></pre><p>也就是定义了一个结构体的变量叫<code>__mach_desc_S3C2440</code>，放在<code>.arch.info.init</code>节中，如果定义了多个这样的变量，则在链接内核时，它们被组织在一起，开始地址为<code>__arch_info_begin</code>，结束地址为<code>__arch_info_end</code>(这个可以从链接脚本<code>arch/arm/kernel/vmlinux.lds.S</code>中可以看出来)。</p>
+<p>每一个这样的变量对应一个开发板类型。U-BOOT引导内核时，会在R1寄存器中给出开发板的标记(机器类型ID)；譬如对于SMDK2440开发板，U-Boot传入的机器类型ID为<code>MACH_TYPE_SMDK2440</code>。内核在启动过程中，也就是著名的<code>__lookup_machine_type()</code>函数过程中会从R1寄存器中读取这个值，然后到<code>.arch.info.init</code>节中遍历查找每个<code>machine_desc</code>结构体变量的<code>.nr</code>，同时进行比对，如果找到则完成机器(开发板)的检查，同时还根据对应的<code>machine_desc</code>结构体变量中保存的参数，譬如一些回调函数继续完成板一级的初始化过程。</p>
+<h1 id="machine-desc结构体中的几个重要的成员的设置"><a href="#machine-desc结构体中的几个重要的成员的设置" class="headerlink" title="machine_desc结构体中的几个重要的成员的设置"></a>machine_desc结构体中的几个重要的成员的设置</h1><h2 id="phys-io和io-pg-offst"><a href="#phys-io和io-pg-offst" class="headerlink" title="phys_io和io_pg_offst"></a>phys_io和io_pg_offst</h2><p>参考<a href="http://blog.csdn.net/wavemcu/article/details/7252281" target="_blank" rel="external">linux下machine_desc结构体中的phys_io与io_pg_offst的作用及使用方法</a></p>
+<p>从参考文章中知道自从v2.6.38中已经没有<code>phys_io</code>与<code>io_pg_offs</code>这两个变量。但我练习使用的是v2.6.32.2，所以还要涉及到它们。<br>字面上<code>phys_io</code>用于保存物理IO的起始地址，<code>io_pg_offst</code>用于保存IO页表的偏移字节的地址（MMU页表）。但在实际操作中<code>phys_io</code>用来保存UART的物理地址，<code>io_pg_offst</code>用来保存UART的内核空间虚拟地址。两者的映射关系在<code>arch/arm/kernel/head.S</code>中建立。这样，在kernel还没有初始化完MMU时，就可以通过写<code>io_pg_offst</code>向UART打印调试信息。这主要在<code>low level</code>的调试函数中使用，比如<code>printascii()</code>。</p>
+<h2 id="boot-params"><a href="#boot-params" class="headerlink" title="boot_params"></a>boot_params</h2><p>这个是用来设置存放从bootloader传递到内核来的tag参数的地址信息的。在<code>setup_arch()</code>函数中会根据这个值到内存中找到这些参数然后调用<code>parse_tags()</code>函数进行解析。</p>
+<p>注意这个参数填写的地址信息是物理地址，所以具体使用前要将其转化为虚拟地址(<code>phys_to_virt()</code>)。</p>
+<p>有关tag参数的概念，参考<a href="/2015/12/26/20151226-transfer-params-btw-uboot-and-kernel">U-boot和内核之间传递复杂参数的TAG方式</a></p>
+<pre><code>void __init setup_arch(char **cmdline_p)
+{
+    struct tag *tags = (struct tag *)&amp;init_tags;
+    ...
+
+    if (__atags_pointer)
+        tags = phys_to_virt(__atags_pointer);
+    else if (mdesc-&gt;boot_params)
+        tags = phys_to_virt(mdesc-&gt;boot_params);
+
+    ...
+
+    if (tags-&gt;hdr.tag == ATAG_CORE) {
+        ...
+        parse_tags(tags);
+    }
+
+    ...
+}
+</code></pre><h2 id="fixup"><a href="#fixup" class="headerlink" title="fixup"></a>fixup</h2><p>用内核参数列表填充meminfo，这个函数，有些板子有，有些没有，譬如我使用的mini2440就不需要。</p>
+<h2 id="map-io-init-irq-timer-init-machine"><a href="#map-io-init-irq-timer-init-machine" class="headerlink" title="map_io/init_irq/timer/init_machine"></a>map_io/init_irq/timer/init_machine</h2><p>这几个回调函数都需要我们在系统移植的时候根据自己的板子情况自己调整。<br>其中：</p>
+<ul>
+<li>map_io：处理和IO端口映射相关的事务。</li>
+<li>init_irq：和中断相关</li>
+<li>timer：和系统时钟相关</li>
+<li>init_machine：板级设备的注册和初始化</li>
+</ul>
+<p>下面来分析一下这些回调函数被调用的地方和时间点：</p>
+<p>首先查看<code>arch/arm/kernel/setup.c</code>文件的<code>setup_arch()</code>函数中有这么几段代码：</p>
+<pre><code>void __init setup_arch(char **cmdline_p)
+{
+    ...
+    struct machine_desc *mdesc;
+
+    ...
+
+    mdesc = setup_machine(machine_arch_type);
+
+    ...
+    paging_init(mdesc);
+    ...
+
+    /*
+     * Set up various architecture-specific pointers
+     */
+    init_arch_irq = mdesc-&gt;init_irq;
+    system_timer = mdesc-&gt;timer;
+    init_machine = mdesc-&gt;init_machine;
+
+    ...
+}
+</code></pre><p>其中从<code>paging_init()</code>函数入口一路跟踪下去会调用到<code>map_io</code>。参考如下流程：</p>
+<pre><code>/*
+ * paging_init() sets up the page tables, initialises the zone memory
+ * maps, and sets up the zero page, bad page and bad page tables.
+ */
+void __init paging_init(struct machine_desc *mdesc)
+{
+    ...
+    devicemaps_init(mdesc);
+    ...
+}
+
+
+static void __init devicemaps_init(struct machine_desc *mdesc)
+{
+    ...
+
+    /*
+     * Ask the machine support to map in the statically mapped devices.
+     */
+    if (mdesc-&gt;map_io)
+        mdesc-&gt;map_io();
+
+    ...
+}
+</code></pre><p><code>init_arch_irq/init_machine</code>是分别定义的两个静态函数指针变量，而<code>system_timer</code>是一个静态结构体<code>struct sys_timer</code>的指针变量。也就是说在<code>setup_arch()</code>函数中根据U-boot传开的机器ID，保存在<code>machine_arch_type</code>中得到对应的<code>machine_desc</code>结构体对象的地址，然后把一些后面要使用的回调函数等等先保存在<code>init_irq/timer/init_machine</code>这些静态的变量中。</p>
+<p>然后分别在后面的<code>init_IRQ()/time_init()/customize_machine()</code>函数中通过如下方式间接调用<code>init_irq/timer/init_machine</code>。</p>
+<pre><code>/* @ arch/arm/kernel/irq.c */
+void __init init_IRQ(void)
+{
+    ...    
+
+    init_arch_irq();
+}
+
+/* @ arch/arm/kernel/time.c */
+void __init time_init(void)
+{
+    ...
+
+    system_timer-&gt;init();
+}
+
+/* @ arch/arm/kernel/setup.c */
+static int __init customize_machine(void)
+{
+    /* customizes platform devices, or adds new ones */
+    if (init_machine)
+        init_machine();
+    return 0;
+}
+arch_initcall(customize_machine);
+</code></pre><p>其中<code>customize_machine()</code>函数的调用路径相对稍微有点复杂：</p>
+<ul>
+<li>首先<code>rest_init()</code>中会启动内核线程，执行<code>kernel_init()</code>函数。</li>
+<li><code>kernel_init()</code>函数中调用<code>do_basic_setup()</code>函数;</li>
+<li><code>do_basic_setup()</code>函数会执行<code>do_initcalls()</code>函数</li>
+<li>而在<code>do_initcalls()函数中会依次执行所有声明为</code>__init<code>的函数，包括</code>customize_machine()`函数。</li>
+</ul>
+<p>所以我们如果按照start_kernel()函数中第一级调用者来看，可以认为<code>init_machine()</code>是从<code>rest_init()</code>函数发起的。</p>
+<p>所以整理一下这些函数的调用顺序：</p>
+<pre><code>asmlinkage void __init start_kernel(void)
+{
+    ...
+
+    setup_arch(&amp;command_line); //这里会触发map_io
+
+    ...
+
+    init_IRQ(); //这里会触发init_irq
+    ...
+    time_init(); //这里会触发timer的初始化
+
+    ...
+    /* Do the rest non-__init&apos;ed, we&apos;re now alive */
+    rest_init(); //这里会触发init_machine
+}
+</code></pre><p>由此可见一斑。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/05/05/20160505-lk-platform-drv/" rel="next" title="Linux的platform设备">
+                <i class="fa fa-chevron-left"></i> Linux的platform设备
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/05/13/20160513-start_kernel_init/" rel="prev" title="内核初始化－从start_kernel到init">
+                内核初始化－从start_kernel到init <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/05/12/20160512-machine_desc/"
+           data-title="machine_desc结构体" data-url="http://unicornx.github.io/2016/05/12/20160512-machine_desc/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#machine-desc结构体"><span class="nav-number">1.</span> <span class="nav-text">machine_desc结构体</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#板级初始化"><span class="nav-number">2.</span> <span class="nav-text">板级初始化</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#machine-desc结构体中的几个重要的成员的设置"><span class="nav-number">3.</span> <span class="nav-text">machine_desc结构体中的几个重要的成员的设置</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#phys-io和io-pg-offst"><span class="nav-number">3.1.</span> <span class="nav-text">phys_io和io_pg_offst</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#boot-params"><span class="nav-number">3.2.</span> <span class="nav-text">boot_params</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#fixup"><span class="nav-number">3.3.</span> <span class="nav-text">fixup</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#map-io-init-irq-timer-init-machine"><span class="nav-number">3.4.</span> <span class="nav-text">map_io/init_irq/timer/init_machine</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

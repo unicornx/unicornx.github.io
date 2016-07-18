@@ -1,0 +1,967 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,camera,v4l2," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-12
+主要参考文章：
+
+V4L2官方主页
+V4L2官方主页的在线手册说明
+V4L2官方主页的视频应用例子
+ 内核v3.0.15 
+mjpg-streamer的代码，主要是参考了plugins/input_uvc/v4l2uvc.c 
+嵌入式">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于Linux的V4L2接口编写视频采集应用程序的方法">
+<meta property="og:url" content="http://unicornx.github.io/2016/03/12/20160312-v4l2-app/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-12
+主要参考文章：
+
+V4L2官方主页
+V4L2官方主页的在线手册说明
+V4L2官方主页的视频应用例子
+ 内核v3.0.15 
+mjpg-streamer的代码，主要是参考了plugins/input_uvc/v4l2uvc.c 
+嵌入式">
+<meta property="og:image" content="http://www.xiangb.com/vga/UploadFiles_6698/201102/20110215120200245.jpg">
+<meta property="og:updated_time" content="2016-03-18T23:02:48.114Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于Linux的V4L2接口编写视频采集应用程序的方法">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-12
+主要参考文章：
+
+V4L2官方主页
+V4L2官方主页的在线手册说明
+V4L2官方主页的视频应用例子
+ 内核v3.0.15 
+mjpg-streamer的代码，主要是参考了plugins/input_uvc/v4l2uvc.c 
+嵌入式">
+<meta name="twitter:image" content="http://www.xiangb.com/vga/UploadFiles_6698/201102/20110215120200245.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/03/12/20160312-v4l2-app/"/>
+
+  <title> 基于Linux的V4L2接口编写视频采集应用程序的方法 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                基于Linux的V4L2接口编写视频采集应用程序的方法
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-03-12T21:52:12+08:00" content="2016-03-12">
+              2016-03-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/基于Linux的视频处理/" itemprop="url" rel="index">
+                    <span itemprop="name">基于Linux的视频处理</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/12/20160312-v4l2-app/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/12/20160312-v4l2-app/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-12</p>
+<p>主要参考文章：</p>
+<ul>
+<li><a href="http://linuxtv.org" target="_blank" rel="external">V4L2官方主页</a></li>
+<li><a href="LINUX MEDIA INFRASTRUCTURE API">V4L2官方主页的在线手册说明</a></li>
+<li><a href="https://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html" target="_blank" rel="external">V4L2官方主页的视频应用例子</a></li>
+<li><linux videodev2.h=""> 内核v3.0.15 </linux></li>
+<li><code>mjpg-streamer</code>的代码，主要是参考了<code>plugins/input_uvc/v4l2uvc.c</code> </li>
+<li><a href="http://www.xiangb.com/vga/vga_946.html" target="_blank" rel="external">嵌入式LINUX环境下视频采集知识</a> V4L2 非常详细的介绍</li>
+<li><a href="http://www.cnblogs.com/emouse/archive/2013/03/04/2943243.html" target="_blank" rel="external">Linux之V4L2基础编程</a></li>
+<li><a href="http://blog.csdn.net/zgyulongfei/article/details/7526249" target="_blank" rel="external">V4L2采集yuv视频花屏：Linux视频采集与编码（一）</a> 从这个博客我知道了V4L2的官方例子，在此表示感谢。</li>
+<li><a href="http://blog.chinaunix.net/uid-26101960-id-3226284.html" target="_blank" rel="external">V4L2视频采集接口使用说明</a></li>
+</ul>
+<a id="more"></a>
+<h1 id="V4L2简介"><a href="#V4L2简介" class="headerlink" title="V4L2简介"></a>V4L2简介</h1><p>V4L(Video4Linux)是为市场现在常见的电视捕获卡和并口及USB口的摄像头提供统一的编程接口。同时也提供无线电通信和文字电视广播解码和垂直消隐的数据接口。</p>
+<p>V4L2(Video for Linux two)，是V4L的改进版。</p>
+<p>V4L从编程的角度来看，作为Linux内核中关于视频设备的框架子系统，对于上层应用提供了一套统一的接口来访问底层的视频设备，起到抽象底层硬件的差异的作用。向下面向视频采集设备的驱动开发定义了一套开发规范，同时提取出公共代码避免代码冗余，将所有的视频采集设备的驱动程序都纳入其的管理之中。V4L2不仅给驱动程序编写者带来极大的方便，同时也方便了应用程序的编写和移植，在远程会议、可视电话、视频监控系统和嵌入式多媒体终端中都有广泛的应用。</p>
+<p>Linux系统V4L2的能力可在Linux内核编译阶段配置，默认情况下都有此开发接口。V4L2从Linux 2.5.x版本的内核中开始出现。</p>
+<p>有关V4L2的内核子系统的介绍可以参考</p>
+<ul>
+<li><a href="http://blog.csdn.net/rubyboss/article/details/14053523" target="_blank" rel="external">V4L2框架分析学习</a>，该博文还引用了内核文档中有关V4L2的文档，可以参考。</li>
+<li><a href="http://www.xuebuyuan.com/2041064.html" target="_blank" rel="external">inux3.3 v4l2视频采集驱动框架(vfe, camera i2c driver，v4l2_subdev等之间的联系)</a></li>
+</ul>
+<p>但目前我不会去开发视频设备的驱动，就不去仔细研究了，留待以后用到的时候再看。</p>
+<p>这里重点从上层应用程序的角度出发学习怎么基于V4L2面向应用程序提供的接口操作uvc视频采集设备，譬如uvc摄像头。</p>
+<p>本篇笔记主要结合<a href="https://linuxtv.org/downloads/v4l-dvb-apis/capture-example.html" target="_blank" rel="external">V4L2官方主页的视频应用例子</a>来学习。</p>
+<p>有关查找V4L2定义的重要数据结构和API，</p>
+<ul>
+<li>如果是开发内核驱动，可以参考内核代码树的<code>include/linux/videodev2.h</code>，在老版本的内核代码树中(v2.6.32)另外还有一个文件<code>include/linux/videodev.h</code>是针对旧的V4L的，3.0.15内核里已经没有了。</li>
+<li><p>如果是开发应用层程序，也需要包含videodev2.h</p>
+<pre><code>#include &lt;linux/videodev2.h&gt;
+</code></pre></li>
+</ul>
+<p>V4L2支持多种IO方法，参考例子的<code>io_method</code>枚举类型。我练习时采用的是内存映射方式(<code>IO_METHOD_MMAP</code>)，该方法一般用于连续视频数据的采集，而<code>IO_METHOD_READ</code>常用于静态图片数据的采集。</p>
+<p>应用程序通过V4L2接口采集视频数据分为五个步骤：</p>
+<ul>
+<li>首先，打开视频设备文件。</li>
+<li>其次，进行视频采集的参数初始化，通过V4L2接口设置视频图像的采集窗口、采集的点阵大小和格式;</li>
+<li>第三，申请若干视频采集的帧缓冲区，并将这些帧缓冲区从内核空间映射到用户空间，便于应用程序读取/处理视频数据;</li>
+<li>第四，将申请到的帧缓冲区在视频采集输入队列排队，并启动视频采集;</li>
+<li>第五，驱动开始视频数据的采集，应用程序从视频采集输出队列取出帧缓冲区，处理完后，将帧缓冲区重新放入视频采集输入队列，循环往复采集连续的视频数据;</li>
+<li>第六，停止视频采集。</li>
+<li>第七，关闭视频设备文件。</li>
+</ul>
+<h1 id="详细的步骤描述"><a href="#详细的步骤描述" class="headerlink" title="详细的步骤描述"></a>详细的步骤描述</h1><h2 id="打开设备"><a href="#打开设备" class="headerlink" title="打开设备"></a>打开设备</h2><p>在Linux下，摄像头硬件已经被映射为设备文件“/dev/video0”，用open函数打开这个设备文件，获得其文件描述符fd_v4l2，然后对这个文件描述符进行参数初始化。应用程序能够使用阻塞模式或非阻塞模式打开视频设备，如果使用非阻塞模式（<code>O_NONBLOCK</code>）调用视频设备，即使尚未捕获到信息，驱动依旧会把缓存（DQBUFF）里的东西返回给应用程序。</p>
+<p>打开设备的代码参考例子里的<code>open_device()</code>。</p>
+<h2 id="视频采集的参数初始化"><a href="#视频采集的参数初始化" class="headerlink" title="视频采集的参数初始化"></a>视频采集的参数初始化</h2><p>打开成功后，可以操作设备，注意V4L2提供的接口大部分都是通过ioctl的方式。对应的request和相应的结构体定义可以参考头文件<code>videodev2.h</code>。</p>
+<pre><code>/*
+ *    I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+ *
+ */
+#define VIDIOC_QUERYCAP         _IOR(&apos;V&apos;,  0, struct v4l2_capability)
+#define VIDIOC_RESERVED          _IO(&apos;V&apos;,  1)
+#define VIDIOC_ENUM_FMT         _IOWR(&apos;V&apos;,  2, struct v4l2_fmtdesc)
+#define VIDIOC_G_FMT        _IOWR(&apos;V&apos;,  4, struct v4l2_format)
+#define VIDIOC_S_FMT        _IOWR(&apos;V&apos;,  5, struct v4l2_format)
+    ...
+</code></pre><p>参考例子的<code>init_device()</code>。</p>
+<h3 id="查询设备的能力"><a href="#查询设备的能力" class="headerlink" title="查询设备的能力"></a>查询设备的能力</h3><pre><code>#define VIDIOC_QUERYCAP         _IOR(&apos;V&apos;,  0, struct v4l2_capability)
+
+/*
+ *    D R I V E R   C A P A B I L I T I E S
+ */
+struct v4l2_capability {
+    __u8    driver[16];    /* i.e. &quot;bttv&quot; 驱动名字 */
+    __u8    card[32];    /* i.e. &quot;Hauppauge WinTV&quot; 设备名字 */
+    __u8    bus_info[32];    /* &quot;PCI:&quot; + pci_name(pci_dev) 设备在系统中的位置 */
+    __u32   version;        /* should use KERNEL_VERSION() 驱动版本号 */
+    __u32    capabilities;    /* Device capabilities 设备支持的操作 */
+    __u32    reserved[4];
+};
+</code></pre><p>其中capabilitues成员的取值是一些诸如<code>V4L2_CAP_VIDEO_CAPTURE</code>的宏的位或形式，具体含义查看头文件。</p>
+<h3 id="设置视频的采集窗口参数"><a href="#设置视频的采集窗口参数" class="headerlink" title="设置视频的采集窗口参数"></a>设置视频的采集窗口参数</h3><p>设置采集窗口就是在摄像头设备的取景范围之内设定一个视频采集区域。主要涉及：</p>
+<pre><code>#define VIDIOC_CROPCAP        _IOWR(&apos;V&apos;, 58, struct v4l2_cropcap)
+#define VIDIOC_G_CROP        _IOWR(&apos;V&apos;, 59, struct v4l2_crop)
+#define VIDIOC_S_CROP         _IOW(&apos;V&apos;, 60, struct v4l2_crop)
+</code></pre><p>更详细的描述参考V4L2官网<a href="https://linuxtv.org/downloads/v4l-dvb-apis/crop.html" target="_blank" rel="external">Image Cropping, Insertion and Scaling</a>。但有时对于简单的uvc摄像头可以采用缺省值，大可不必配置。
+　　</p>
+<h3 id="设置视频点阵格式和点阵大小"><a href="#设置视频点阵格式和点阵大小" class="headerlink" title="设置视频点阵格式和点阵大小"></a>设置视频点阵格式和点阵大小</h3><pre><code>#define VIDIOC_G_FMT        _IOWR(&apos;V&apos;,  4, struct v4l2_format)
+#define VIDIOC_S_FMT        _IOWR(&apos;V&apos;,  5, struct v4l2_format)
+</code></pre><p>主要是对结构体v4l2_format进行赋值，它由type和联合体fmt构成，来描述视频设备当前行为和数据的格式。</p>
+<pre><code>/**
+ * struct v4l2_format - stream data format
+ * @type:    type of the data stream
+ * @pix:    definition of an image format
+ * @pix_mp:    definition of a multiplanar image format
+ * @win:    definition of an overlaid image
+ * @vbi:    raw VBI capture or output parameters
+ * @sliced:    sliced VBI capture or output parameters
+ * @raw_data:    placeholder for future extensions and custom formats
+ */
+struct v4l2_format {
+    enum v4l2_buf_type type;    /* 传输流类型，取值见下面的譬如V4L2_BUF_TYPE_VIDEO_CAPTURE等 */
+    union {
+        struct v4l2_pix_format        pix;     /* V4L2_BUF_TYPE_VIDEO_CAPTURE */
+        struct v4l2_pix_format_mplane    pix_mp;  /* V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE */
+        struct v4l2_window        win;     /* V4L2_BUF_TYPE_VIDEO_OVERLAY */
+        struct v4l2_vbi_format        vbi;     /* V4L2_BUF_TYPE_VBI_CAPTURE */
+        struct v4l2_sliced_vbi_format    sliced;  /* V4L2_BUF_TYPE_SLICED_VBI_CAPTURE */
+        __u8    raw_data[200];                   /* user-defined */
+    } fmt;
+};
+</code></pre><p>　　<br>譬如我们使用摄像头进行视频采集时，可以把type赋值为视频采集类型<code>V4L2_BUF_TYPE_VIDEO_CAPTURE</code>,然后可以对fmt成员的pix成员进行赋值。</p>
+<p>pix为表示图形格式的<code>v4l2_pix_format</code>型结构体。</p>
+<pre><code>/*
+ *    V I D E O   I M A G E   F O R M A T
+ */
+struct v4l2_pix_format {
+    __u32                 width;
+    __u32            height;
+    __u32            pixelformat;
+    enum v4l2_field      field;
+    __u32                bytesperline;    /* for padding, zero if unused */
+    __u32                  sizeimage;
+    enum v4l2_colorspace    colorspace;
+    __u32            priv;        /* private data, depends on pixelformat */
+};
+</code></pre><p>需要设定pix里的几个变量:</p>
+<ul>
+<li>width、height表示图像的宽度、高度，以字节为单位;</li>
+<li>pixelformat表示采集格式，譬如<code>V4L2_PIX_FMT_YUV420</code></li>
+<li>bytesperline表示每一行的字节数</li>
+<li>sizeimage表示图像所占的存储空间大小，以字节为单位;</li>
+</ul>
+<h3 id="设置视频采集的帧率"><a href="#设置视频采集的帧率" class="headerlink" title="设置视频采集的帧率"></a>设置视频采集的帧率</h3><p>这个官方的例子里没有演示，但是在<code>mjpg-streamer</code>的代码里有体现。</p>
+<pre><code>#define VIDIOC_G_PARM        _IOWR(&apos;V&apos;, 21, struct v4l2_streamparm)
+#define VIDIOC_S_PARM        _IOWR(&apos;V&apos;, 22, struct v4l2_streamparm)
+
+/*    Stream type-dependent parameters
+ */
+struct v4l2_streamparm {
+    enum v4l2_buf_type type;
+    union {
+        struct v4l2_captureparm    capture;
+        struct v4l2_outputparm    output;
+        __u8    raw_data[200];  /* user-defined */
+    } parm;
+};
+</code></pre><p>结构体<code>v4l2_streamparm</code>来描述视频流的属性，它由type和联合体parm构成。type的取值同<code>v4l2_format</code>的type字段，如果选的是<code>V4L2_BUF_TYPE_VIDEO_CAPTURE</code>，所以仅需设定parm中的<code>v4l2_captureparm</code>型结构体capture即可。</p>
+<pre><code>/*
+ *    C A P T U R E   P A R A M E T E R S
+ */
+struct v4l2_captureparm {
+    __u32           capability;      /*  Supported modes */
+    __u32           capturemode;      /*  Current mode */
+    struct v4l2_fract  timeperframe;  /*  Time per frame in .1us units */
+    __u32           extendedmode;  /*  Driver-specific extensions */
+    __u32              readbuffers;   /*  # of buffers for read */
+    __u32           reserved[4];
+};
+</code></pre><p>在其中，<br>capturemode则表示采集模式，采集高质量图片值为1，一般设为0。</p>
+<p><code>v4l2_fract</code>型结构体timeperframe表示平均每一帧所占的时间。</p>
+<pre><code>struct v4l2_fract {
+    __u32   numerator;
+    __u32   denominator;
+};
+</code></pre><p>由其元素numerator和denominator共同决定，该时长为numerator/denominator;</p>
+<h2 id="申请并设置视频采集的帧缓冲区"><a href="#申请并设置视频采集的帧缓冲区" class="headerlink" title="申请并设置视频采集的帧缓冲区"></a>申请并设置视频采集的帧缓冲区</h2><p>参考官方例子的<code>init_mmap()</code>。</p>
+<p>前期初始化完成后，只是解决了一帧视频数据的格式和大小问题，而连续视频帧数据的采集需要用帧缓冲区队列的方式来解决。在了解下面的操作步骤之前我们先大概了解一下V4L2的框架是如何支持视频采集的：</p>
+<p>在内核的V4L2驱动程序处理视频的过程中，定义了两个队列：视频采集输入队列(incoming queues)和视频采集输出队列(outgoing queues)，两个队列中维护的都是一些内存区块，输入队列中的内存区块是用来等待驱动采集到的视频数据，存满一块后会被移入输出队列，后者用来等待应用程序提取进行处理。采用双队列处理是为了实现采集和处理的并发以及同步。</p>
+<p>应用程序需要配合内核和驱动，执行如下动作：</p>
+<p>首先向内核申请存放捕获的视频数据的区块，我们称之为帧缓冲区块。</p>
+<p>然后通知内核驱动启动视频采集，驱动程序开始采集一帧数据，采集的同时把采集到的数据写入视频采集输入队列的第一个帧缓冲区块，一帧数据采集完成，也就是输入队列的第一个帧缓冲区块存满一帧数据后，驱动程序将该帧缓冲区块移至视频采集输出队列，等待应用程序从输出队列取出。与此同时，驱动程序开始采集下一帧数据，放入输入队列的第二个帧缓冲区块（此时该区块已经成为输入队列的第一个区块），同样帧缓冲区存满后，被移入视频采集输出队列。</p>
+<p>应用程序负责从视频采集输出队列中取出含有视频数据的帧缓冲区，处理帧缓冲区中的视频数据，如存储或压缩等。处理完毕后，应用程序负责将处理完数据的帧缓冲区块重新从输出队列移除并放入视频采集输入队列。如此循环往复进行循环采集。</p>
+<p>采集过程完成后，应用程序需要通知驱动停止采集，并负责释放先前申请的内存帧缓冲区块。</p>
+<p>整个过程如下图所示。</p>
+<p><img src="http://www.xiangb.com/vga/UploadFiles_6698/201102/20110215120200245.jpg" alt=""></p>
+<p>下面就详细的过程看一下具体的代码和接口。</p>
+<h3 id="首先为输入队列和输出队列分配帧缓存区块"><a href="#首先为输入队列和输出队列分配帧缓存区块" class="headerlink" title="首先为输入队列和输出队列分配帧缓存区块"></a>首先为输入队列和输出队列分配帧缓存区块</h3><p>应用程序通过API接口提供的方法(VIDIOC_REQBUFS)申请若干个视频数据的帧缓冲区块，申请帧缓冲区块的数量一般不低于3个，每个帧缓冲区存放一帧视频数据，这些帧缓冲区在内核空间。</p>
+<pre><code>#define VIDIOC_REQBUFS        _IOWR(&apos;V&apos;,  8, struct v4l2_requestbuffers)
+
+/*
+ *    M E M O R Y - M A P P I N G   B U F F E R S
+ */
+struct v4l2_requestbuffers {
+    __u32            count; // 缓存数量，也就是说在缓存队列里的图片的帧数
+    enum v4l2_buf_type      type;  // 数据流类型，必须永远是V4L2_BUF_TYPE_VIDEO_CAPTURE
+    enum v4l2_memory        memory;// V4L2_MEMORY_MMAP 或 V4L2_MEMORY_USERPTR
+    __u32            reserved[2];
+};
+</code></pre><h3 id="映射用户空间地址"><a href="#映射用户空间地址" class="headerlink" title="映射用户空间地址"></a>映射用户空间地址</h3><p>上一步完成后，我们向内核申请了count个帧缓存区块，但这些内存在内核空间，应用程序在用户空间，无法直接访问。下一步通过调用<code>VIDIOC_QUERYBUF</code>命令来获取这些缓存区块的长度（保存在下面<code>v4l2_buffer</code>结构体的成员length中）和偏移量（保存在下面<code>v4l2_buffer</code>结构体的成员m.offset中），然后使用mmap函数将count个帧缓存分别映射到应用进程中的count个虚拟地址。</p>
+<pre><code>#define VIDIOC_QUERYBUF        _IOWR(&apos;V&apos;,  9, struct v4l2_buffer)
+
+/**
+ * struct v4l2_buffer - video buffer info
+ * @index:    id number of the buffer
+ * @type:    buffer type (type == *_MPLANE for multiplanar buffers)
+ * @bytesused:    number of bytes occupied by data in the buffer (payload);
+ *        unused (set to 0) for multiplanar buffers
+ * @flags:    buffer informational flags
+ * @field:    field order of the image in the buffer
+ * @timestamp:    frame timestamp
+ * @timecode:    frame timecode
+ * @sequence:    sequence count of this frame
+ * @memory:    the method, in which the actual video data is passed
+ * @offset:    for non-multiplanar buffers with memory == V4L2_MEMORY_MMAP;
+ *        offset from the start of the device memory for this plane,
+ *        (or a &quot;cookie&quot; that should be passed to mmap() as offset)
+ * @userptr:    for non-multiplanar buffers with memory == V4L2_MEMORY_USERPTR;
+ *        a userspace pointer pointing to this buffer
+ * @planes:    for multiplanar buffers; userspace pointer to the array of plane
+ *        info structs for this buffer
+ * @length:    size in bytes of the buffer (NOT its payload) for single-plane
+ *        buffers (when type != *_MPLANE); number of elements in the
+ *        planes array for multi-plane buffers
+ * @input:    input number from which the video data has has been captured
+ *
+ * Contains data exchanged by application and driver using one of the Streaming
+ * I/O methods.
+ */
+struct v4l2_buffer {
+    __u32            index;
+    enum v4l2_buf_type      type;
+    __u32            bytesused;
+    __u32            flags;
+    enum v4l2_field        field;
+    struct timeval        timestamp;
+    struct v4l2_timecode    timecode;
+    __u32            sequence;
+
+    /* memory location */
+    enum v4l2_memory        memory;
+    union {
+        __u32           offset;
+        unsigned long   userptr;
+        struct v4l2_plane *planes;
+    } m;
+    __u32            length;
+    __u32            input;
+    __u32            reserved;
+};
+</code></pre><p>有关mmap函数可以查看man手册。该函数的返回值在成功情况下就是映射后进程的用户空间虚拟地址。应用程序可以根据这些地址对内核空间的内存地址直接进行读写操作。</p>
+<h2 id="启动采集"><a href="#启动采集" class="headerlink" title="启动采集"></a>启动采集</h2><p>参考例子的<code>start_capturing()</code></p>
+<p>将申请到的count个帧缓冲区块全部放入视频采集输出队列，为驱动开始采集做好准备:</p>
+<pre><code>#define VIDIOC_QBUF        _IOWR(&apos;V&apos;, 15, struct v4l2_buffer)
+</code></pre><p>此时可以开始启动视频采集</p>
+<pre><code>#define VIDIOC_STREAMON         _IOW(&apos;V&apos;, 18, int)
+</code></pre><h2 id="循环往复，采集连续的视频数据"><a href="#循环往复，采集连续的视频数据" class="headerlink" title="循环往复，采集连续的视频数据"></a>循环往复，采集连续的视频数据</h2><p>参考例子的<code>mainloop()</code>。</p>
+<p>循环采集重复的动作如下：</p>
+<ul>
+<li><p>驱动将采集到的一帧视频数据存入输入队列第一个帧缓冲区，存完后将该帧缓冲区移至视频采集输出队列。</p>
+</li>
+<li><p>应用程序可以采用select的机制请求内核监测以上操作是否完成，一旦就绪，就可以视频采集输出队列中取出已含有采集数据的帧缓冲区块。取数据的操作调用的API为：</p>
+<pre><code>#define VIDIOC_DQBUF        _IOWR(&apos;V&apos;, 17, struct v4l2_buffer)
+</code></pre></li>
+<li><p>然后应用程序就可以对取到的数据进行进一步处理。具体参考例子的<code>process_image()</code>。</p>
+</li>
+<li><p>处理完后，应用程序的将该帧缓冲区块重新放入输入队列,这样便可以循环采集数据。该步操作调用的API为：</p>
+<pre><code>#define VIDIOC_QBUF        _IOWR(&apos;V&apos;, 15, struct v4l2_buffer)
+</code></pre></li>
+</ul>
+<p>重复上述步骤，直到停止采集数据。</p>
+<h2 id="最终停止采集"><a href="#最终停止采集" class="headerlink" title="最终停止采集"></a>最终停止采集</h2><p>停止采集的操作参考例子中的<code>stop_capturing()</code></p>
+<p>很简单，调用如下API：</p>
+<pre><code>#define VIDIOC_STREAMOFF     _IOW(&apos;V&apos;, 19, int)
+</code></pre><p>释放内存帧缓存，注意之前需要先调用<code>munmap()</code>系统调用取消映射，这步和前面<code>mmap()</code>是对应的操作。</p>
+<h2 id="关闭视频设备"><a href="#关闭视频设备" class="headerlink" title="关闭视频设备"></a>关闭视频设备</h2><p>调用<code>close()</code>系统调用即可。</p>
+<h1 id="测试注意点"><a href="#测试注意点" class="headerlink" title="测试注意点"></a>测试注意点</h1><p>对于某些类型的摄像头产生的YUV格式的数据，在Windows平台上可以采用很多工具查看。</p>
+<p>我用的是一款叫YUVTools的软件，30天免费，主页在<code>http://www.sunrayimage.com/download.html</code>。</p>
+<p>注意我测试时生成的yuv格式的文件如果用YUVTools观看，需要配置播放参数如下：</p>
+<ul>
+<li>Select By FOURCC: YUYV</li>
+<li>Sampling Format: YUV 422</li>
+<li>Component Order: Y.U.Y.V</li>
+<li>Interlace/Progressive: Progressive</li>
+<li>Packed/Planar: Packed</li>
+<li>Image Resolution: 具体根据width x height决定。</li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/camera/" rel="tag">#camera</a>
+          
+            <a href="/tags/v4l2/" rel="tag">#v4l2</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/09/20160309-usb-camera/" rel="next" title="嵌入式Linux中摄像头使用简要整理">
+                <i class="fa fa-chevron-left"></i> 嵌入式Linux中摄像头使用简要整理
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/14/20160314-mjpeg-streamer/" rel="prev" title="mjpg-streamer使用总结">
+                mjpg-streamer使用总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/03/12/20160312-v4l2-app/"
+           data-title="基于Linux的V4L2接口编写视频采集应用程序的方法" data-url="http://unicornx.github.io/2016/03/12/20160312-v4l2-app/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#V4L2简介"><span class="nav-number">1.</span> <span class="nav-text">V4L2简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#详细的步骤描述"><span class="nav-number">2.</span> <span class="nav-text">详细的步骤描述</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#打开设备"><span class="nav-number">2.1.</span> <span class="nav-text">打开设备</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#视频采集的参数初始化"><span class="nav-number">2.2.</span> <span class="nav-text">视频采集的参数初始化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#查询设备的能力"><span class="nav-number">2.2.1.</span> <span class="nav-text">查询设备的能力</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置视频的采集窗口参数"><span class="nav-number">2.2.2.</span> <span class="nav-text">设置视频的采集窗口参数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置视频点阵格式和点阵大小"><span class="nav-number">2.2.3.</span> <span class="nav-text">设置视频点阵格式和点阵大小</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#设置视频采集的帧率"><span class="nav-number">2.2.4.</span> <span class="nav-text">设置视频采集的帧率</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#申请并设置视频采集的帧缓冲区"><span class="nav-number">2.3.</span> <span class="nav-text">申请并设置视频采集的帧缓冲区</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#首先为输入队列和输出队列分配帧缓存区块"><span class="nav-number">2.3.1.</span> <span class="nav-text">首先为输入队列和输出队列分配帧缓存区块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#映射用户空间地址"><span class="nav-number">2.3.2.</span> <span class="nav-text">映射用户空间地址</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#启动采集"><span class="nav-number">2.4.</span> <span class="nav-text">启动采集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#循环往复，采集连续的视频数据"><span class="nav-number">2.5.</span> <span class="nav-text">循环往复，采集连续的视频数据</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#最终停止采集"><span class="nav-number">2.6.</span> <span class="nav-text">最终停止采集</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#关闭视频设备"><span class="nav-number">2.7.</span> <span class="nav-text">关闭视频设备</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#测试注意点"><span class="nav-number">3.</span> <span class="nav-text">测试注意点</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

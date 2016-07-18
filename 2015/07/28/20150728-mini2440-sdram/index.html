@@ -1,0 +1,840 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="mini2440,SDRAM," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-8-2
+参考S3C2440A 32-BIT CMOS MICROCONTROLLER USER’S MANUAL Revision 1，本文简称UMMini2440原理图updated: 2010-1-27，友善之臂计算机科技有限公司，本文简称DS">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于mini2440开发板学习S3C2440的内存控制器">
+<meta property="og:url" content="http://unicornx.github.io/2015/07/28/20150728-mini2440-sdram/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-8-2
+参考S3C2440A 32-BIT CMOS MICROCONTROLLER USER’S MANUAL Revision 1，本文简称UMMini2440原理图updated: 2010-1-27，友善之臂计算机科技有限公司，本文简称DS">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/mem_types.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/sdram_address_map.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/sdram_lbank.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/HY57V561620T.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/HY57V561620T-block.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/HY57V561620T-pin-cfg.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/HY57V561620T-pin-des.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/s3c2440-mem-if-sdram.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/mini2440-sdram_soc.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/mini2440-sdram.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/s3c2440-mem-addr-pin-connection.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/s3c2440-bank-addr-pin-conn-example.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/s3c2440-mem-map.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/mini2440-boot-select-om.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/mini2440-boot-select.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:49.940Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于mini2440开发板学习S3C2440的内存控制器">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-8-2
+参考S3C2440A 32-BIT CMOS MICROCONTROLLER USER’S MANUAL Revision 1，本文简称UMMini2440原理图updated: 2010-1-27，友善之臂计算机科技有限公司，本文简称DS">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20150728-mini2440-sdram/mem_types.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/07/28/20150728-mini2440-sdram/"/>
+
+  <title> 基于mini2440开发板学习S3C2440的内存控制器 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                基于mini2440开发板学习S3C2440的内存控制器
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-07-28T15:47:52+08:00" content="2015-07-28">
+              2015-07-28
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ARM裸机接口/" itemprop="url" rel="index">
+                    <span itemprop="name">ARM裸机接口</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/07/28/20150728-mini2440-sdram/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/28/20150728-mini2440-sdram/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-8-2</p>
+<p>参考<br>S3C2440A 32-BIT CMOS MICROCONTROLLER USER’S MANUAL Revision 1，本文简称UM<br>Mini2440原理图updated: 2010-1-27，友善之臂计算机科技有限公司，本文简称DS<br><a href="http://wenku.baidu.com/link?url=Ockbi65SCUdyMsJy0e9E-CYyqPI9PjFmvj60IE_KDdCumnoSa_PJ6YiBVzisteRVjE0et_iTp11Hse13cUw_Fkruq9sUeEQZ1LuLnrxS_1C" target="_blank" rel="external">存储器的分类特点及其应用</a><br><a href="http://blog.chinaunix.net/uid-20666351-id-1582731.html" target="_blank" rel="external">嵌入式系统中存储器类型的选择方法</a><br><a href="http://blog.csdn.net/mr_raptor/article/details/6555786" target="_blank" rel="external">S3C2440 SDRAM内存驱动</a><br><a href="http://www.360doc.com/content/11/0914/17/7715138_148241178.shtml" target="_blank" rel="external">S3C2440与SDRAM的地址连线分析</a><br><a href="http://blog.chinaunix.net/uid-7819176-id-154980.html" target="_blank" rel="external">SDRAM芯片初始化、行有效、列读写时序（高手进阶，终极内存技术指南——完整/进阶版）</a><br><a href="http://blog.csdn.net/velanjun/article/details/7105900" target="_blank" rel="external">SDRAM参数</a><br><a href="http://blog.csdn.net/hongtao_liu/article/details/4741151" target="_blank" rel="external">SDRAM工作原理及S3C2410 SDRAM控制器配置方法（1）</a><br><a href="http://blog.csdn.net/hongtao_liu/article/details/4760807" target="_blank" rel="external">SDRAM工作原理及S3C2410 SDRAM控制器配置方法（2）</a><br><a href="http://wenku.baidu.com/link?url=VQCtXPjI8pmAMU_LmgLGkJTUFLyEnUl3qrAnZGXlAEIh0VnxKD1mIBWUmFi1GjjKqdk9YDkyes33MfoGGTV4mqKl5LS_aZHsIlQGy_m0ZLq" target="_blank" rel="external">2440存储控制寄存器BWSCON</a></p>
+<h1 id="嵌入式产品上常用的存储设备的分类特点及其应用"><a href="#嵌入式产品上常用的存储设备的分类特点及其应用" class="headerlink" title="嵌入式产品上常用的存储设备的分类特点及其应用"></a>嵌入式产品上常用的存储设备的分类特点及其应用</h1><p>在嵌入式系统中最常用的存储器类型分为三类：<br>1．随机存取的 - RAM;<br>2．只读的 - ROM;<br>3．介于两者之间的混合存储器 - Hybird<br><img src="/img/20150728-mini2440-sdram/mem_types.png" alt=""></p>
+<a id="more"></a>
+<h2 id="1-随机访问存储器-Random-Access-Memory，RAM"><a href="#1-随机访问存储器-Random-Access-Memory，RAM" class="headerlink" title="1.随机访问存储器(Random Access Memory，RAM)"></a>1.随机访问存储器(Random Access Memory，RAM)</h2><ul>
+<li>存储单元的内容可按需随意取出或存入，且存取的速度与存储单元的位置无关的存储器。可以理解为，当你给定一个随机有效的访问地址，RAM会返回其存储内容(随机寻址)，它访问速度与地址的无关。RAM能够随时在任一地址读出或写入内容。所以其优点是读/写方便、使用灵活；  </li>
+<li>RAM的缺点是不能长期保存信息，一旦停电，所存信息就会丢失。 </li>
+<li>RAM用于二进制信息的临时存储或缓冲存储，譬如内存。<br>RAM按照硬件设计的不同，随机存储器又分为DRAM（Dynamic RAM)动态随机存储器和SRAM（Static RAM) 静态随机存储器。<ul>
+<li>DRAM：它的基本原件是小电容，电容可以在两个极板上短时间内保留电荷，可以通过两极之间有无电压差代表计算机里的0和1，由于电容的物理特性，要定期的为其充电，否则数据会丢失。对电容的充电过程叫做刷新，但是制作工艺较简单，体积小，便于集成化，经常做为计算机里内存制作原件。比如：PC的内存，SDRAM, DDR, DDR2, DDR3等，缺点：由于要定期刷新存储介质，存取速度较慢。本文所讨论的SDRAM就是属于DRAM的一种。</li>
+<li>SRAM：它是一种具有静止存取功能的内存，不需要刷新电路即能保存它内部存储的数据。因此其存取速度快，但是体积较大，功耗大，成本高，常用作存储容量不高，但存取速度快的场合，比如CPU的L1 cache，L2cache(一级，二级缓存) ，寄存器。</li>
+</ul>
+</li>
+</ul>
+<h2 id="2-只读存储器-Read-Only-Memory，ROM"><a href="#2-只读存储器-Read-Only-Memory，ROM" class="headerlink" title="2.只读存储器(Read-Only Memory，ROM)"></a>2.只读存储器(Read-Only Memory，ROM)</h2><p>是一种只能读出事先所存数据的固态半导体存储器。</p>
+<ul>
+<li>ROM中存储的数据可以被任意读取，断电后，ROM中的数据仍保持不变，但不可以写入数据。</li>
+<li>ROM在嵌入式系统中非常有用，常常用来存放系统软件（如ROM BIOS）、应用程序等不随时间改变的代码或数据。</li>
+<li>ROM存储器按发展顺序可分为：掩膜ROM(Masked ROM)、可编程ROM(PROM)和可擦写可编程ROM(EPROM)。 </li>
+</ul>
+<h2 id="3-混合存储器-Hybird-Memory"><a href="#3-混合存储器-Hybird-Memory" class="headerlink" title="3. 混合存储器(Hybird Memory)"></a>3. 混合存储器(Hybird Memory)</h2><p>混合存储器既可以随意读写，又可以在断电后保持设备中的数据不变。<br>混合存储设备可分为三种：EEPROM，NVRAM和FLASH。</p>
+<ul>
+<li>EEPROM：EEPROM是电可擦写可编程存储设备，与EPROM不同的是EEPROM是用电来实现数据的清除，而不是通过紫外线照射实现的。EEPROM允许用户以字节为单位多次用电擦除和改写内容，而且可以直接在机内进行，不需要专用设备，方便灵活，常用作对数据、参数等经常修改又有掉电保护要求的数据存储器。</li>
+<li>NVRAM：NVRAM通常就是带有后备电池的SRAM。当电源接通的时候，NVRAM就像任何其他SRAM一样，但是当电源切断的时候，NVRAM从电池中获取足够的电力以保持其中现存的内容。  NVRAM在嵌入式系统中使用十分普遍，它最大的缺点是价格昂贵，因此，它的应用被限制于存储仅仅几百字节的系统关键信息。</li>
+<li>Flash：Flash（闪速存储器，简称闪存）是不需要Vpp电压信号的EEPROM，一个扇区的字节可以在瞬间（与单时钟周期比较是一个非常短的时间）擦除。Flash比EEPROM优越的方面是，可以同时擦除许多字节，节省了每次写数据前擦除的时间，但一旦一个扇区被擦除，必须逐个字节地写进去，其写入时间很长。常见的Flash种类有:<ul>
+<li>NOR FLASH，它的特点是支持XIP芯片内执行（eXecute In Place），这样应用程序可以直接在Flash闪存内运行，不必再把代码读到系统RAM中，也就是说可以随机寻址。NOR FLASH的成本较高，通常用来保存BootLoader，引导系统启动；</li>
+<li>NAND FLASH，它能提供极高的单元密度，可以达到高存储密度，并且写入和擦除的速度也很快。其成本较低，不支持XIP。可做嵌入式里的数据存储介质。如：手机存储卡，SD卡等。通常用来保存操作系统映像文件和文件系统，类似于PC上的硬盘的作用。  </li>
+</ul>
+</li>
+</ul>
+<h1 id="SDRAM内存工作原理"><a href="#SDRAM内存工作原理" class="headerlink" title="SDRAM内存工作原理"></a>SDRAM内存工作原理</h1><p>SDRAM:Synchronous Dynamic Random Access Memory，同步动态随机存储器，属于RAM中的DRAM的分支下的一种。</p>
+<ul>
+<li>同步是指 Memory工作需要同步时钟，内部的命令的发送与数据的传输都以它为基准；</li>
+<li>动态是指存储阵列需要不断的刷新来保证数据不丢失；</li>
+<li>随机是指数据不是线性依次存储，而是自由指定地址进行数据读写。</li>
+</ul>
+<h2 id="SDRAM的内部构造"><a href="#SDRAM的内部构造" class="headerlink" title="SDRAM的内部构造"></a>SDRAM的内部构造</h2><p>SDRAM的内部是一个存储阵列。阵列就如同表格一样，将数据“填”进去。在数据读写时和表格的检索原理一样，先指定一个行（Row），再指定一个列 （Column），我们就可以准确地找到所需要的单元格，这就是内存芯片寻址的基本原理，如下图所示。<br><img src="/img/20150728-mini2440-sdram/sdram_address_map.png" alt=""><br>这个单元格（存储阵列）就叫逻辑 Bank（Logical Bank，下文简称 L-Bank）。</p>
+<p>由于技术、成本等原因，在一个SDRAM芯片中不可能只做一个全容量的L-Bank，而且最重要的是，由于 SDRAM的工作原理限制，需要频繁刷新，即意味着在刷新的时间段内是无法读写数据单元的，所以采用单一的L-Ban k将会大幅降低内存效率。目前实用的SDRAM芯片内部采用的都是多L-Bank结构，目前基本都是 4个（这也是SDRAM规范中的最高L-Bank数量。这样的好处在于，以一个具有两个L-Bank的SDRAM的芯片模组为例，其中一个L-Bank在进行预充电期间，另一个L-Bank却马上可以被读取，这样当进行一次读取后，又可以要马上去读取已经预充电Bank的数据时就无需等待而是可以直接读取了，这也就大大提高了存储器的访问速度。<br>为了实现这个功能，SDRAM需要增加对多个L-Bank的管理，在一个具有2个以上L-Bank的SDRAM中，一般会多一根叫做BAn的引脚，用来实现在多个Bank之间的选择。由此可见，在进行寻址时首先要通过BAn引脚确定要操作的是哪个L-Bank，然后在这个选定的 L-Bank中选择相应的行与列进行寻址。因此对内存的访问，一次只能是一个L-Bank工作。如下图所示。<br><img src="/img/20150728-mini2440-sdram/sdram_lbank.png" alt=""></p>
+<h2 id="SDRAM的刷新"><a href="#SDRAM的刷新" class="headerlink" title="SDRAM的刷新"></a>SDRAM的刷新</h2><p>SDRAM之所以成为DRARM就是因为它要不断进行刷新（Refresh）才能保留住数据，因此它是DRAM最重要的操作。</p>
+<p>那么要隔多长时间重复一次刷新呢？目前公认的标准是，存储体中电容内的数据的有效保存期上限是64ms（毫秒，1/1000秒），我们已知SDRAM内部的L-Bank就是一个行乘以列的矩阵，而且SDRAM内部是按照行逐行刷新的，也就是说在64ms内就要从第一行开始把所有的行都刷新一遍再返回第一行重新刷新，慢了一点第一行里的数据就会丢失，所以这样刷新的速度就是：64ms/行数量，假设我们的L-Bank有64行，则刷新一行的速度就是1ms。我们在看内存规格时，经常会看到4096 Refresh Cycles/64ms或8192 Refresh Cycles/64ms的标识，这里的4096与8192就代表这个芯片中每个Bank的行数。刷新命令一次对一行有效，发送间隔也是随总行数而变化，4096行时为15.625μs（微秒，1/1000毫秒），8192行时就为7.8125μs。Mini2440使用的SDRAM芯片是HY57V561620，其刷新规格为8192 refresh cycles / 64ms，说明其内部的L-Bank有8192行。</p>
+<h1 id="SDRAM芯片HY57V561620介绍"><a href="#SDRAM芯片HY57V561620介绍" class="headerlink" title="SDRAM芯片HY57V561620介绍"></a>SDRAM芯片HY57V561620介绍</h1><p>Mini2440开发板上配置了两片SDRAM内存芯片，型号是HY57V561620T。</p>
+<h2 id="总容量"><a href="#总容量" class="headerlink" title="总容量"></a>总容量</h2><p>HY57V561620手册上的表达是<code>4Banks x 4M x 16Bit</code>。它表示该SDRAM芯片内部由四组L-Bank组成，每个L-Bank包含4M个单元，每个单元是16个bit，即2个B(Byte/字节)。这样计算，每个L-Bank的容量是16b * 4M = 2B * 4M = 8MB，所以一片SDRAM的总容量为8MB * 4 = 32MB。两片就是64MB。<br><img src="/img/20150728-mini2440-sdram/HY57V561620T.png" alt=""></p>
+<h2 id="寻址原理"><a href="#寻址原理" class="headerlink" title="寻址原理"></a>寻址原理</h2><p>对内存单元进行读写操作时，首先要进行寻址操作。HY57V561620T的寻址原理如下：</p>
+<p>根据前面的描述，我们知道，所有的存储单元分布在四个L-Bank上，所以寻址首先要做的是确定L-Bank，即所谓<strong>片选</strong>。HY57V561620T芯片上的两个管脚BA0, BA1，就是用来片选4个L-Bank的。选定L-Bank后还需要确定当前选中L-Bank上的单元，但观察HY57V561620T芯片的管脚图只有13个地址线A0~A12，我们知道13根地址线只能表示8K个单元，而每个L-Bank包含4M个单元，又是如何寻址的呢？如前所述，L-Bank在SDRAM内部就是一个存储阵列。可以把它想象成一个表格。和表格的检索原理一样，先指定行，再指定列，就可以准确找到所需要的存储单元。所以操作时对HY57V561620T的13个地址管脚进行分时复用，即在读写SDRAM存储单元时将读写的每个单元的地址分两次输入到SDRAM芯片中的行/列地址锁存器，先写行地址（对应RA0~RA12，nSRAS行有效时操作），再写列地址（对应CA0~CA8,nSCAS列有效时操作）。13路行地址线，最高表示2^13行(8K行)，9路列地址线，最高表示2^9列（0.5K列），乘起来正好是4M个单元。</p>
+<p>这么设计只要共13根地址线就足够了,大幅度减少了地址线的数目，降低了制作工艺复杂度，提高了器件的性能，然而寻址过程也因此而变得比较复杂。但作为嵌入式工程师的我们并不需要太纠结这些问题，因为使用了类似S3C2440这样的SOC芯片后，这些复杂的操作过程对我们来说都是透明的，这些都要拜S3C2440芯片上集成的存储控制器的功能所赐，我们要做的事情就是将S3C2440的相应管脚和SDRAM的相应管脚连接好，当我们的软件通过CPU发出对某个内存字节单元的读写指令时，具体的寻址动作将由S3C2440来代表我们控制SDRAM来完成相关细节操作。具体的<a href="#s3c2440_sdram">有关S3C2440和SDRAM的连线问题</a>，后面会再详细讨论。</p>
+<p><img src="/img/20150728-mini2440-sdram/HY57V561620T-block.png" alt=""></p>
+<h2 id="管脚分布和定义"><a href="#管脚分布和定义" class="headerlink" title="管脚分布和定义"></a>管脚分布和定义</h2><h3 id="管脚分布图："><a href="#管脚分布图：" class="headerlink" title="管脚分布图："></a>管脚分布图：</h3><p><img src="/img/20150728-mini2440-sdram/HY57V561620T-pin-cfg.png" alt=""></p>
+<h3 id="管脚的定义："><a href="#管脚的定义：" class="headerlink" title="管脚的定义："></a>管脚的定义：</h3><p><img src="/img/20150728-mini2440-sdram/HY57V561620T-pin-des.png" alt=""><br>对几个重要的管脚，分别介绍如下：</p>
+<table>
+<thead>
+<tr>
+<th>管脚名称(PIN)</th>
+<th>定义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CS</td>
+<td>片选，低电平选中本SDRAM芯片，否则会禁止所有信号，除了CLK，CKE和DQM，参考<a href="#s3c2440_sdram_cs">S3C2440和SDRAM芯片的连接之片选部分</a></td>
+</tr>
+<tr>
+<td>BA0，BA1</td>
+<td>L-Bank选择，两根线，对应最多4个逻辑bank，参考<a href="#s3c2440_sdram_addr">S3C2440和SDRAM芯片的连接之地址总线部分</a></td>
+</tr>
+<tr>
+<td>A0~A12</td>
+<td>地址线，共13根，行，列复用。参考<a href="#s3c2440_sdram_addr">S3C2440和SDRAM芯片的连接之地址总线部分</a></td>
+</tr>
+<tr>
+<td>RAS，CAS，WE</td>
+<td></td>
+</tr>
+<tr>
+<td>UDQM，LDQM</td>
+<td></td>
+</tr>
+<tr>
+<td>DQ0~DQ15</td>
+<td>输入/输出线(复用)。参考<a href="#s3c2440_sdram_data">S3C2440和SDRAM芯片的连接之数据总线部分</a></td>
+</tr>
+</tbody>
+</table>
+<p><a name="s3c2440_sdram" id="s3c2440_sdram"></a></p>
+<h1 id="S3C2440和SDRAM芯片的连接"><a href="#S3C2440和SDRAM芯片的连接" class="headerlink" title="S3C2440和SDRAM芯片的连接"></a>S3C2440和SDRAM芯片的连接</h1><p>mini2440开发板和HY57V561620的管脚连线方法实际比较简单，直接参考S3C2440用户手册第5章，给出了各种典型的存储芯片和S3C2440的连接参考设计。mini2440就可以直接参考<code>Figure 5-11</code><br><img src="/img/20150728-mini2440-sdram/s3c2440-mem-if-sdram.png" alt=""></p>
+<p>查看mini2440的原理图如下：<br>S3C2440侧连接SDRAM芯片的管脚图：<br><img src="/img/20150728-mini2440-sdram/mini2440-sdram_soc.png" alt=""></p>
+<p>SDRAM芯片侧连接S3C2440的管脚图：<br><img src="/img/20150728-mini2440-sdram/mini2440-sdram.png" alt=""></p>
+<p>对比发现是一致的。详细的有关S3C2440和HY57V561620之间重要管脚的连线描述如下：</p>
+<p><a name="s3c2440_sdram_data" id="s3c2440_sdram_data"></a></p>
+<h2 id="数据总线"><a href="#数据总线" class="headerlink" title="数据总线"></a>数据总线</h2><p>由于S3C2440A为内部的CPU是32位，也就是说其数据总线是32位宽，内存数据的输入/输出端也要保证是32位宽。MINI2440上采用两片16位宽总线内存芯片<strong>并联</strong>构成32位宽。其中一个芯片连接到CPU数据总线的低16位(LDATA0~LDATA15)，另外一个芯片连接到数据总线上的高16位(LDATA16~LDATA31)，并联成32位总线。</p>
+<p><a name="s3c2440_sdram_addr" id="s3c2440_sdram_addr"></a></p>
+<h2 id="地址总线"><a href="#地址总线" class="headerlink" title="地址总线"></a>地址总线</h2><p>参考S3C2440用户手册第5章内存控制器的<code>FUNCTION DESCRIPTION</code>一节，如下表，因为我们对数据总线的连接对CPU看来是32位宽度的(虽然是两片16位并联模拟的)，所以连线是需要把SDRAM的地址管脚(<code>MEMORY ADDR. PIN</code>)的A0对应到S3C2440地址管脚(<code>S3C2440A ADDR</code>)的A2，依次类推。<br><img src="/img/20150728-mini2440-sdram/s3c2440-mem-addr-pin-connection.png" alt=""></p>
+<p>至于为何BA0、BA1要连在LADDR24和LADDR25上。</p>
+<p>S3C2440用户手册的<code>Table 5-2. SDRAM Bank Address Configuration Example</code>给出了SDRAM接线的参考方法。<br><img src="/img/20150728-mini2440-sdram/s3c2440-bank-addr-pin-conn-example.png" alt=""></p>
+<p>上表中各段含义及和我们平台的对应：</p>
+<ul>
+<li>Bank Size: 每个Bank的大小 （HY57561620的每个Bank有4M个数据单元，每个单元16位宽，所以每个Bank的大小是64M个位，不知这里为何是大写的B，感觉应该是小写的b，表示bit才好）</li>
+<li>Bus Width: 总线宽度 （两颗HY57561620并联为32位）</li>
+<li>Base Component：单个SDRAM芯片的容量 （HY57561620，前面计算过为32M字节，即256M 比特-256Mb）</li>
+<li>Memory Configration：内存配置 (HY57561620的每个Bank有4M个数据单元，每个单元16位宽，每颗芯片有4个Bank，两颗芯片，对应的公式就是<code>(4M*16*4B)*2</code> )</li>
+</ul>
+<p>根据以上数据我们可以找到对应的Bank Address是<code>A[25:24]</code>，即表示对应的是LADDR24和LADDR25，至此确定了HY57561620的BA0和BA1和S3C2410之间的接线。</p>
+<p><a name="s3c2440_sdram_cs" id="s3c2440_sdram_cs"></a></p>
+<h2 id="片选"><a href="#片选" class="headerlink" title="片选"></a>片选</h2><p>S3C2440对外引出了27根地址线ADDR0~ADDR26，它最多能够寻址128MB，而S3C2440的寻址空间可以达到1GB，这是由于S3C2440将1GB的地址空间分成了8个BANKS（Bank0~Bank7），其中每一个BANK对应一根片选信号线nGCS0~nGCS7，当访问BANKx的时候，nGCSx管脚电平拉低，用来选中外接设备， S3C2440通过8根选信号线和27根地址线，就可以访问1GB。<br>有关S3C2440的BANK定义以及其对应的地址空间分布，参考S3C2440的用户手册第5章<code>MEMORY CONTROLLER</code>的<code>Figure 5-1. S3C2440A Memory Map after Reset</code>，摘录如下：<br><img src="/img/20150728-mini2440-sdram/s3c2440-mem-map.png" alt=""></p>
+<p>这张图包含了很丰富的信息，简述如下：<br>左侧图对应不使用Nandflash引导启动(譬如使用Norflash)时的存储器Bank分布图；右侧图对应选择从Nandflash引导启动时的存储器Bank分布图。具体选择启动时采用何种方式，可以通过设置S3C2440的OM0和OM1管脚。具体的设置方案可以参考手册所列下表：<br><img src="/img/20150728-mini2440-sdram/mini2440-boot-select-om.png" alt=""></p>
+<p>对应mini2440开发板，其通过硬件跳线的方式选择从Norflash(OM[1:0]=01，mini2440采用的Norflash芯片是16位宽)还是Nandflash(OM[1:0]=00)启动。<br><img src="/img/20150728-mini2440-sdram/mini2440-boot-select.png" alt=""></p>
+<p>其中Bank0~Bank5可以焊接一些用于引导系统启动的小容量的存储设备，譬如ROM或SRAM类型存储器，具体焊接什么样存储器，多大容量，根据每个开发板生产商不同而不同。MINI2440开发板将一个2MB容量的Norflash焊接在了Bank0上，用于存放用于以Norflash方式启动时所需要的系统引导程序Bootloader。乍一看这里和我们研究的主题SDRAM似乎没什么关系，但仔细分析一下bootloader里有很大一部分工作和SDRAM是有关系的，为什么这么说，这里不免要聊一聊S3C2440的启动方式，而且很多SOC的芯片的启动方式和这个都很类似，有必要了解一下。</p>
+<p>首先我们需要知道S3C2440内部的ARM920t核上电后总是从地址0x00000000处开始取指令的，但此时0x00000000这个地址被S3C2440映射到了哪里，这个ARM920t不管，而是由S3C2440内部集成的Memory Controller单元负责。</p>
+<ul>
+<li>当我们选择以非Nandflash方式启动，系统上电后，Memory Controller单元选中Bank0并将Bank0所对应的存储设备的第一个单元字节的地址映射到0x00000000，提供给ARM920t开始取指运行。由于mini2440将Norflash芯片的CE输出管脚和S3C2440的nGCS0管脚焊接在一起，所以实际选中的Bank0就映射到了Norflash芯片，所以就是直接从Norflash中读取存放的第一条指令并执行，这就是利用了我们最前面在介绍存储芯片类型时所谓的Norflash所具备的XIP特性。</li>
+<li>当我们选择以Nandflash方式启动，系统上电后，Memory Controller单元仍然选中Bank0并将Bank0所对应的存储设备的第一个单元字节的地址映射到0x00000000，但注意此时对应的存储设备不是Norflash，而是S3C2440芯片内存自己集成的一块容量大小为4K字节的SRAM存储设备。并且在允许ARM920t从0x00000000取指执行之前，S3C2440会首先自动将Nandflash里前4KB的数据复制到该内部SRAM里然后ARM920t才会从SRAM里取指运行。手册上称呼这个4KB大小的SRAM存储器叫做Steppingstone，中文翻译过来叫”踏脚石”，回味一下果然生动有趣。</li>
+</ul>
+<p>其实就第一种方式来说，Norflash也就是一个”踏脚石”的角色，在”踏脚石”上运行的代码指令终究会去初始化另外一个容量更大，读写速度更快的存储设备-SDRAM，并将最终的系统（譬如Linux系统）的指令拷贝到SDRAM上去全速运行，这么以后，”踏脚石”就完成了它的历史使命，将光荣的存储任务交给了我们的主角-SDRAM。</p>
+<p>聊完了Bank0~Bank5，剩下的Bank6~Bank7可以焊接SROM和SDRAM类型存储器。就Mini2440来说，就片选信号，可以看到两片HY57V561620的nSCS连接的都是S3C2440的nSCS0，即nGCS6，这说明两片SDRAM都连接的是Bank6。似乎很奇怪，但结合前面有关数据线和地址线的连接方式，回忆一下MINI2440上采用两片16位宽总线内存芯片并联构成32位宽。其中一个芯片连接到CPU数据总线的低16位(LDATA0~LDATA15)，另外一个芯片连接到数据总线上的高16位(LDATA16~LDATA31)，并联成32位总线。所以我们这里可以知道，对于mini2440，当ARM920t指定访问一个地址，譬如0x00000000时，S3C2440的Memory Controller正是通过nGCS6同时选中两片SDRAM，并在数据线上同时取到两片SDRAM上各一个单元的数据，每个单元2个字节，共4个字节的内容的。</p>
+<p>以上描述并不意味着我们编写程序时必须每次取4字节，我们写程序时依然可以使用例如ldrb这样的指令取字的部分字节。取单个字节的操作会由S3C2440内部的的Memory Controller实现，不需程序员操作。Memory Controller控制器会操作DQMx管脚，影响SDRAM芯片的LDQM和UDQM，屏蔽不需要的字节。</p>
+<h1 id="S3C2440的Memory-Controller配置接口"><a href="#S3C2440的Memory-Controller配置接口" class="headerlink" title="S3C2440的Memory Controller配置接口"></a>S3C2440的Memory Controller配置接口</h1><p>S3C2440的存储控制器主要提供了13个寄存器作为配置接口给开发人员。<br>当配置BANK0~BANK5所对应的存储设备时，只需要配置BWSCON和BANKCONx(x=0~5)即可。<br>而对于BANK6和BANK7，如果其对应的存储设备涉及SDRAM，配置的时候除配置BWSCON和BANKCONx(x=6~7)外，还需要配置REFRESH，BANKSIZE，MRSRB6和MRSRB7等4个和SDRAM有关的寄存器。<br>在这里我没有详细地列出寄存器的设置参数，具体可以参考S3C2440的用户手册。</p>
+<table>
+<thead>
+<tr>
+<th>寄存器编号</th>
+<th>寄存器名称</th>
+<th>主要功能描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>BWSCON</td>
+<td>BUS WIDTH &amp; WAIT CONTROL REGISTER</td>
+<td>使能某个Bank，设置其外接存储器的总线宽度和等待状态</td>
+</tr>
+<tr>
+<td>BANKCONx(x=0~7)</td>
+<td>BANK CONTROL REGISTER</td>
+<td>用来控制外接设备的访问时序，注意当外接设备是SDRAM时，具体配置稍有不同，特别是Trcd和SCAN部分</td>
+</tr>
+<tr>
+<td>REFRESH</td>
+<td>REFRESH CONTROL REGISTER</td>
+<td>刷新控制</td>
+</tr>
+<tr>
+<td>BANKSIZE</td>
+<td>BANKSIZE REGISTER</td>
+<td>BANKSIZE相关设置</td>
+</tr>
+<tr>
+<td>MRSRBx(x=6~7)</td>
+<td>SDRAM MODE REGISTER SET REGISTER</td>
+<td>SDRAM模式设置，注意：当代码在SDRAM中运行时，绝不能够重新配置MRSR寄存器。</td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+            <a href="/tags/SDRAM/" rel="tag">#SDRAM</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/07/26/20150726-mini2440-clock/" rel="next" title="基于mini2440开发板学习S3C2440的系统时钟">
+                <i class="fa fa-chevron-left"></i> 基于mini2440开发板学习S3C2440的系统时钟
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/08/03/20150803-write-flash-hjtag/" rel="prev" title="使用HJTAG对mini2440的flash进行烧写和擦除">
+                使用HJTAG对mini2440的flash进行烧写和擦除 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/07/28/20150728-mini2440-sdram/"
+           data-title="基于mini2440开发板学习S3C2440的内存控制器" data-url="http://unicornx.github.io/2015/07/28/20150728-mini2440-sdram/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#嵌入式产品上常用的存储设备的分类特点及其应用"><span class="nav-number">1.</span> <span class="nav-text">嵌入式产品上常用的存储设备的分类特点及其应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-随机访问存储器-Random-Access-Memory，RAM"><span class="nav-number">1.1.</span> <span class="nav-text">1.随机访问存储器(Random Access Memory，RAM)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-只读存储器-Read-Only-Memory，ROM"><span class="nav-number">1.2.</span> <span class="nav-text">2.只读存储器(Read-Only Memory，ROM)</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-混合存储器-Hybird-Memory"><span class="nav-number">1.3.</span> <span class="nav-text">3. 混合存储器(Hybird Memory)</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SDRAM内存工作原理"><span class="nav-number">2.</span> <span class="nav-text">SDRAM内存工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#SDRAM的内部构造"><span class="nav-number">2.1.</span> <span class="nav-text">SDRAM的内部构造</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SDRAM的刷新"><span class="nav-number">2.2.</span> <span class="nav-text">SDRAM的刷新</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#SDRAM芯片HY57V561620介绍"><span class="nav-number">3.</span> <span class="nav-text">SDRAM芯片HY57V561620介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#总容量"><span class="nav-number">3.1.</span> <span class="nav-text">总容量</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#寻址原理"><span class="nav-number">3.2.</span> <span class="nav-text">寻址原理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#管脚分布和定义"><span class="nav-number">3.3.</span> <span class="nav-text">管脚分布和定义</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#管脚分布图："><span class="nav-number">3.3.1.</span> <span class="nav-text">管脚分布图：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#管脚的定义："><span class="nav-number">3.3.2.</span> <span class="nav-text">管脚的定义：</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#S3C2440和SDRAM芯片的连接"><span class="nav-number">4.</span> <span class="nav-text">S3C2440和SDRAM芯片的连接</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据总线"><span class="nav-number">4.1.</span> <span class="nav-text">数据总线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#地址总线"><span class="nav-number">4.2.</span> <span class="nav-text">地址总线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#片选"><span class="nav-number">4.3.</span> <span class="nav-text">片选</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#S3C2440的Memory-Controller配置接口"><span class="nav-number">5.</span> <span class="nav-text">S3C2440的Memory Controller配置接口</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,1085 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="kernel," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-13
+本文是接着上一篇笔记内核启动过程分析(基于mini2440和linux v2.6.32.2)描述内核启动过程的第三阶段。这一阶段是内核正式启动阶段，最为核心和重要，所以单独放一篇笔记来整理。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="内核初始化－从start_kernel到init">
+<meta property="og:url" content="http://unicornx.github.io/2016/05/13/20160513-start_kernel_init/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-13
+本文是接着上一篇笔记内核启动过程分析(基于mini2440和linux v2.6.32.2)描述内核启动过程的第三阶段。这一阶段是内核正式启动阶段，最为核心和重要，所以单独放一篇笔记来整理。">
+<meta property="og:image" content="http://images.51cto.com/files/uploadimg/20100723/103833643.jpg">
+<meta property="og:updated_time" content="2016-05-13T09:19:37.636Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="内核初始化－从start_kernel到init">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-05-13
+本文是接着上一篇笔记内核启动过程分析(基于mini2440和linux v2.6.32.2)描述内核启动过程的第三阶段。这一阶段是内核正式启动阶段，最为核心和重要，所以单独放一篇笔记来整理。">
+<meta name="twitter:image" content="http://images.51cto.com/files/uploadimg/20100723/103833643.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/05/13/20160513-start_kernel_init/"/>
+
+  <title> 内核初始化－从start_kernel到init | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                内核初始化－从start_kernel到init
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-05-13T17:19:12+08:00" content="2016-05-13">
+              2016-05-13
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux系统移植/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux系统移植</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/05/13/20160513-start_kernel_init/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/05/13/20160513-start_kernel_init/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-05-13</p>
+<p>本文是接着上一篇笔记<a href="/2015/12/27/20151227-lk-init">内核启动过程分析(基于mini2440和linux v2.6.32.2)</a>描述内核启动过程的第三阶段。这一阶段是内核正式启动阶段，最为核心和重要，所以单独放一篇笔记来整理。</p>
+<a id="more"></a>
+<p>这部分我主要参考的是：</p>
+<ul>
+<li>韦东山所著的《嵌入式Linux用用开发完全手册》第16章的内容。</li>
+<li><a href="http://book.51cto.com/art/201007/213533.htm" target="_blank" rel="external">Linux内核修炼之道</a> 在线版本第4章</li>
+</ul>
+<h1 id="第三阶段都干了些啥"><a href="#第三阶段都干了些啥" class="headerlink" title="第三阶段都干了些啥"></a>第三阶段都干了些啥</h1><p>以v2.6.32.2为例，第三阶段主要涉及以下文件：</p>
+<ul>
+<li><code>init/main.c</code></li>
+<li><code>arch/arm/kernel/setup.c</code></li>
+</ul>
+<p>内核的初始化过程由<code>start_kernel()</code>函数开始，至第一个用户进程init结束，调用了一系列的初始化函数对所有的内核组件进行初始化。其中，<code>start_kernel()</code>、<code>rest_init()</code>、<code>kernel_init()</code>、`init_post()等4个函数构成了整个初始化过程的主线。</p>
+<p><img src="http://images.51cto.com/files/uploadimg/20100723/103833643.jpg" alt=""></p>
+<p>其中从<code>kernel_init()</code>开始，之前，内核还是一个单任务的运行环境，此后内核以多任务方式运行。大致的流程如下：</p>
+<p>整个内核启动到出现init进程可以简单概括如下：</p>
+<p>0号内核线程 –&gt; 1号内核线程 –&gt; 1号用户线程(执行init进程）</p>
+<p>注意这里经常会混淆线程和进程的概念区别，可以先看看：</p>
+<ul>
+<li><a href="http://www.2ndmoon.net/weblog/?p=603" target="_blank" rel="external">LINUX内核线程</a></li>
+<li><a href="http://blog.csdn.net/tigerjibo/article/details/8299686" target="_blank" rel="external">内核线程和进程的区别</a></li>
+</ul>
+<h2 id="0号内核线程"><a href="#0号内核线程" class="headerlink" title="0号内核线程"></a>0号内核线程</h2><p>这是系统引导时自动形成的一个线程，实际上就是内核本身。它是系统中后来产生的所有进程的祖先。当内核系统完成自身初始化工作后，由内核本身调用函数<code>kernel_thread()</code>创建了两个内核线程，即1号内核线程和2号内核线程。</p>
+<p>参考<code>init/main.c</code>中的<code>rest_init()</code>函数：</p>
+<pre><code>static noinline void __init_refok rest_init(void)
+    __releases(kernel_lock)
+{
+    ...
+    kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
+    ...
+    pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+    ...
+
+    cpu_idle();
+}
+</code></pre><p>其中1号内核线程执行<code>kernel_init()</code>函数。2号内核线程执行<code>kthreadd()</code>函数。</p>
+<p>使用<code>ps -eLf</code>命令可以验证我们以上信息：</p>
+<pre><code>UID        PID  PPID   LWP  C NLWP STIME TTY          TIME CMD
+root         1     0     1  0    1 10:42 ?        00:00:01 /sbin/init
+root         2     0     2  0    1 10:42 ?        00:00:00 [kthreadd]
+root         3     2     3  0    1 10:42 ?        00:00:00 [ksoftirqd/0]
+root         5     2     5  0    1 10:42 ?        00:00:01 [kworker/u:0]
+root         6     2     6  0    1 10:42 ?        00:00:00 [migration/0]
+root         7     2     7  0    1 10:42 ?        00:00:00 [watchdog/0]
+root         8     2     8  0    1 10:42 ?        00:00:00 [migration/1]
+root        10     2    10  0    1 10:42 ?        00:00:00 [ksoftirqd/1]
+root        12     2    12  0    1 10:42 ?        00:00:00 [watchdog/1]
+root        13     2    13  0    1 10:42 ?        00:00:00 [migration/2]
+root        15     2    15  0    1 10:42 ?        00:00:00 [ksoftirqd/2]
+...
+</code></pre><p>观察LWP那一列，即线程号1和2的PPID对应的值是0，就是说它们的父进程就是0号进程，进程我们又叫线程组，0号进程里只能有一个线程就是内核本身，它无非是在运行<code>cpu_idle()</code>。</p>
+<p>2号线程我们这里不重点关注，但我们要知道它在执行<code>kthreadadd()</code>函数，该函数会启动运行<code>kthread_create_list</code>这个全局链表中的所有内核线程，所以我们会发现ps命令中有很多内核线程所在的进程的父进程都是2。</p>
+<p>下面我们主要关心1号内核线程。</p>
+<h2 id="1号内核线程"><a href="#1号内核线程" class="headerlink" title="1号内核线程"></a>1号内核线程</h2><p><code>kernel_init</code>函数刚开始运行时是作为一个内核线程在运行，内核线程在Linux系统中是指没有虚拟存储空间的进程，内核线程可以直接使用物理地址空间，运行在内核态中。但很快这个内核线程就会自己摇身一变成为一个用户态的进程。</p>
+<h2 id="1号用户进程"><a href="#1号用户进程" class="headerlink" title="1号用户进程"></a>1号用户进程</h2><p>当<code>kernel_init()</code>函数运行到后面介绍的<code>init_post()</code>函数时通过调用<code>run_init_process()</code>加载可执行程序init并执行，同时会将1号内核线程演变成为用户态进程。</p>
+<p>下面来看看第三阶段中涉及到的几个重要函数。</p>
+<h1 id="start-kernel-函数"><a href="#start-kernel-函数" class="headerlink" title="start_kernel()函数"></a>start_kernel()函数</h1><p>参考<code>init/main.c</code>的<code>start_kernel()</code>函数，详细的对应代码的解释可以参考<a href="http://book.51cto.com/art/201007/213598.htm" target="_blank" rel="external">Linux内核修炼之道，4.2.1  start_kernel函数</a>。</p>
+<p>我这里主要结合串口的输出，看一下在系统移植中我们会关心哪些主要步骤，也许应该另外再从功能角度再总结一下各个子系统的初始化顺序是怎样的：</p>
+<table>
+<thead>
+<tr>
+<th>流程</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>…………………………………….</td>
+<td>早期的初始化</td>
+</tr>
+<tr>
+<td><code>printk(linux_banner)</code></td>
+<td>打印Linux版本信息。注意这个时候printk函数只是将打印信息放在缓冲区中，并没有打印到控制台上，比如串口、LCD等，因为这个时候控制台还没有初始化。<br>printk打印的内容在后面<code>console_init()</code>函数注册并初始化控制台后才会真正输出。<br>所以在embedded的调试中，如果在console的初始化之前系统出了问题，不会有任何的输出。唯一可以使用的只能是led或jtag了。<br>打印输出例子:<br><font color="red"><code>Linux version 2.6.32.2 (fs@ubuntu) (gcc version 4.4.3 (ctng-1.6.1) ) #1 Sun Apr 10 15:34:51 CST 2016</code></font></td>
+</tr>
+<tr>
+<td><code>setup_arch()</code></td>
+<td>该函数根据内核的配置被重载为<code>arch/$(ARCH)/kernel/setup.c</code>，用于设置与体系架构相关的环境，该步骤也是非常重要，如果该函数中间设置不正确，也会导致无法走到<code>console_init</code>，导致表现出来的现象也是不会有任何的输出。<br>在系统移植中需要关注这个函数，因为该函数中对机器(板级别)的设置会影响到后继初始化过程中板子的初始化，具体可以参考<a href="/2016/05/12/20160512-machine_desc">machine_desc结构体</a><br>打印输出例子:<br><font color="red"><code>CPU: ARM920T [41129200] revision 0 (ARMv4T), cr=c0007177</code><br><code>CPU: VIVT data cache, VIVT instruction cache</code><br><code>Machine: MINI2440</code><br><code>Memory policy: ECC disabled, Data cache writeback</code><br><code>CPU S3C2440A (id 0x32440001)</code><br><code>S3C24XX Clocks, (c) 2004 Simtec Electronics</code><br><code>S3C244X: core 405.000 MHz, memory 101.250 MHz, peripheral 50.625 MHz</code><br><code>CLOCK: Slow mode (1.500 MHz), fast, MPLL on, UPLL on</code><br><code>Built 1 zonelists in Zone order, mobility grouping on.  Total pages: 16256</code></font><br>详细步骤见下文描述。</td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>printk(&quot;Kernel command line:...\n&quot;);</code></td>
+<td>打印bootloader传来的命令行参数，<br>打印输出例子:<br><font color="red"><code>Kernel command line: noinitrd root=/dev/nfs rw nfsroot=192.168.0.110:/home/fs/ws/mini2440/nfs/rootfs ip=192.168.0.2:192.168.0.1::255.255.255.0 console=ttySAC0,115200 init=/linuxrc mem=64M</code></font><br>下面的逻辑开始解析这些参数</td>
+</tr>
+<tr>
+<td><code>parse_early_param()</code><br><code>parse_args()</code></td>
+<td>解析从bootloader传递过来的内核参数TAGS</td>
+</tr>
+<tr>
+<td><code>pidhash_init();</code></td>
+<td>初始化<code>task_struct</code>结构体的hash表，该表以PID为键值，便于从进程的PID获得对应的进程描述符指针。打印输出例子<br><font color="red"><code>PID hash table entries: 256 (order: -2, 1024 bytes)</code></font></td>
+</tr>
+<tr>
+<td><code>vfs_caches_init_early();</code></td>
+<td>初始化虚拟文件系统的dentry缓存和inode缓存项<br>打印输出例子:<br><font color="red"><code>Dentry cache hash table entries: 8192 (order: 3, 32768 bytes)</code><br><code>Inode-cache hash table entries: 4096 (order: 2, 16384 bytes)</code></font></td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>trap_init()</code></td>
+<td>完成对系统保留中断向量（异常、非屏蔽中断以及系统调用）的初始化，后面的<code>init_IRQ()</code>函数则完成其余中断向量的初始化</td>
+</tr>
+<tr>
+<td><code>mm_init()</code></td>
+<td>初始化内存<br>打印输出例子:<br><font color="red"><code>Memory: 64MB = 64MB total</code><br><code>Memory: 60688KB available (3684K code, 340K data, 156K init, 0K highmem)</code></font></td>
+</tr>
+<tr>
+<td><code>sched_init</code></td>
+<td>在开启中断之前初始化调度器</td>
+</tr>
+<tr>
+<td><code>preempt_disable();</code></td>
+<td>禁止抢占</td>
+</tr>
+<tr>
+<td><code>irqs_disabled</code></td>
+<td>禁止中断</td>
+</tr>
+<tr>
+<td><code>rcu_init</code></td>
+<td>初始化RCU(Read-Copy Update)机制，打印输出例子:<br><font color="red"><code>Hierarchical RCU implementation.</code></font></td>
+</tr>
+<tr>
+<td><code>early_irq_init();</code><br><code>init_IRQ();</code><br>…</td>
+<td>初始化中断<br>打印输出例子:<br><font color="red"><code>NR_IRQS:99</code><br><code>irq: clearing subpending status 00000002</code></font></td>
+</tr>
+<tr>
+<td><code>init_IRQ()</code></td>
+<td>系统移植时需要关注，具体参考<a href="/2016/05/12/20160512-machine_desc">machine_desc结构体</a></td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>time_init()</code></td>
+<td>系统移植时需要关注，具体参考<a href="/2016/05/12/20160512-machine_desc">machine_desc结构体</a></td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>console_init</code></td>
+<td>初始化控制台，该步骤完成后，前面printk的打印输出才会被从内部缓存中刷新出来被我们所看到<br>打印输出例子:<br><font color="red"><code>Console: colour dummy device 80x30</code><br><code>console [ttySAC0] enabled</code></font><br>从以上打印可以知道内核打开的串口控制台的设备号叫<code>ttySAC0</code></td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>rest_init</code></td>
+<td>启动init进程，参考本文的</td>
+</tr>
+</tbody>
+</table>
+<p>在移植过程中有这么几个关键步骤所涉及的函数值得我们关注：</p>
+<h2 id="体系架构相关的环境设置函数setup-arch"><a href="#体系架构相关的环境设置函数setup-arch" class="headerlink" title="体系架构相关的环境设置函数setup_arch()"></a>体系架构相关的环境设置函数<code>setup_arch()</code></h2><p>参考<code>arch/arm/kernel/setup.c</code>文件</p>
+<p>作为这里的流程的补充，可以参考另一篇笔记<a href="/2016/05/12/20160512-machine_desc">machine_desc结构体</a>。</p>
+<table>
+<thead>
+<tr>
+<th>流程 - 具体调用的函数</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>setup_processor()</code></td>
+<td>调用第二阶段中提到的<code>__lookup_processor_type</code>函数获得处理器的<code>proc_info_list</code>结构，并据此进行处理器相关的初始化设置工作<br>串口打印日志中以<code>CPU:</code>开始的行就是这个函数打印出来的</td>
+</tr>
+<tr>
+<td><code>setup_machine()</code></td>
+<td>调用第二阶段中提到的<code>__lookup_machine_type</code>函数获得当前开发板的<code>machine_desc</code>结构，并据此进行机器(即开发板)级别的初始化设置工作。<br>串口打印日志中以<code>Machine:</code>开始的行就是这个函数打印出来的</td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>parse_tags()</code></td>
+<td>解析并获得从bootloader传递来的启动参数。具体的传递方法，可以参考另一片博客文章<a href="/2015/12/26/20151226-transfer-params-btw-uboot-and-kernel">U-boot和内核之间传递复杂参数的TAG方式</a>。注意，TAG区的首地址就是定义在<code>machine_desc</code>结构的<code>boot_params</code>区域。需要特别注意的是有两个TAG:<br>- <code>ATAG_MEM</code>: 内存的起始地址，长度，解析中会将该信息增加到全局结构变量meminfo中，这样内核就了解了开发板的内存信息。从这里看出来，有些信息，内核不再自己扫描硬件，靠bootloader在引导内核前扫描得到然后传递通知给内核。<br>- <code>ARAG_CMDLINE</code>:bootloader定制的内核启动命令行参数，但这里解析中只是将其保存到<code>default_command_line</code>中，留待以后处理。参考后面的函数调用<code>parse_cmdline</code></td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>parse_cmdline()</code></td>
+<td>先期处理命令行中的部分参数，这些先期处理的参数都使用<code>__early_param</code>宏定义。其他的参数在<code>setup_arch</code>函数之外处理。</td>
+</tr>
+<tr>
+<td><code>paging_init()</code></td>
+<td>根据前面得到的内存信息(已经保存在全局变量meminfo中)重新初始化页表（阶段二中不是已经做过一次，为何这里还要做一次，这个还没有明白TBD），<font color="red">注意这个函数传入的参数就是前面获得的当前开发板的<code>machine_desc</code>结构，所以说这个结构体也是移植过程中值得关注的一个重要结构体，因为这个结构体上面有很多回调函数，需要我们针对自己的开发板型号定制</font></td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+</tbody>
+</table>
+<h2 id="控制台初始化函数console-init"><a href="#控制台初始化函数console-init" class="headerlink" title="控制台初始化函数console_init"></a>控制台初始化函数<code>console_init</code></h2><p>参考韦东山第16.3章的描述我们知道，针对开发板所使用的SOC处理器，可以调用<code>console_initcall</code>宏来声明一个自己的控制台初始化函数，该宏会导致内核编译链接时将该函数的地址统一放在<code>__con_initcall_start</code>和<code>__con_initcall_end</code>之间。参考<code>drivers/serial/samsung.h</code>，有如下代码行：</p>
+<pre><code>#ifdef CONFIG_SERIAL_SAMSUNG_CONSOLE
+
+#define s3c24xx_console_init(__drv, __inf)            \
+static int __init s3c_serial_console_init(void)            \
+{                                \
+    return s3c24xx_serial_initconsole(__drv, __inf);    \
+}                                \
+                                \
+console_initcall(s3c_serial_console_init)
+
+#else
+#define s3c24xx_console_init(drv, inf) extern void no_console(void)
+#endif
+</code></pre><p>其中可以看到针对s3c系列芯片的串口控制台的初始化是由<code>s3c24xx_serial_initconsole</code>函数完成的。</p>
+<p>而<code>console_init()</code>这个函数的功能仅仅是遍历这个段，并依次调用所有的函数，具体参考<code>console_init</code>函数的代码如下：</p>
+<pre><code>void __init console_init(void)
+{
+    initcall_t *call;
+
+    /* Setup the default TTY line discipline. */
+    tty_ldisc_begin();
+
+    /*
+     * set up the console device so that later boot sequences can
+     * inform about problems etc..
+     */
+    call = __con_initcall_start;
+    while (call &lt; __con_initcall_end) {
+        (*call)();
+        call++;
+    }
+}
+</code></pre><p>最后让我们把注意力集中到<code>s3c24xx_serial_initconsole</code>函数。在该函数中有这么一句关键的函数调用：</p>
+<pre><code>int s3c24xx_serial_initconsole(struct platform_driver *drv,
+                   struct s3c24xx_uart_info *info)
+
+{
+    ...
+
+    register_console(&amp;s3c24xx_serial_console);
+    return 0;
+}
+</code></pre><p>在串口初始化过程中涉及到一个控制台的结构体类型<code>struct console</code>的全局变量<code>s3c24xx_serial_console</code>。</p>
+<p><code>register_console</code>函数会拿内核引导参数中的<code>console=...</code>字段和该结构体类型的name成员比较，如果相符合，printk就会从这个设备输出。同时我们在<code>register_console</code>函数中会看到<code>release_console_sem()</code>的调用，这句话会释放控制台的信号量，这样我们就可以在控制台上看到输出的内容了。</p>
+<p>这里我在网上查了一些有关tty，console和串口的概念，有一篇问答文章讲得有点意思，摘录了一些比较重点的结论，注意是基于2.4的内核，最新的状态可以再确认一下。</p>
+<p>问：LINUX下TTY、CONSOLE、串口之间是怎样的层次关系？具体的函数接口是怎样的？串口是如何被调用的？<br>答：tty和console这些概念主要是一些虚设备的概念，而串口更多的是指一个真正的设备驱动。 </p>
+<ul>
+<li>Tty实际是一类终端I/O设备的抽象，它实际上更多的是一个管理的概念，它和<code>tty_ldisc</code>（行规程）和<code>tty_driver</code>（真实设备驱动）组合 在一起，目的是向上层的VFS提供一个统一的接口。通过<code>file_operations</code>结构中的<code>tty_ioctl</code>可以对其进行配置。查 <code>tty_driver</code>，你将得到n个结果，实际都是相关芯片的驱动。因此，可以得到的结论是（实际情况比这复杂得多）：每个描述tty设备的 <code>tty_struct</code>在初始化时必然挂如了某个具体芯片的字符设备驱动（不一定是字符设备驱动），可以是很多，包括显卡或串口chip。</li>
+<li>console是一个缓冲的概念，它的目的有一点类似于tty。实际上console不仅和tty连在一起，还和framebuffer连在一起，具体 的原因看下面的键盘的中断处理过程。Tty的一个子集需要使用console(典型的如主设备号4，次设备号1―64)，但是要注意的是没有console的tty是存在的。 </li>
+<li>串口则指的是<code>tty_driver</code>。 </li>
+</ul>
+<p>有关printk的总结</p>
+<ul>
+<li><p>printk不一定是将信息往控制台上输出，设置kernel的启动参数可能可以打到将信息送到显示器的效果。printk的主操作实际上还是针对一个<code>buffer(log_buf)</code>,该buffer中的内容是否显示（或者说向终端输出），则要看是否可以获得<code>console_sem</code>。</p>
+</li>
+<li><p>printk所在的文件为printk.c，是和体系结构无关的，因此对任何平台都一样。 </p>
+</li>
+</ul>
+<p>可以推测的结论是： </p>
+<ul>
+<li>kernel在初始化时将console_sem标为了locked，因此在<code>start_kernel</code>一开始的<code>printk(linux_banner)</code>中实际只将输入写入了缓冲，等在串口和console初始化后，对printk的调用才一次将缓冲中的内容向串 口和console输出。 </li>
+<li>在串口和console的初始化过程中，必然有对<code>console_sem</code>的up操作。 </li>
+<li>因此，在embedded的调试中，如果在console的初始化之前系统出了问题，不会有任何的输出。唯一可以使用的只能是led或jtag了。 </li>
+</ul>
+<h1 id="rest-init-函数"><a href="#rest-init-函数" class="headerlink" title="rest_init()函数"></a>rest_init()函数</h1><p>详细的对应代码的解释可以参考<a href="http://book.51cto.com/art/201007/213607.htm" target="_blank" rel="external">Linux内核修炼之道，4.2.2 reset_init函数</a></p>
+<p>其他参考：</p>
+<ul>
+<li><a href="http://blog.csdn.net/a363344923/article/details/44346997" target="_blank" rel="external">分析Linux内核启动过程：从start_kernel到init</a> 内容其实倒是没啥，只是涉及到QEMU调试内核，是我感兴趣的。</li>
+</ul>
+<p>正如在一开始就已经谈到，<code>reset_init()</code>函数最主要的历史使命就是启动另外两个内核线程<code>kernel_init()</code>和<code>kthreadd()</code>，而内核自己则调用<code>cpu_idle()</code>进入idle循环以消耗空闲的CPU时间片，该函数从不返回。然而，当有实际工作要处理时，该函数就会被抢占。</p>
+<h1 id="kernel-init-函数"><a href="#kernel-init-函数" class="headerlink" title="kernel_init()函数"></a>kernel_init()函数</h1><p>详细的对应代码的解释可以参考<a href="http://book.51cto.com/art/201007/213608.htm" target="_blank" rel="external">Linux内核修炼之道，4.2.3  kernel_init函数</a></p>
+<p><code>kernel_init()</code>函数将完成设备驱动程序的初始化，并调用<code>init_post()</code>函数启动用户空间的init进程。</p>
+<table>
+<thead>
+<tr>
+<th>流程 - 具体调用的函数</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>init_pid_ns.child_reaper = current;</code></td>
+<td>1号进程将成为其他所有孤儿进程的继父，负责回收所有死亡的孤儿</td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>smp_init();</code></td>
+<td>激活SMP系统中其他CPU</td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>do_basic_setup();</code></td>
+<td>此时与体系结构相关的部分已经初始化完成，现在开始调用<code>do_basic_setup()</code>函数初始化设备，完成外设及其驱动程序（直接编译进内核的模块）的加载和初始化<br>具体参考我对<code>do_basic_setup()</code>函数的分析和总结</td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>init_post();</code></td>
+<td>内核此时基本上已经基本完成了初始化的bootup，此时可以开始清除不必要的初始化代码段和数据段，腾出内存空间并开始启动用户态的任务</td>
+</tr>
+</tbody>
+</table>
+<h2 id="do-basic-setup-函数"><a href="#do-basic-setup-函数" class="headerlink" title="do_basic_setup()函数"></a>do_basic_setup()函数</h2><p>详细的对应代码的解释可以参考<a href="http://blog.chinaunix.net/uid-20543672-id-3173839.html" target="_blank" rel="external">Linux内核源码分析–内核启动之(6)Image内核启动(do_basic_setup函数)（Linux-3.0 ARMv7）</a>，虽然该文基于内核v3.0，但和我使用的v2.6.32.2差别不大。</p>
+<p>注意阅读内核中对该函数的注释：</p>
+<pre><code>/*
+ * Ok, the machine is now initialized. None of the devices
+ * have been touched yet, but the CPU subsystem is up and
+ * running, and memory and process management works.
+ *
+ * Now we can finally start doing some real work..
+ */
+</code></pre><table>
+<thead>
+<tr>
+<th>流程 - 具体调用的函数</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>init_workqueues();</code></td>
+<td>初始化工作队列，这个在新内核中位置会发生改变</td>
+</tr>
+<tr>
+<td>`cpuset_init_smp();</td>
+<td>针对SMP系统，初始化内核control group的cpuset子系统。如果非SMP，此函数为空。<br>cpuset是在用户空间中操作cgroup文件系统来执行进程与cpu和进程与内存结点之间的绑定。<br>本函数将<code>cpus_allowed</code>和<code>mems_allwed</code>更新为在线的cpu和在线的内存结点，并为内存热插拨注册了钩子函数，最后创建一个单线程工作队列cpuset。</td>
+</tr>
+<tr>
+<td>`usermodehelper_init();</td>
+<td>创建一个单线程工作队列khelper。运行的系统中只有一个，主要作用是指定用户空间的程序路径和环境变量, 最终运行指定的user space的程序，属于关键线程，不能关闭。</td>
+</tr>
+<tr>
+<td>`init_tmpfs();</td>
+<td>初始化内核tmpfs文件系统</td>
+</tr>
+<tr>
+<td>`driver_init();</td>
+<td>初始化驱动模型中的各子系统，可见的现象是在<code>/sys</code>中出现的目录和文件,对于内核驱动工程师来说比较重要</td>
+</tr>
+<tr>
+<td>`init_irq_proc();</td>
+<td>在proc文件系统中创建irq目录，并在其中初始化系统中所有中断对应的目录。</td>
+</tr>
+<tr>
+<td>`do_ctors();</td>
+<td>调用链接到内核中的所有构造函数，也就是链接进.ctors段中的所有函数。<br>在Linux-2.6.31开始内核启动增加了对构造函数的支持。</td>
+</tr>
+<tr>
+<td>`do_initcalls();</td>
+<td>调用所有编译内核的驱动模块中的初始化函数。<br>这里就是驱动程序员需要关心的步骤，其中按照各个内核模块初始化函数所自定义的启动级别（1～7），按顺序调用器初始化函数。对于同一级别的初始化函数，安装编译是链接的顺序调用，也就是和内核Makefile的编写有关。在编写内核模块的时候需要知道这方面的知识，比如你编写的模块使用的是I2C的API，那你的模块的初始化函数的级别必须低于I2C子系统初始化函数的级别（也就是级别数（1~7）要大于I2C子系统）。如果编写的模块必须和依赖的模块在同一级，那就必须注意内核Makefile的修改了。</td>
+</tr>
+</tbody>
+</table>
+<h2 id="do-initcalls-分析"><a href="#do-initcalls-分析" class="headerlink" title="do_initcalls()分析"></a>do_initcalls()分析</h2><p>如果我们对内核驱动模块的初始化顺序感兴趣，则需要关注函数<code>do_initcalls()</code>的工作方式。</p>
+<p>相关参考：</p>
+<ul>
+<li><a href="http://book.51cto.com/art/201007/213615.htm" target="_blank" rel="external">Linux内核修炼之道，4.5.1 do_initcalls()函数</a></li>
+<li><a href="http://book.51cto.com/art/201007/213616.htm" target="_blank" rel="external">Linux内核修炼之道，4.5.2 .initcall.init节</a></li>
+<li><a href="http://book.51cto.com/art/201007/213623.htm" target="_blank" rel="external">Linux内核修炼之道，4.5.3 分析示例</a></li>
+<li><a href="http://blog.csdn.net/maopig/article/details/7375933" target="_blank" rel="external">linux设备和驱动加载的先后顺序</a></li>
+</ul>
+<p>这里的内容也很多，估计要另外开一个笔记整理。TBD</p>
+<h1 id="init-post-函数"><a href="#init-post-函数" class="headerlink" title="init_post()函数"></a>init_post()函数</h1><p>详细的对应代码的解释可以参考<a href="http://book.51cto.com/art/201007/213609.htm" target="_blank" rel="external">Linux内核修炼之道，4.2.4 init_post函数</a></p>
+<ul>
+<li><a href="http://blog.chinaunix.net/uid-23769728-id-3129443.html" target="_blank" rel="external">Linux系统下init进程的前世今生</a> 另外该作者在bbs上也有一篇类似的帖子<a href="http://bbs.chinaunix.net/thread-3685404-1-1.html" target="_blank" rel="external">Linux系统下init进程的前世今生</a>，这篇文章详细介绍了一个内核态的1号线程是如何转变为一个用户态的进程的。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>流程 - 具体调用的函数</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>free_initmem();</code></td>
+<td>到此，内核初始化已经接近尾声了，所有的初始化函数都已经被调用，因此<code>free_initmem()</code>函数可以舍弃内存的<code>__init_begin</code>至<code>__init_end</code>（包括<code>.init.setup</code>、<code>.initcall.init</code>等段）之间的数据。<br>所有使用<code>__init</code>标记过的函数和使用<code>__initdata</code>标记过的数据，在<code>free_initmem()</code>函数执行后，都不能使用，它们曾经获得的内存现在可以重新用于其他目的。</td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+<tr>
+<td><code>run_init_process(&quot;/sbin/init&quot;);</code></td>
+<td>启动init进程，注意这里在<code>run_init_process()</code>函数内部完成了1号进程从内核态到用户态的转变</td>
+</tr>
+<tr>
+<td>…………………………………….</td>
+<td>……</td>
+</tr>
+</tbody>
+</table>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/05/12/20160512-machine_desc/" rel="next" title="machine_desc结构体">
+                <i class="fa fa-chevron-left"></i> machine_desc结构体
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/05/17/20160517-make-kernel/" rel="prev" title="针对mini2440制作一个最小化的可启动的内核">
+                针对mini2440制作一个最小化的可启动的内核 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/05/13/20160513-start_kernel_init/"
+           data-title="内核初始化－从start_kernel到init" data-url="http://unicornx.github.io/2016/05/13/20160513-start_kernel_init/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#第三阶段都干了些啥"><span class="nav-number">1.</span> <span class="nav-text">第三阶段都干了些啥</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#0号内核线程"><span class="nav-number">1.1.</span> <span class="nav-text">0号内核线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1号内核线程"><span class="nav-number">1.2.</span> <span class="nav-text">1号内核线程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1号用户进程"><span class="nav-number">1.3.</span> <span class="nav-text">1号用户进程</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#start-kernel-函数"><span class="nav-number">2.</span> <span class="nav-text">start_kernel()函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#体系架构相关的环境设置函数setup-arch"><span class="nav-number">2.1.</span> <span class="nav-text">体系架构相关的环境设置函数setup_arch()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#控制台初始化函数console-init"><span class="nav-number">2.2.</span> <span class="nav-text">控制台初始化函数console_init</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#rest-init-函数"><span class="nav-number">3.</span> <span class="nav-text">rest_init()函数</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#kernel-init-函数"><span class="nav-number">4.</span> <span class="nav-text">kernel_init()函数</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#do-basic-setup-函数"><span class="nav-number">4.1.</span> <span class="nav-text">do_basic_setup()函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#do-initcalls-分析"><span class="nav-number">4.2.</span> <span class="nav-text">do_initcalls()分析</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#init-post-函数"><span class="nav-number">5.</span> <span class="nav-text">init_post()函数</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

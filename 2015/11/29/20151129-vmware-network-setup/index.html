@@ -1,0 +1,729 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="vmware," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-04
+这两天找了点时间总结了一下VMware里配置网络参数的方法，由于工作中经常需要在Windows里用VMWAre，但网络这一块以前也没搞得太清楚，这次总结一下备忘。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="嵌入式开发环境中如何设置VMware的网络">
+<meta property="og:url" content="http://unicornx.github.io/2015/11/29/20151129-vmware-network-setup/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-04
+这两天找了点时间总结了一下VMware里配置网络参数的方法，由于工作中经常需要在Windows里用VMWAre，但网络这一块以前也没搞得太清楚，这次总结一下备忘。">
+<meta property="og:image" content="http://unicornx.github.io/img/20151129-vmware-network-setup/type1.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20151129-vmware-network-setup/type2.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20151129-vmware-network-setup/type3.png">
+<meta property="og:updated_time" content="2016-04-04T14:23:17.234Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="嵌入式开发环境中如何设置VMware的网络">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-04
+这两天找了点时间总结了一下VMware里配置网络参数的方法，由于工作中经常需要在Windows里用VMWAre，但网络这一块以前也没搞得太清楚，这次总结一下备忘。">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20151129-vmware-network-setup/type1.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/11/29/20151129-vmware-network-setup/"/>
+
+  <title> 嵌入式开发环境中如何设置VMware的网络 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                嵌入式开发环境中如何设置VMware的网络
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-11-29T15:45:12+08:00" content="2015-11-29">
+              2015-11-29
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/开发环境与工具/" itemprop="url" rel="index">
+                    <span itemprop="name">开发环境与工具</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/11/29/20151129-vmware-network-setup/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/29/20151129-vmware-network-setup/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-04</p>
+<p>这两天找了点时间总结了一下VMware里配置网络参数的方法，由于工作中经常需要在Windows里用VMWAre，但网络这一块以前也没搞得太清楚，这次总结一下备忘。</p>
+<a id="more"></a>
+<p>首先要知道的是<a href="http://www.cnblogs.com/hare/p/3597441.html" target="_blank" rel="external">VMWare虚拟机网络的三种工作模式</a>。这篇文章总结的很好了，所以我就不再赘述。</p>
+<p>如果不考虑和开发板连接调试的问题，可以采用最简单的NAT方式。</p>
+<p>但如果需要连接开发板的时候就要使用“桥接”模式了。这里有几种配置方式：</p>
+<p>首先定义一下：</p>
+<ul>
+<li><strong>Host</strong>: 在VMWare的手册中指安装VMWare的宿主系统，我这里当然指的是台式机或者笔记本上安装的Winodws系统。</li>
+<li><strong>Client</strong>: 在VMWare的手册中指安装在WMware里的系统，我这里是指在VMWAre里安装的Ubuntu系统</li>
+<li><strong>Dev-board</strong>: 开发板<br>注：这里Host和Client是在一台电脑上的，所以用方框框起来了，称之为<strong>主机</strong>。</li>
+</ul>
+<p>三种针对不同场景的配置方式：</p>
+<p>1) 如果仅考虑需要让Host系统，Client系统和开发板之间互通，可以直接在VMWare里采用“桥接”模式，同时开发板和主机之间采用直连（交叉）网线直接连接。如此这般设置后，Host，Client和Dev-board三者之间就好比是连接在同一个网段中的三台主机。这种方式只能实现Host，Client和Dev-board之间互通，如果要上internet就不行了。</p>
+<p><img src="/img/20151129-vmware-network-setup/type1.png" alt=""></p>
+<p>2) 如果要和外部主机连接，譬如要上internet，又譬如在教室上课的时候，我在我的电脑上操作Client的Ubuntu和Dev-board通讯，同时又要让教室里的其他同学看到我的电脑的屏幕。如果要这样的话，需要引入Hub的支持，联网方式如下：</p>
+<p><img src="/img/20151129-vmware-network-setup/type2.png" alt=""></p>
+<p>3) 如果不是在教室里，譬如在办公室或者是家里，不想带着一个Hub走来走去，而且现在开发的时候主机都是一台笔记本，笔记本一般同时具备无线网卡和有线网卡，我们可以利用无线网口上网，同时利用笔记本的以太网口和开发板用直连网线（交叉方式）直接连接进行调试，但有用户发现在使用有线网卡进行络调试的时候，往往会与无线网卡冲突。此时可以对VMWare做一些设置解决这个问题，具体方法，参考”华清远见开发环境使用说明 V12B 2.1”的5.2节”解决上网与本地网络调试冲突”。</p>
+<p>操作过程中注意以下几点：</p>
+<ul>
+<li>第一步，我使用的是<code>VMWare Workstation</code>，所以直接到VMWARE的安装目录下运行<code>vmnetcfg.exe</code>。</li>
+<li>VMNet0对应无线网卡(桥接模式)，VMNet2对应有线网卡(桥接模式)。</li>
+<li>Client中的eth0对应无线网卡的网段，eth1对应有限网卡的网段</li>
+</ul>
+<p>大致思路是为虚拟机Client设置两个网络适配器，一个是eth0，对应VMNet0，和Host的wifi接口桥接在一个网段里，另一个是eth1，对应VMNet2，和Host的有线网口桥接在一个网段里，这样我的虚拟机可以通过主机的有线网卡和开发板通讯进行调试，同时通过主机的wifi接口上internet了。</p>
+<p><img src="/img/20151129-vmware-network-setup/type3.png" alt=""></p>
+<p>对应虚拟机client网卡配置如下：</p>
+<pre><code>auto lo
+iface lo inet loopback
+
+#############################################
+# Bridge for WLAN
+auto eth0
+iface eth0 inet static
+address 192.168.0.2
+netmask 255.255.255.0
+gateway 192.168.0.1
+dns-nameservers 114.114.114.114
+
+#############################################
+# Bridge for Fixed-Line
+auto eth1
+iface eth1 inet static
+address 192.168.5.21
+netmask 255.255.255.0
+gateway 192.168.5.1
+</code></pre><p>设置时还要注意一个问题，就是发现在Windows XP里默认有线网卡优先权高，即有线网卡和无线网卡同时激活则上网优先走有线网卡。但是我这里却需要采用无线网卡上网。这个问题一开始我在Windows7里没注意，也不记得是不是曾经在Windows7里设置过，总之如果需要优先改为无线上网优先，需要对host的Windows系统网络配置做相应调整如下：</p>
+<ul>
+<li>进入网络属性的有线网卡的连接属性，选择TCP/IP属性，点“高级….”，进入高级TCP/IP属性页面，把网关删除掉（如果有的话），把下面的“接口跃点数”改为“2”或更高。</li>
+<li>同样进入无线网卡TCP/IP设置，设置好网关，把接口跃点数改为“1”。</li>
+<li>如果无线网卡的“高级TCP/IP属性”中的“常规”页面里有“在远程网络上使用默认网关”的选择的话，把它钩上。</li>
+</ul>
+<p>其他参考文章：<br><a href="http://blog.chinaunix.net/uid-26258259-id-4036793.html" target="_blank" rel="external">ubuntu12.10 下使用交叉网线直连开发板方式实现mini2440开发板tftp网络通信 </a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/vmware/" rel="tag">#vmware</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/29/20151129-hyperterminal-windows7/" rel="next" title="如何在Win7中安装使用超级终端Hyper-Terminal">
+                <i class="fa fa-chevron-left"></i> 如何在Win7中安装使用超级终端Hyper-Terminal
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/29/20151129-linux-rtl/" rel="prev" title="有关RTL-扫盲帖">
+                有关RTL-扫盲帖 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/11/29/20151129-vmware-network-setup/"
+           data-title="嵌入式开发环境中如何设置VMware的网络" data-url="http://unicornx.github.io/2015/11/29/20151129-vmware-network-setup/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <p class="post-toc-empty">此文章未包含目录</p>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,887 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,s3c2440,driver,interrupt," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+韦东山《嵌入式Linux应用开发》
+linux异常体系结构
+Linux中断子系统分析 上面有一段对中断系统的分层描述比较不错，可以采纳，也可以画个图横向的说明一下就更好了。
+内核代码v2.6.32.6
+Writing devi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核驱动之Linux中断处理子系统(基于v2.6.32.6和s3c2440)">
+<meta property="og:url" content="http://unicornx.github.io/2016/02/21/20160221-lk-drv-interrupt/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+韦东山《嵌入式Linux应用开发》
+linux异常体系结构
+Linux中断子系统分析 上面有一段对中断系统的分层描述比较不错，可以采纳，也可以画个图横向的说明一下就更好了。
+内核代码v2.6.32.6
+Writing devi">
+<meta property="og:image" content="http://img.dnbcw.info/2012419/3954130.jpg">
+<meta property="og:image" content="http://pic002.cnblogs.com/images/2011/121648/2011041323051396.jpg">
+<meta property="og:updated_time" content="2016-04-19T14:11:43.500Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核驱动之Linux中断处理子系统(基于v2.6.32.6和s3c2440)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+韦东山《嵌入式Linux应用开发》
+linux异常体系结构
+Linux中断子系统分析 上面有一段对中断系统的分层描述比较不错，可以采纳，也可以画个图横向的说明一下就更好了。
+内核代码v2.6.32.6
+Writing devi">
+<meta name="twitter:image" content="http://img.dnbcw.info/2012419/3954130.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/02/21/20160221-lk-drv-interrupt/"/>
+
+  <title> Linux内核驱动之Linux中断处理子系统(基于v2.6.32.6和s3c2440) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux内核驱动之Linux中断处理子系统(基于v2.6.32.6和s3c2440)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-02-21T06:09:12+08:00" content="2016-02-21">
+              2016-02-21
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux驱动开发/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux驱动开发</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/02/21/20160221-lk-drv-interrupt/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/21/20160221-lk-drv-interrupt/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-19</p>
+<h1 id="主要参考"><a href="#主要参考" class="headerlink" title="主要参考"></a>主要参考</h1><ul>
+<li>韦东山《嵌入式Linux应用开发》</li>
+<li><a href="http://m.oschina.net/blog/293664" target="_blank" rel="external">linux异常体系结构</a></li>
+<li><a href="http://blog.chinaunix.net/uid-28236237-id-3434400.html" target="_blank" rel="external">Linux中断子系统分析</a> 上面有一段对中断系统的分层描述比较不错，可以采纳，也可以画个图横向的说明一下就更好了。</li>
+<li>内核代码v2.6.32.6</li>
+<li><a href="http://www.freesoftwaremagazine.com/articles/drivers_linux" target="_blank" rel="external">Writing device drivers in Linux: A brief tutorial</a> written from 2006. It should still work, though intervening changes may alter some details.</li>
+<li><a href="http://blog.csdn.net/angelbosj/article/details/7695038" target="_blank" rel="external">LDD3源码分析之与硬件通信&amp;中断处理</a> ldd3中short例子的分析</li>
+<li><a href="http://stackoverflow.com/questions/23768493/outb-does-not-work-in-ldd3-example-short-module" target="_blank" rel="external">outb() does not work in LDD3 example short module</a> - short例子可能无法工作的解决方法。</li>
+<li>有关如何触发port的中断，参考LDD3的Page270下，通过向<code>/dev/shortint</code>文件写入0和1会触发中断。</li>
+<li><a href="http://blog.csdn.net/jacobywu/article/details/7319446" target="_blank" rel="external">中断总结</a> 一些经验总结。</li>
+</ul>
+<a id="more"></a>
+<h1 id="中断处理的分层思想"><a href="#中断处理的分层思想" class="headerlink" title="中断处理的分层思想"></a>中断处理的分层思想</h1><p>首先明确一下概念，以ARM架构为例，CPU有多种异常模式，譬如管理模式(系统调用)，未定义指令终止模式等等，中断只是异常中的一种。在大部分驱动程序中主要关心的异常处理类型就是中断，而且明确指是是非快速中断(FIQ)，即我们常说的IRQ。</p>
+<p>Linux中断处理由三部分组成，可以从下到上分为三层：</p>
+<ul>
+<li>最下面的那层和体系结构以及平台(具体的开发板)相关，主要负责在中断发生之后保护CPU现场，调用内核统一的中断处理入口函数，负责从中断处理过程恢复到中断之前的流程等比较底层的工作。为方便后面的描述，我们称其为第一层，一般由软件中的板级支持包，即BSP部分完成。</li>
+<li>最上面的那层是驱动层，就是我们常说的驱动模块，负责处理涉及到具体中断的逻辑，主要就是要定义自己模块的中断处理函数，完成具体中断处理的定制部分。除了完成中断处理函数外就是将该函数通过内核系统提供的接口注册到内核中或者执行注销动作。为方便后面的描述，我们称其为第三层。</li>
+<li><p>中间的那层，我们就称其为第二层好了，是内核提供的中断系统框架层，也就是我这篇文章重点要描述的”中断处理子系统”，该层起到承上启下的作用，向上这部分为驱动模块提供了一个统一的框架和使用接口，使其具体的实现和体系架构以及平台保持无关，向下针对底层各种类型的体系和平台结构，提供一个统一的中断处理接入架构，底层的代码，譬如具体的板级支持包(BSP)只需要根据该接入标准准备好相应的中断号等参数，并负责将子系统定义的一些体系和平台相关的定制函数具体实现并在<font color="red"><strong>编译内核时</strong></font>完成和内核中断子系统的对接即可。</p>
+<pre><code>(第三层) 驱动模块
+-----------------------
+(第二层) 中断处理子系统
+-----------------------
+   (第一层) BSP
+</code></pre></li>
+</ul>
+<h1 id="中断处理子系统"><a href="#中断处理子系统" class="headerlink" title="中断处理子系统"></a>中断处理子系统</h1><p>网上找到两张图，描述了内核里管理中断的数据结构。<br>第一张图比较简单明了，就是从著名的UTL上直接拿来的。<br><img src="http://img.dnbcw.info/2012419/3954130.jpg" alt=""></p>
+<p>还有下面这张图，比较详细，基本上就是复制的韦东山的书上的第20章的图20.2。<br><img src="http://pic002.cnblogs.com/images/2011/121648/2011041323051396.jpg" alt=""></p>
+<p>从这些图上告诉了我们内核的中断管理相关的主要的结构体如下：</p>
+<h2 id="irq-desc"><a href="#irq-desc" class="headerlink" title="irq_desc"></a><code>irq_desc</code></h2><p>Linux内核将所有的中断统一编号，使用一个<code>irq_desc</code>结构体类型的数组来描述这些中断。对应的数组也定义在该文件中：</p>
+<pre><code>extern struct irq_desc irq_desc[NR_IRQS];
+</code></pre><p>从结构体的类型名称上可以理解每一项叫做一个”中断描述符”,也就是说每个数组项对应一种中断(也可能是一组中断，它们共用相同的中断号)，该数组由第三层具体的平台体系实现，里面记录了中断的名称(name)、中断状态(status)、中断标记（比如中断类型、是否共享中断等），并提供了中断的低层硬件访问函数（chip，清除、屏蔽、使能中断），提供了这个中断号的统一处理函数入口(handle_irq)，通过它可以调用用户注册的中断处理函数(action)。</p>
+<p><code>irq_desc</code>结构体定义在<code>include/linux/irq.h</code>文件中。</p>
+<pre><code>struct irq_desc {
+    unsigned int        irq;
+    ...
+    irq_flow_handler_t    handle_irq;
+    struct irq_chip        *chip;
+    ...
+    struct irqaction    *action;    /* IRQ action list */
+    unsigned int        status;        /* IRQ status */
+    ...
+    const char        *name;
+} ____cacheline_internodealigned_in_smp;
+</code></pre><p>其中几个重要的成员定义如下:</p>
+<ul>
+<li>irq: interrupt number for this descriptor。硬中断号编号。</li>
+<li><p>handle_irq: highlevel irq-events handler [if NULL, __do_IRQ()]</p>
+<p>  <code>handle_irq</code>是一个函数指针，是针对某个硬中断，以irq区分的中断的统一入口函数。其主要作用就是会遍历下面的另外一个成员action（是一个链表），并检查具体要调用链表上哪个对象的处理函数。</p>
+<p>  注意Linux系统将各种中断分成几种类型，有电平触发的中断、上升/下降沿触发的中断、还有一种简单中断处理模型等等。根据这些中断类型，linux内核已经帮助我们完成了一套标准的中断处理流程。针对不同类型的中断，只需要在<code>handle_irq</code>上安装不同的标准处理函数即可，而不需要每个BSP自己重新写一遍。</p>
+<p>  打一个比方，譬如我们的开发板上芯片的中断控制器的某个中断线上接了一个wifi设备，在编写BSP时我们要搞清楚芯片上中断控制器对这个中断号配置了什么样的中断类型。如果是电平触发的中断，我就需要将<code>handle_irq</code>函数指针设置成<code>handle_level_irq</code>，<code>handle_level_irq</code>函数是linux内核中断子系统中抽象出来的对电平触发的中断的统一处理流程。</p>
+</li>
+<li><p>chip: low level interrupt hardware access。涉及到<code>struct irq_chip</code>结构，稍后介绍</p>
+</li>
+<li>action: the irq action chain。action链表，涉及<code>irqaction</code>结构体，稍后介绍。</li>
+<li>name: flow handler name for <code>/proc/interrupts</code> output，该中断的字符串名字，可以通过<code>cat /proc/interrupts</code>查看得到。</li>
+</ul>
+<h2 id="irq-chip"><a href="#irq-chip" class="headerlink" title="irq_chip"></a><code>irq_chip</code></h2><p><code>irq_desc</code>结构体中的chip成员是一个结构体<code>irq_chip</code>的指针，该结构体也定义在<code>include/linux/irq.h</code>中，如下，它提供了低层硬件操作中断相关的操作函数，譬如屏蔽中断(mask)，使能中断(enable,disable)，清除中断(ack)等，由第三层针对板子的体系架构和电路设计具体实现。</p>
+<pre><code>struct irq_chip {
+    const char    *name;
+    unsigned int    (*startup)(unsigned int irq);
+    void        (*shutdown)(unsigned int irq);
+    void        (*enable)(unsigned int irq);
+    void        (*disable)(unsigned int irq);
+
+    void        (*ack)(unsigned int irq);
+    void        (*mask)(unsigned int irq);
+    void        (*mask_ack)(unsigned int irq);
+    void        (*unmask)(unsigned int irq);
+    ...
+};
+</code></pre><h2 id="irqaction"><a href="#irqaction" class="headerlink" title="irqaction"></a><code>irqaction</code></h2><p><code>irq_desc</code>结构体中还有一个重要的成员action，维护了一个结构体<code>irqaction</code>的列表，该类型定义在文件<code>include/linux/interrupt.h</code>中。</p>
+<pre><code>struct irqaction {
+    irq_handler_t handler;
+    unsigned long flags;
+    const char *name;
+    void *dev_id;
+    struct irqaction *next;
+    int irq;
+    ...
+};
+</code></pre><p>每个结构体<code>irqaction</code>节点表示一个用户自定义的中断处理动作。<br>其主要包含的成员如下：</p>
+<ul>
+<li>handler: interrupt handler function。用户注册的中断处理函数的指针。</li>
+<li>flags: flags (see IRQF_* above)。中断标志，以位或的方式设置和读取，比如是否共享中断(<code>IRQF_SHARED</code>)，是否电平触发(<code>IRQF_TRIGGER_HIGH/IRQF_TRIGGER_LOW</code>)还是边沿触发(<code>IRQF_TRIGGER_RISING/IRQF_TRIGGER_FALLING</code>)等。</li>
+<li>dev_id: cookie to identify the device。参考<a href="http://blog.chinaunix.net/uid-20696246-id-1891946.html" target="_blank" rel="external">深入分析request_irq的dev_id参数作用</a></li>
+</ul>
+<p>子系统里的这个<code>irqaction</code>结构体完全是为第三层的驱动模块服务的，驱动模块在定义好自己的中断处理函数后，以<code>irqaction</code>的形式注册添加到内核子系统中，而且是放在一个链表中，这样一旦中断发生，内核子系统就会找到这个函数然后回调执行，不再使用时，驱动模块还可以注销这个<code>irqaction</code>对象，那么其对应的<code>handler</code>就不会被调用了。</p>
+<p>看到这可能会觉得内核的设计好麻烦，为何处理函数要分两级，先是<code>irq_desc</code>的<code>handle_irq</code>，然后又是<code>irqaction</code>的<code>handler</code>，而且还是一个<code>irqaction</code>的链表，这是为啥呢，其根本原因就是为了支持所谓的<font color="red"><strong>共享中断</strong></font>的概念。</p>
+<p>所谓<font color="red"><strong>共享中断</strong></font>就是多个外设的中断引脚通过电路设计（例如：数字电路中的线与逻辑电路）连接到中断控制器的一个输入引脚上（这个输入引脚就是对应一个硬件中断号，对应内核中的一个<code>irq_desc</code>），则该中断引脚上对应着多个外设的的中断请求。可以参考<a href="/2016/01/23/20160123-s3c2440-interrupt">基于s3c2440学习中断控制器</a>中所谓“复用中断源”的概念。</p>
+<p>所以<code>irq_desc</code>结构体上的action链表上的多个<code>irqaction</code>就对应的是共享同一个中断号的多个设备。当一个被共享的中断线上发生中断时，内核会遍历该action链表上的每一个<code>irqaction</code>对象的handler函数，每个函数自己负责检查是否是其对应的外设上发生中断了，如果是则处理之，否则立即返回让内核再去查询下一个<code>irqaction</code>对象。</p>
+<h2 id="中断子系统的总体处理流程"><a href="#中断子系统的总体处理流程" class="headerlink" title="中断子系统的总体处理流程"></a>中断子系统的总体处理流程</h2><p>这个可以参考韦东山《嵌入式Linux应用开发》那本书的20.2 Linux中断处理体系结构的描述，在原书的第403页。</p>
+<h2 id="从分层的角度理解中断子系统所在第二层的承上启下作用"><a href="#从分层的角度理解中断子系统所在第二层的承上启下作用" class="headerlink" title="从分层的角度理解中断子系统所在第二层的承上启下作用"></a>从分层的角度理解中断子系统所在第二层的承上启下作用</h2><h3 id="BSP-第一层-对中断子系统-第二层-的支持"><a href="#BSP-第一层-对中断子系统-第二层-的支持" class="headerlink" title="BSP(第一层)对中断子系统(第二层)的支持"></a>BSP(第一层)对中断子系统(第二层)的支持</h3><p>主要体现在内核启动阶段对<code>irq_desc[NR_IRQS]</code>数组成员的初始化上。</p>
+<p>中断的初始化由函数<code>init_IRQ()</code>实现，这个函数被<code>start_kernel()</code>所调用，函数本身由不同体系架构分别实现，编译时通过配置选择正确的入口。以ARM为例，该函数定义在<code>arch/arm/kernel/irq.c</code>中。</p>
+<pre><code>void __init init_IRQ(void)
+{
+    int irq;
+
+    for (irq = 0; irq &lt; NR_IRQS; irq++)
+        irq_desc[irq].status |= IRQ_NOREQUEST | IRQ_NOPROBE;
+
+    init_arch_irq();
+}
+</code></pre><p>这个函数的重点在于调用了<code>init_arch_irq()</code>这个函数，纵观该文件，仅发现有如下一个定义：</p>
+<pre><code>void (*init_arch_irq)(void) __initdata = NULL;
+</code></pre><p>说明<code>init_arch_irq</code>是一个全局函数指针变量，其初始值为NULL，具体的赋值点发生在<code>arch/arm/kernel/setup.c</code>文件中的<code>setup_arch</code>函数。追踪代码可以发现该函数也是被<code>start_kernel()</code>所调用，而且发生在<code>init_IRQ()</code>被调用之前。</p>
+<p>观察<code>setup_arch</code>函数，里有这么一句：</p>
+<pre><code>init_arch_irq = mdesc-&gt;init_irq;
+</code></pre><p>这里的mdesc就是我们在移植Linux内核是需要设置的<code>machine_desc</code>结构体，譬如针对mini2440这款开发板，设置的就是<code>s3c24xx_init_irq()</code>。这些函数就是属于板级支持包的范畴了，需要在系统移植的时候编写好。具体的例子可以参考韦东山的书。</p>
+<h3 id="驱动模块-第三层-如何使用中断子系统-第二层-提供的接口进行中断处理的开发"><a href="#驱动模块-第三层-如何使用中断子系统-第二层-提供的接口进行中断处理的开发" class="headerlink" title="驱动模块(第三层)如何使用中断子系统(第二层)提供的接口进行中断处理的开发"></a>驱动模块(第三层)如何使用中断子系统(第二层)提供的接口进行中断处理的开发</h3><p>大致需要做如下几个工作：</p>
+<h4 id="注册自己设备的中断处理函数"><a href="#注册自己设备的中断处理函数" class="headerlink" title="注册自己设备的中断处理函数"></a>注册自己设备的中断处理函数</h4><p>在设备打开(open)的时候调用<code>request_irq()</code>注册针对某个中断号的处理函数，这个函数的主要作用就是会创建一个<code>irqaction</code>对象并添加到该中断号对应的<code>irq_desc</code>数组项的action链表中。</p>
+<pre><code>extern int __must_check
+request_irq(unsigned int irq, irq_handler_t handler, unsigned long flags,
+        const char *name, void *dev);
+</code></pre><ul>
+<li>irq：</li>
+<li>handler：用户定制的中断处理函数的地址，会被设置到该函数创建的<code>irqaction</code>对象的handler成员上。</li>
+<li>flags：如果是共享中断，则要或上<code>IRQF_SHARED</code>标志位。</li>
+<li>name：</li>
+<li>dev：参考<a href="http://blog.chinaunix.net/uid-20696246-id-1891946.html" target="_blank" rel="external">深入分析request_irq的dev_id参数作用</a></li>
+</ul>
+<p>编写该处理函数时要注意以下几点：</p>
+<ul>
+<li>作为中断处理的上半部分，要尽可能地快，而且是在中断上下文中，所以不可以睡眠。</li>
+<li>对于共享中断的处理函数，在处理函数中如果判断不是本设备的中断后要立即返回，并返回系统定义的宏<code>IRQ_NONE</code>。如果是自己设备的中断，则处理之并在处理结束后返回另一个系统定义的宏<code>IRQ_HANDLED</code>表明中断已经被处理。内核中断子系统会根据返回值判断是否要继续遍历action链表。</li>
+</ul>
+<h4 id="注销自己设备的中断处理函数"><a href="#注销自己设备的中断处理函数" class="headerlink" title="注销自己设备的中断处理函数"></a>注销自己设备的中断处理函数</h4><p>可以在设备关闭的时候调用<code>free_irq()</code>函数来注销自己的中断处理。</p>
+<h1 id="针对s3c2440的中断处理子系统的一点点补充解释"><a href="#针对s3c2440的中断处理子系统的一点点补充解释" class="headerlink" title="针对s3c2440的中断处理子系统的一点点补充解释"></a>针对s3c2440的中断处理子系统的一点点补充解释</h1><p>我看了一下s3c2440的代码，看上去它并没有利用内核结构体<code>irq_desc</code>中的action链表来支持s3c2440芯片里的中断复用，也就是共享中断的概念，而是将所有的中断源全部放在<code>irq_desc</code>结构数组中，有关这个可以查看以下文件：<code>arch/arm/march-s3c2410/include/mach/irq.h</code></p>
+<p>32路中断端口，对应S3C2440手册上的表“INTERRUPT SOURCES”。</p>
+<pre><code>/* main cpu interrupts */
+#define IRQ_EINT0      S3C2410_IRQ(0)        /* 16 */
+#define IRQ_EINT1      S3C2410_IRQ(1)
+...
+
+#define IRQ_ADCPARENT  S3C2410_IRQ(31)
+</code></pre><p>复用的中断源<br>包括外部复用中断源</p>
+<pre><code>/* interrupts generated from the external interrupts sources */
+#define IRQ_EINT4      S3C2410_IRQ(32)       /* 48 */
+#define IRQ_EINT5      S3C2410_IRQ(33)
+#define IRQ_EINT6      S3C2410_IRQ(34)
+...
+#define IRQ_EINT23     S3C2410_IRQ(51)
+
+#define IRQ_LCD_FIFO   S3C2410_IRQ(52)
+#define IRQ_LCD_FRAME  S3C2410_IRQ(53)
+</code></pre><p>以及内部复用中断源，对应S3C2440手册上的表“INTERRUPT SUB SOURCES”    </p>
+<pre><code>/* IRQs for the interal UARTs, and ADC
+ * these need to be ordered in number of appearance in the
+ * SUBSRC mask register
+*/
+
+#define S3C2410_IRQSUB(x)    S3C2410_IRQ((x)+54)
+
+#define IRQ_S3CUART_RX0        S3C2410_IRQSUB(0)    /* 70 */
+#define IRQ_S3CUART_TX0        S3C2410_IRQSUB(1)
+#define IRQ_S3CUART_ERR0    S3C2410_IRQSUB(2)
+
+#define IRQ_S3CUART_RX1        S3C2410_IRQSUB(3)    /* 73 */
+#define IRQ_S3CUART_TX1        S3C2410_IRQSUB(4)
+#define IRQ_S3CUART_ERR1    S3C2410_IRQSUB(5)
+
+#define IRQ_S3CUART_RX2        S3C2410_IRQSUB(6)    /* 76 */
+#define IRQ_S3CUART_TX2        S3C2410_IRQSUB(7)
+#define IRQ_S3CUART_ERR2    S3C2410_IRQSUB(8)
+
+#define IRQ_TC            S3C2410_IRQSUB(9)
+#define IRQ_ADC            S3C2410_IRQSUB(10)
+...
+/* extra irqs for s3c2440 */
+
+#define IRQ_S3C2440_CAM_C    S3C2410_IRQSUB(11)    /* S3C2443 too */
+#define IRQ_S3C2440_CAM_P    S3C2410_IRQSUB(12)    /* S3C2443 too */
+#define IRQ_S3C2440_WDT        S3C2410_IRQSUB(13)
+#define IRQ_S3C2440_AC97    S3C2410_IRQSUB(14)
+</code></pre><p>最后在这个头文件中还定义了以下的宏</p>
+<pre><code>#define NR_IRQS (IRQ_S3C2440_AC97+1)
+</code></pre><p>这个宏会被用于定义<code>irq_desc</code>的结构体数组。</p>
+<p>以及<code>arch/arm/plat-s3c24xx/irq.c</code>中的函数<code>s3c24xx_init_irq</code></p>
+<p>最后可以参考韦东山上的描述，以<code>s3c_irq_demux_extint8</code>函数为例，同时参考<a href="/2016/01/23/20160123-s3c2440-interrupt">基于s3c2440学习中断控制器</a> 。<br>这个例子应该用的就是按键的例子，</p>
+<ul>
+<li>当EINT8这个中断源发生后，按照S3C2440中断控制器的逻辑，最后在INTPND上必定中断端口EIN8_23会被标识为1，即发生。其对应的位是INTPND的第五位，头文件中对应<code>#define IRQ_EINT8t23   S3C2410_IRQ(5)</code>。所以asm_do_IRQ函数调用<code>irq_desc[IRQ_EINT8t23]</code>的<code>handle_irq</code>入口处理。</li>
+<li><code>irq_desc[IRQ_EINT8t23]</code>的<code>handle_irq</code>在<code>s3c24xx_init_irq</code>被初始化为<code>s3c_irq_demux_extint8</code>函数</li>
+<li><p>参考<code>s3c_irq_demux_extint8</code>函数，在<code>arch/arm/plat-s3c24xx/irq.c</code>中，该函数会读取EINTPEND和EINTMASK，确定EIN8_23这个被复用的中断端口上哪些复用外部中断源发生了，然后重新计算这些中断源的irq号，再根据该irq号重新访问irq_desc[irq]的<code>handle_irq</code>入口，这些中断源的入口函数在<code>s3c24xx_init_irq</code>也被初始化好了，譬如：</p>
+<pre><code>for (irqno = IRQ_EINT4; irqno &lt;= IRQ_EINT23; irqno++) {
+    irqdbf(&quot;registering irq %d (extended s3c irq)\n&quot;, irqno);
+    set_irq_chip(irqno, &amp;s3c_irqext_chip);
+    set_irq_handler(irqno, handle_edge_irq);
+    set_irq_flags(irqno, IRQF_VALID);
+}
+</code></pre></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/s3c2440/" rel="tag">#s3c2440</a>
+          
+            <a href="/tags/driver/" rel="tag">#driver</a>
+          
+            <a href="/tags/interrupt/" rel="tag">#interrupt</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/20/20160220-drv-bsp/" rel="next" title="BSP和Driver的区别">
+                <i class="fa fa-chevron-left"></i> BSP和Driver的区别
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/21/20160221-proc-ctxt-and-int-ctxt/" rel="prev" title="进程上下文和中断上下文">
+                进程上下文和中断上下文 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/02/21/20160221-lk-drv-interrupt/"
+           data-title="Linux内核驱动之Linux中断处理子系统(基于v2.6.32.6和s3c2440)" data-url="http://unicornx.github.io/2016/02/21/20160221-lk-drv-interrupt/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#主要参考"><span class="nav-number">1.</span> <span class="nav-text">主要参考</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#中断处理的分层思想"><span class="nav-number">2.</span> <span class="nav-text">中断处理的分层思想</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#中断处理子系统"><span class="nav-number">3.</span> <span class="nav-text">中断处理子系统</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#irq-desc"><span class="nav-number">3.1.</span> <span class="nav-text">irq_desc</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#irq-chip"><span class="nav-number">3.2.</span> <span class="nav-text">irq_chip</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#irqaction"><span class="nav-number">3.3.</span> <span class="nav-text">irqaction</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中断子系统的总体处理流程"><span class="nav-number">3.4.</span> <span class="nav-text">中断子系统的总体处理流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#从分层的角度理解中断子系统所在第二层的承上启下作用"><span class="nav-number">3.5.</span> <span class="nav-text">从分层的角度理解中断子系统所在第二层的承上启下作用</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#BSP-第一层-对中断子系统-第二层-的支持"><span class="nav-number">3.5.1.</span> <span class="nav-text">BSP(第一层)对中断子系统(第二层)的支持</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#驱动模块-第三层-如何使用中断子系统-第二层-提供的接口进行中断处理的开发"><span class="nav-number">3.5.2.</span> <span class="nav-text">驱动模块(第三层)如何使用中断子系统(第二层)提供的接口进行中断处理的开发</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#注册自己设备的中断处理函数"><span class="nav-number">3.5.2.1.</span> <span class="nav-text">注册自己设备的中断处理函数</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#注销自己设备的中断处理函数"><span class="nav-number">3.5.2.2.</span> <span class="nav-text">注销自己设备的中断处理函数</span></a></li></ol></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#针对s3c2440的中断处理子系统的一点点补充解释"><span class="nav-number">4.</span> <span class="nav-text">针对s3c2440的中断处理子系统的一点点补充解释</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

@@ -1,0 +1,803 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,camera," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-12
+主要参考文章：
+
+FS4412开发板(采用Exynos4412处理芯片)
+内核版本v3.0.15
+嵌入式Linux中摄像头使用简要整理
+如何查看你的USB摄像头是不是中星微ZC301系列的摄像头
+ok6410使用zc301 USB摄像">
+<meta property="og:type" content="article">
+<meta property="og:title" content="嵌入式Linux中摄像头使用简要整理">
+<meta property="og:url" content="http://unicornx.github.io/2016/03/09/20160309-usb-camera/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-12
+主要参考文章：
+
+FS4412开发板(采用Exynos4412处理芯片)
+内核版本v3.0.15
+嵌入式Linux中摄像头使用简要整理
+如何查看你的USB摄像头是不是中星微ZC301系列的摄像头
+ok6410使用zc301 USB摄像">
+<meta property="og:image" content="http://img2.imgtn.bdimg.com/it/u=2549971258,686393392&fm=15&gp=0.jpg">
+<meta property="og:image" content="http://img5.imgtn.bdimg.com/it/u=165222922,2160168769&fm=15&gp=0.jpg">
+<meta property="og:image" content="http://images.cnitblog.com/blog/337520/201303/03212743-f375261a3761445b841f7a23690871ea.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:48.021Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="嵌入式Linux中摄像头使用简要整理">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-03-12
+主要参考文章：
+
+FS4412开发板(采用Exynos4412处理芯片)
+内核版本v3.0.15
+嵌入式Linux中摄像头使用简要整理
+如何查看你的USB摄像头是不是中星微ZC301系列的摄像头
+ok6410使用zc301 USB摄像">
+<meta name="twitter:image" content="http://img2.imgtn.bdimg.com/it/u=2549971258,686393392&fm=15&gp=0.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/03/09/20160309-usb-camera/"/>
+
+  <title> 嵌入式Linux中摄像头使用简要整理 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                嵌入式Linux中摄像头使用简要整理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-03-09T22:41:12+08:00" content="2016-03-09">
+              2016-03-09
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/基于Linux的视频处理/" itemprop="url" rel="index">
+                    <span itemprop="name">基于Linux的视频处理</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/09/20160309-usb-camera/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/09/20160309-usb-camera/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-03-12</p>
+<p>主要参考文章：</p>
+<ul>
+<li>FS4412开发板(采用Exynos4412处理芯片)</li>
+<li>内核版本v3.0.15</li>
+<li><a href="http://www.cnblogs.com/emouse/archive/2013/03/03/2941938.html" target="_blank" rel="external">嵌入式Linux中摄像头使用简要整理</a></li>
+<li><a href="http://blog.csdn.net/jnu_kinke/article/details/6176610" target="_blank" rel="external">如何查看你的USB摄像头是不是中星微ZC301系列的摄像头</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_70ef2ee901014dg9.html" target="_blank" rel="external">ok6410使用zc301 USB摄像头详解</a></li>
+<li><a href="http://www.cnblogs.com/leaven/archive/2010/08/19/1802926.html" target="_blank" rel="external">Linux 下摄像头驱动支持情况</a></li>
+<li><a href="http://blog.csdn.net/skyflying2012/article/details/8609871" target="_blank" rel="external">linux UVC摄像头驱动 简介</a> 介绍了UVC和non-UVC摄像头之间的区别以及如何甄别的方法。</li>
+</ul>
+<a id="more"></a>
+<h1 id="摄像头的选择"><a href="#摄像头的选择" class="headerlink" title="摄像头的选择"></a>摄像头的选择</h1><p>这里说的摄像头指的就是webcam。参考网上<a href="http://linuxtv.org/wiki/index.php/Webcam_Devices" target="_blank" rel="external">Webcam Devices</a>的定义。当前在Linux内核中对webcam的支持主要由两个驱动框架负责：</p>
+<ul>
+<li><p>UVC驱动，相应的设备称为uvc设备，具体有哪些摄像头设备被uvc驱动支持，参考<a href="http://linuxtv.org/wiki/index.php/UVC_Webcam_Devices" target="_blank" rel="external">UVC Webcam Devices</a>。<br>  UVC，全称为：USB Video Class，是Microsoft与另外几家设备厂商联合推出的为USB视频捕获设备定义的协议标准，目前已成为USB org标准之一。如今的主流操作系统(如Windows XP SP2 and later, Linux 2.4.6 and later, MacOS 10.5 and later)都已提供UVC设备驱动，因此符合UVC规格的硬件设备在不需要安装任何的驱动程序下即可在主机中正常使用。使用UVC技术的包括摄像头、数码相机、类比影像转换器、电视棒及静态影像相机等设备。</p>
+<p>  相关的标准文档可以参考<a href="http://www.usb.org/developers/docs/devclass_docs/" target="_blank" rel="external">Video Class</a>，可以看到这个协议最新的是V1.5版本，是2012年8月9日定稿的，老的标准V1.1版本是2005年6月1日定稿的。</p>
+</li>
+<li><p>gspca驱动，相应的设备称为gspca设备，具体有哪些摄像头设备被gspca驱动支持，参考<a href="http://linuxtv.org/wiki/index.php/Gspca_devices" target="_blank" rel="external">gspca devices</a>。</p>
+<p>  有关gspca的介绍，参考<a href="http://www.linuxtv.org/wiki/index.php/Gspca" target="_blank" rel="external">gspca</a>，看了看原文，感觉gspca相对uvc主要支持一些uvc出现之前的摄像头产品。<a href="http://www.linuxtv.org/wiki/index.php/Gspca_devices" target="_blank" rel="external">gspca devices</a>上的原话：<code>gspca devices are collectively those webcam devices (primarily, if not all, of the pre-USB Video Class type) that are based upon one of the several bridge interface chipsets which are supported under Linux by the gspca kernel driver module framework.</code>。</p>
+<p>  还有一篇文章介绍得也很全面：<a href="http://blog.xieyc.com/cameras-supported-by-openwrt/" target="_blank" rel="external">支持OpenWrt的摄像头选购经验</a>。这篇文章把gspca摄像头称为”有驱”摄像头（主要是不同的摄像头需要自己的驱动，虽然有时候内核已经自带，但有时也需要配置后重新编译内核才能支持），并且指出gspca都是比较旧的东西了，现在的基本上是UVC摄像头（即免驱摄像头，所谓的免驱并不是指不需要驱动，而是指由于UVC是一个开放的标准，拥有维护良好的驱动，它属于内核代码的一部分。插入摄像头后就可以工作，而无须编译或安装额外的驱动）。</p>
+<p>  而从lwn.net(<a href="http://lwn.net/Articles/291054/)得知" target="_blank" rel="external">http://lwn.net/Articles/291054/)得知</a>, 从2.6.26开始, gspca已经合并到内核中间。</p>
+</li>
+<li><p>除了这两大主流驱动框架外，还有一些杂牌的驱动设备，同样参考<a href="http://linuxtv.org/wiki/index.php/Webcam_Devices" target="_blank" rel="external">Webcam Devices</a>上的描述。</p>
+</li>
+</ul>
+<p>我手头的开发板提供的视频采集例子中使用的摄像头绝大多数是两种情况：<br>一种是使用中星微ZC301P芯片的摄像头，这款摄像头使用比较普遍，采用USB线和主板连接。</p>
+<p><img src="http://img2.imgtn.bdimg.com/it/u=2549971258,686393392&amp;fm=15&amp;gp=0.jpg" alt="">，</p>
+<p>还有就是官方适配的模块OVXXXX系列。譬如FS4412配备摄像头OV3640，采用并口线和主板连接。</p>
+<p><img src="http://img5.imgtn.bdimg.com/it/u=165222922,2160168769&amp;fm=15&amp;gp=0.jpg" alt=""></p>
+<p>这里我主要针对中星微ZC301P谈一下我学习的内容体会。中星微ZC301P该摄像头采用gspca驱动。</p>
+<h1 id="摄像头类型的确定"><a href="#摄像头类型的确定" class="headerlink" title="摄像头类型的确定"></a>摄像头类型的确定</h1><p>关于UVC摄像头类型的确定方法可以通过查看USB设备硬件ID来确定，硬件ID主要分为VID和PID。</p>
+<p>在Winows中可以在设备管理器中查看，方法如下图：</p>
+<p><img src="http://images.cnitblog.com/blog/337520/201303/03212743-f375261a3761445b841f7a23690871ea.png" alt=""></p>
+<p>在这个图中能够看到VID为04F2，PID为B257。</p>
+<p>我使用的中星微UVC摄像头的VID:0ac8，PID为301b。厂商代号VID是全球唯一的。只要该代号是0ac8,就说明该摄像头是中星微的。</p>
+<p>得到VID和PID后就可以根据上一节介绍的uvc和gspca的设备列表去查找。</p>
+<p>还有一种判断一个摄像头是否满足UVC规范的方法如下：</p>
+<ul>
+<li><p>1.使用lsusb命令或其它硬件信息查看工具找出摄像头的设备号(Vendor ID)和产品号(Product ID)。如Logitech Quickcam for Notebooks Pro摄像头是046d:08cb；</p>
+<pre><code>$ lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 002 Device 002: ID 0e0f:0003 VMware, Inc. Virtual Mouse
+Bus 002 Device 003: ID 0e0f:0002 VMware, Inc. Virtual USB Hub
+Bus 002 Device 004: ID 0ac8:301b Z-Star Microelectronics Corp. ZC0301 Webcam
+</code></pre></li>
+</ul>
+<ul>
+<li><p>2.查找是否有视频类接口信息</p>
+<pre><code>lsusb -d 046d:08cb -v | grep &quot;14 Video&quot;
+</code></pre><p>  如果该摄像头兼容UVC，则会输出类似信息</p>
+<pre><code>bFunctionClass 14 Video
+bInterfaceClass 14 Video
+bInterfaceClass 14 Video
+bInterfaceClass 14 Video
+</code></pre><p>  若无以上信息，则是non-UVC设备。</p>
+</li>
+</ul>
+<p>插入linux系统后会在<code>/dev</code>目录下看到一个<code>videoX</code>文件，X可能为0，1，2等。</p>
+<h1 id="uvc摄像头的测试"><a href="#uvc摄像头的测试" class="headerlink" title="uvc摄像头的测试"></a>uvc摄像头的测试</h1><p>参考</p>
+<ul>
+<li><a href="http://blog.csdn.net/linweig/article/details/5305334" target="_blank" rel="external">gspca驱动移植介绍</a> 里面有一个命令叫<code>v4l-info</code>的介绍，以及一些可以用来测试摄像头的软件的介绍。</li>
+</ul>
+<p>对于桌面版本，比如Ubuntu，一般内核缺省已经配置为支持大部分市面上可以看到的UVC摄像头了，不用特别的处理。但对嵌入式系统，往往需要我们在裁剪内核时添加相关的配置模块。</p>
+<p>以中星微ZC301为例，需要在配置内核时进入配置界面增加zc301驱动，内核版本v3.0.15，步骤如下：</p>
+<ul>
+<li><code>Device Drivers  ---&gt;</code></li>
+<li><code>&lt;*&gt; Multimedia support  ---&gt;</code></li>
+<li><code>&lt;*&gt;   Video For Linux</code></li>
+<li><code>[*]   Video capture adapters  ---&gt;</code></li>
+<li><code>[*]   V4L USB devices  ---&gt;</code></li>
+<li><code>&lt;*&gt;   GSPCA based webcams  ---&gt;</code></li>
+<li><code>&lt;*&gt;   ZC3XX USB Camera Driver</code>    </li>
+</ul>
+<p>为了调试方便，可以增加配置配置USB选项</p>
+<ul>
+<li><code>Device Drivers  ---&gt;</code></li>
+<li><code>[*] USB support  ---&gt;</code></li>
+<li><code>[*]     USB announce new devices</code></li>
+</ul>
+<p>这样有新设备接入会自动显示，查看内核帮助原文是：<code>USB core to always announce the idVendor, idProduct, Manufacturer, Product, and SerialNumber strings for every new USB device to the syslog.</code></p>
+<p>将摄像头插到Linux机器上，直接使用命令luvcview获得当前摄像头所支持的所有数据格式以及分辨率信息：</p>
+<pre><code>$ sudo luvcview -L
+</code></pre><p>执行如下命令，注意在Ubuntu下必须在图形界面下才会生效。</p>
+<pre><code>$ sudo luvcview -d /dev/video0 -f yuv -s 320x240
+</code></pre><h1 id="摄像头相关参数扫盲"><a href="#摄像头相关参数扫盲" class="headerlink" title="摄像头相关参数扫盲"></a>摄像头相关参数扫盲</h1><p>YUV，是一种颜色编码方法。</p>
+<p>YUV是编译true-color颜色空间（color space）的种类，Y’UV, YUV, YCbCr，YPbPr等专有名词都可以称为YUV，彼此有重叠。</p>
+<ul>
+<li><p>“Y”表示明亮度（Luminance、Luma），</p>
+</li>
+<li><p>“U”是色度(Chrominance)</p>
+</li>
+<li><p>“V”则是浓度（Chroma）</p>
+</li>
+</ul>
+<p>YUV的发明是在彩色电视与黑白电视的过渡时期。黑白视讯只有 Y（Luma，Luminance）视讯，也就是灰阶值。到了彩色电视规格的制定，是以 YUV/YIQ 的格式来处理彩色电视图像，把UV视作表示彩度的C（Chrominance或Chroma），如果忽略C讯号，那么剩下的Y（Luma）讯号就跟之前的黑白电视讯号相同，这样一来便解决彩色电视机与黑白电视机的相容问题。YUV最大的优点在于只需占用极少的带宽。</p>
+<p>彩色图像记录的格式，常见的有RGB、YUV、CMYK等。彩色电视最早的构想是使用RGB三原色来同时传输。这种设计方式是原来黑白带宽的3倍，在当时并不是很好的设计。RGB诉求于人眼对色彩的感应，YUV则着重于视觉对于亮度的敏感程度，Y代表的是亮度，UV代表的是彩度（因此黑白电影可省略UV，相近于RGB），分别用Cr和Cb来表示，因此YUV的记录通常以YUV的格式呈现。</p>
+<p>为节省带宽起见，大多数YUV格式平均使用的每像素位数都少于24位元。主要的采样（subsample）格式有YCbCr 4:2:0、YCbCr 4:2:2、YCbCr 4:1:1和 YCbCr 4:4:4。YUV的表示法称为 A:B:C 表示法：</p>
+<ul>
+<li>4:4:4 表示完全取样。 </li>
+<li>4:2:2 表示 2:1 的水平取样，没有垂直下采样。 </li>
+<li>4:2:0 表示 2:1 的水平取样，2:1 的垂直下采样。 </li>
+<li>4:1:1 表示 4:1 的水平取样，没有垂直下采样。</li>
+</ul>
+<p>最常用Y:UV记录的比重通常 1:1 或 2:1，DVD-Video 是以 YUV 4:2:0 的方式记录，也就是我们俗称的I420，</p>
+<p>YUV信号有很多种，一般YUV420和YUV422用的比较多，而对Cmos sensor来说，大多都是YUV422.</p>
+<p>更详细的内容，参考<a href="http://jingyan.baidu.com/article/09ea3ededefab3c0aede391e.html" target="_blank" rel="external">有关摄像头的基础知识</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/camera/" rel="tag">#camera</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/03/20160303-lk-task-prio/" rel="next" title="Linux的任务调度中的优先级概念">
+                <i class="fa fa-chevron-left"></i> Linux的任务调度中的优先级概念
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/12/20160312-v4l2-app/" rel="prev" title="基于Linux的V4L2接口编写视频采集应用程序的方法">
+                基于Linux的V4L2接口编写视频采集应用程序的方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/03/09/20160309-usb-camera/"
+           data-title="嵌入式Linux中摄像头使用简要整理" data-url="http://unicornx.github.io/2016/03/09/20160309-usb-camera/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#摄像头的选择"><span class="nav-number">1.</span> <span class="nav-text">摄像头的选择</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#摄像头类型的确定"><span class="nav-number">2.</span> <span class="nav-text">摄像头类型的确定</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#uvc摄像头的测试"><span class="nav-number">3.</span> <span class="nav-text">uvc摄像头的测试</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#摄像头相关参数扫盲"><span class="nav-number">4.</span> <span class="nav-text">摄像头相关参数扫盲</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

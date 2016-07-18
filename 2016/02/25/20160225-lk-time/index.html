@@ -1,0 +1,830 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-02-25
+主要参考文章：
+
+ldd3
+lkd3
+ulk3
+内核代码v2.6.32.2
+蜕变成蝶~Linux设备驱动之中断与定时器
+Linux设备驱动程序学习———时间、延迟及延缓操作 从LKD3上摘抄的内容，可以直接拷贝:)，还有s3c2440">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux的时间管理">
+<meta property="og:url" content="http://unicornx.github.io/2016/02/25/20160225-lk-time/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-02-25
+主要参考文章：
+
+ldd3
+lkd3
+ulk3
+内核代码v2.6.32.2
+蜕变成蝶~Linux设备驱动之中断与定时器
+Linux设备驱动程序学习———时间、延迟及延缓操作 从LKD3上摘抄的内容，可以直接拷贝:)，还有s3c2440">
+<meta property="og:updated_time" content="2016-03-18T23:02:47.865Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux的时间管理">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-02-25
+主要参考文章：
+
+ldd3
+lkd3
+ulk3
+内核代码v2.6.32.2
+蜕变成蝶~Linux设备驱动之中断与定时器
+Linux设备驱动程序学习———时间、延迟及延缓操作 从LKD3上摘抄的内容，可以直接拷贝:)，还有s3c2440">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/02/25/20160225-lk-time/"/>
+
+  <title> Linux的时间管理 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux的时间管理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-02-25T22:57:12+08:00" content="2016-02-25">
+              2016-02-25
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/02/25/20160225-lk-time/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/25/20160225-lk-time/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”[Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-02-25</p>
+<p>主要参考文章：</p>
+<ul>
+<li>ldd3</li>
+<li>lkd3</li>
+<li>ulk3</li>
+<li>内核代码v2.6.32.2</li>
+<li><a href="http://www.cnblogs.com/lihuidashen/p/4462220.html" target="_blank" rel="external">蜕变成蝶~Linux设备驱动之中断与定时器</a></li>
+<li><a href="http://blog.csdn.net/myleeming/article/details/3126049" target="_blank" rel="external">Linux设备驱动程序学习———时间、延迟及延缓操作</a> 从LKD3上摘抄的内容，可以直接拷贝:)，还有s3c2440的例子，譬如文中涉及正常情况下s3c24x0的HZ为200。</li>
+</ul>
+<p>其他参考文章：</p>
+<a id="more"></a>
+<h1 id="内核中的时间概念"><a href="#内核中的时间概念" class="headerlink" title="内核中的时间概念"></a>内核中的时间概念</h1><p>内核中需要管理的时间概念可以分为两种: “相对时间”和“绝对时间”。</p>
+<p>如果某个事件需要在5s后被执行，那么系统所需的不是绝对时间，而是相对时间，即相对现在起5s后；相反，如果应用程序想要内核告诉它当前日期和当前时间，则内核不仅要计算流逝的时间还要计算绝对时间。这两种时间概念对内核管理时间都很重要。</p>
+<p>参考LKD3第11章开篇的描述，内核所有有关时间的实现的基础都是基于硬件提供的”系统定时器”，这里所谓的系统定时器就是一种可编程的硬件芯片，它必须能以固定的频率产生中断，“系统定时器”以及内核的时钟中断处理程序是内核管理机制的中枢，内核中有大量的功能都是基于时间驱动的额，譬如调度相关的周期执行，以及一些针对硬件的推后执行等操作。</p>
+<h2 id="相对时间"><a href="#相对时间" class="headerlink" title="相对时间"></a>相对时间</h2><h3 id="节拍-tick-和节拍率-HZ"><a href="#节拍-tick-和节拍率-HZ" class="headerlink" title="节拍(tick)和节拍率(HZ)"></a>节拍(tick)和节拍率(HZ)</h3><p>连续两次时钟中断的间隔时间称为节拍(tick)，或称为时钟滴答。每秒种发生的节拍的次数称为节拍率(HZ)。<br>例如某个系统的节拍率是每秒100次，则我们称其HZ数为100，一个时钟滴答就是<code>1/100=10ms</code>。</p>
+<p>HZ数定义在<code>&lt;asm/param.h&gt;</code>文件中，和体系架构相关。譬如对于ARM架构，就对应在<code>arch/arm/include/asm/param.h</code>中:</p>
+<pre><code>#ifdef __KERNEL__
+# define HZ        CONFIG_HZ    /* Internal kernel timer frequency */
+# define USER_HZ    100        /* User interfaces are in &quot;ticks&quot; */
+# define CLOCKS_PER_SEC    (USER_HZ)    /* like times() */
+#else
+# define HZ        100
+#endif
+</code></pre><p>其中<code>CONFIG_HZ</code>在具体配置内核时确定。大部分情况下配置为100。</p>
+<h3 id="内核节拍计数器-jiffies"><a href="#内核节拍计数器-jiffies" class="headerlink" title="内核节拍计数器(jiffies)"></a>内核节拍计数器(jiffies)</h3><p>内核维护一个计数器，用于保存系统启动以来产生的节拍(tick)数，该计数器的值在系统引导时初始化为0，然后每次时钟中断发生时，该计数器值加一。这个计数器是<code>jiffies_64</code>，它是一个64位的变量，即使在32位系统上也占64位。该变量定义在<linux jiffies.h="">中。因为一秒内时钟中断的次数等于HZ的值，所以<code>jiffies_64</code>一秒内增加的值也就是HZ。</linux></p>
+<pre><code>extern u64 __jiffy_data jiffies_64;
+</code></pre><p>之所以要用64位，那是因为32位能支持的天数实在有限，考虑在100HZ的时钟频率下，一个32位的整数497天后就会溢出，而如果对于64位的整数，则任何人都别指望会看到它溢出。</p>
+<p>但是因为历史的原因，以及代码的兼容性问题，驱动程序并不直接访问<code>jiffies_64</code>。而是访问另外一个叫做<code>jiffies</code>的变量。这个变量也定义在<linux jiffies.h="">中：</linux></p>
+<pre><code>extern unsigned long volatile __jiffy_data jiffies;
+</code></pre><p>内核采用特殊的技术同步更新<code>jiffies</code>和<code>jiffies_64</code>这两个变量，具体采用的技术参考LDD3的”使用jiffies计数器”章节最后的描述。由于<code>jiffies</code>是<code>unsigned long</code>类型，所以在64位系统上，访问<code>jiffies</code>就是等价于访问<code>jiffies_64</code>，而在32位系统上，jiffies的值就是取<code>jiffies_64</code>的低32位。</p>
+<p>驱动开发过程中一般通过直接读取jiffies获得当前时间点的时间戳，然后据此计算得到未来的一个时间点的时间戳，用于时间的应用。代码如下：</p>
+<pre><code>#include &lt;linux/jiffies.h&gt;
+
+unsigned long stamp_now = jiffies;    /* read the current value */
+unsigned long stamp_1 = jiffies + 1;    /* 1 tick since now */
+unsigned long stamp_2 = jiffies + HZ;    /* 1 second since now */
+unsigned long stamp_3 = jiffies + HZ/2; /* half a second since now */
+unsigned long stamp_4 = jiffies + n * HZ / 1000; /* n milliseconds since now */
+</code></pre><p>驱动访问<code>jiffies</code>时可以直接包含<code>&lt;linux/sched.h&gt;</code>，因为该文件自身已经包含<code>&lt;linux/jiffies.h&gt;</code>。</p>
+<p>如果驱动模块一定要访问<code>jiffies_64</code>，考虑到兼容32位系统和64位系统，应该使用内核提供的辅助函数：</p>
+<pre><code>#include &lt;linux/jiffies.h&gt;
+
+#if (BITS_PER_LONG &lt; 64)
+u64 get_jiffies_64(void);
+#else
+static inline u64 get_jiffies_64(void)
+{
+    return (u64)jiffies;
+}
+#endif
+</code></pre><h3 id="比较节拍数"><a href="#比较节拍数" class="headerlink" title="比较节拍数"></a>比较节拍数</h3><p>比较节拍数时考虑到jiffies变量会发生回绕问题，具体参考LKD3的11.3.2”jiffies的回绕”。我们要使用内核提供的宏来进行判断，这些宏定义在<linux jiffies.h="">中，简化版本形式如下：</linux></p>
+<pre><code>#define time_after(unknown, known) ((long)(known) - (long)(unknown) &lt; 0)
+#define time_before(unknown, known) ((long)(unknown) - (long)(known) &lt; 0)
+#define time_after_eq(unknown, known) ((long)(unknown) - (long)(known) &gt;= 0)
+#define time_before_eq(unknown, known) ((long)(known) - (long)(unknown) &gt;= 0)
+</code></pre><p>判断时一个使用的例子形式如下：</p>
+<pre><code>unsigned long timeout = jiffies + HZ/2; /* timeout in 0.5s */
+
+/* ... */
+if (time_before(jiffies, timeout)) {
+    /* we did not time out, good ... */
+} else {
+    /* we timed out, error ... */
+}
+</code></pre><h3 id="内核时间表达和用户态空间表达之间的转换"><a href="#内核时间表达和用户态空间表达之间的转换" class="headerlink" title="内核时间表达和用户态空间表达之间的转换"></a>内核时间表达和用户态空间表达之间的转换</h3><p>有时我们需要将来自用户空间的时间表述方法(使用<code>struct timeval</code>和<code>struct timespec</code>)和内核表述方式进行转换，可以使用内核提供的辅助函数如下，具体参考LDD3：</p>
+<pre><code>#include &lt;linux/jiffies.h&gt;
+
+extern unsigned int jiffies_to_msecs(const unsigned long j);
+extern unsigned int jiffies_to_usecs(const unsigned long j);
+extern unsigned long msecs_to_jiffies(const unsigned int m);
+extern unsigned long usecs_to_jiffies(const unsigned int u);
+extern unsigned long timespec_to_jiffies(const struct timespec *value);
+extern void jiffies_to_timespec(const unsigned long jiffies,
+                struct timespec *value);
+extern unsigned long timeval_to_jiffies(const struct timeval *value);
+extern void jiffies_to_timeval(const unsigned long jiffies,
+                   struct timeval *value);
+extern clock_t jiffies_to_clock_t(long x);
+extern unsigned long clock_t_to_jiffies(unsigned long x);
+extern u64 jiffies_64_to_clock_t(u64 x);
+extern u64 nsec_to_clock_t(u64 x);
+</code></pre><h3 id="jiffies的应用场景"><a href="#jiffies的应用场景" class="headerlink" title="jiffies的应用场景"></a>jiffies的应用场景</h3><p>驱动程序可以利用jiffies的当前值来计算不同事件间的时间间隔(比如在Input设备驱动程序中可以用它来分辨鼠标的单双击)。简而言之，利用jiffies的值来测量时间间隔在大多数情况下已经足够了，如果还需要测量更短的时间差，就只能使用处理器特定的寄存器，这个参考LDD3的“处理器特定的寄存器”章节，但这会带来严重的兼容性问题。</p>
+<h2 id="绝对时间"><a href="#绝对时间" class="headerlink" title="绝对时间"></a>绝对时间</h2><p>在用户态程序中经常要处理一个时间概念，就是所谓的墙上时间（wall-clock），即以方便人可读的形式，譬如年月日小时分秒的形式展现的时间。但作为内核和驱动程序来收，一般不关心墙上时间，对真实世界的时间处理最好留给用户空间的程序。</p>
+<p>虽然在内核空间我们不需要处理墙上时间，但有时也需要处理绝对时间戳(absolute timestamp)。</p>
+<p>内核中维护了一个变量来保存这个绝对时间戳当前的最新值，定义在<code>kernel/time/timekeeping.c</code>文件中：</p>
+<pre><code>struct timespec xtime __attribute__ ((aligned (16)));
+</code></pre><p>这是一个<code>struct timespeec</code>的结构体的变量，</p>
+<pre><code>struct timespec {
+    __kernel_time_t    tv_sec;            /* seconds */
+    long        tv_nsec;        /* nanoseconds */
+};
+</code></pre><p>内核在时钟中断处理函数中会更新这个xtime变量。xtime.tv_sec以秒为单位，存放这自1970年1月1日(UTC)以来经过的时间，xtime.tv_nsec记录自上一秒开始经过的ns数。</p>
+<p>在内核和驱动模块中如果要获取xtime的值需要调用<code>do_gettimeofday</code>函数</p>
+<pre><code>#include &lt;linux/time.h&gt;
+
+extern void do_gettimeofday(struct timeval *tv);
+</code></pre><p>从用户空间取得墙上时间的主要接口（系统调用）是：</p>
+<pre><code>#include &lt;sys/time.h&gt;
+
+int gettimeofday(struct timeval *tv, struct timezone *tz);
+</code></pre><p>该函数内部通过内核系统调用<code>sys_gettimeofday</code>并最终会调用<code>do_gettimeofday</code>完成。</p>
+<h1 id="内核基于时间的应用"><a href="#内核基于时间的应用" class="headerlink" title="内核基于时间的应用"></a>内核基于时间的应用</h1><h2 id="内核定时器"><a href="#内核定时器" class="headerlink" title="内核定时器"></a>内核定时器</h2><h3 id="内核定时器的实现"><a href="#内核定时器的实现" class="headerlink" title="内核定时器的实现"></a>内核定时器的实现</h3><p>内核在硬件定时器的基础上结合软中断机制封装了一套软件定时器机制供内核和驱动代码使用，我们可以称之为“内核定时器”，以示和硬件提供的定时器概念作区分。我们又称“内核定时器”为”动态定时器”，因为一旦我们创建了一个“内核定时器”，它并不会周期运行，它在超时后就自行撤销。</p>
+<p>具体如何与软中断机制结合的，可以参考LKD3的11.7.3章节”实现定时器”。</p>
+<h3 id="内核定时器的使用"><a href="#内核定时器的使用" class="headerlink" title="内核定时器的使用"></a>内核定时器的使用</h3><p>具体参考LKD3的11.7.1章节。</p>
+<p>内核定时器的使用非常方便，代码参考<code>&lt;linux/timer.h&gt;</code>：</p>
+<p>首先，创建定时器<br>静态方式，可以调用<code>DEFINE_TIMER</code>宏<br>动态方式，调用<code>init_timer</code></p>
+<p>其中关键的是要在创建一个定时器时指定自己的定时器回调函数。这个函数编写时要注意的是由于内核定时器是利用软中断机制实现的。对应的是<code>TIMER_SOFTIRQ</code>类型软中断，所以定时器回调函数作为软中断在下半部上下文中执行，要符合软中断处理函数的编写要求，有关软中断的概念参考<a href="/2016/02/11/20160211-lk-drv-softirq">Linux内核中的下半部机制之软中断(softirq)</a><br>LDD3在第7章的“内核定时器”一节对此也有详细的描述，可以参考。</p>
+<p>然后调用<code>add_timer</code>激活定时器。</p>
+<p>注意内核虽然可以保证不会在超时时间到期前运行定时器处理函数，但是有可能延误定时器的执行。所以不能用定时器来实现任何硬实时任务。</p>
+<h2 id="延时"><a href="#延时" class="headerlink" title="延时"></a>延时</h2><p>延迟执行通常发生在等待硬件完成某些工作，而且等待的时间应该比较短。</p>
+<p>按照LDD3的定义，延时分为两种，”长延时”和”短延时”。</p>
+<ul>
+<li>长于一个时钟滴答(tick)的延时称为”长延时”，适用于延迟的时间是tick的整数倍（不同架构的tick长度不同，但大部分为10ms），并且精确度要求不高的情况。</li>
+<li>否则称为”短延时”，有时内核或者驱动程序不但需要很短暂的延迟，比tick还短，不超过10ms，譬如几ms，甚至几微秒。而且还要求延迟的时间很精确，这种情况多发生在和硬件同步时。</li>
+</ul>
+<h3 id="实现长延时的方法"><a href="#实现长延时的方法" class="headerlink" title="实现长延时的方法"></a>实现长延时的方法</h3><p><a href="http://blog.csdn.net/myleeming/article/details/3126049" target="_blank" rel="external">Linux设备驱动程序学习———时间、延迟及延缓操作</a> 包含了从LKD3上摘抄的内容</p>
+<ul>
+<li>忙等待：单纯的忙等待严重地降低了系统性能，不推荐使用，使用该方法时不能禁止中断，因为该方法基于jiffies，禁止中断后jiffies无法更新。</li>
+<li>让出处理器：使用该方法时同样不能禁止中断，因为该方法基于jiffies，禁止中断后jiffies无法更新，所以不会超时。而且该方法不精确。</li>
+<li>超时睡眠：<code>schedule_timeout</code>，相对于“让出处理器”更精确，详细的比较参考LDD3。注意这里的第二种和第三种方法都要涉及调度，所以只能在进程上下文中使用。</li>
+</ul>
+<h3 id="实现短延时的方法"><a href="#实现短延时的方法" class="headerlink" title="实现短延时的方法"></a>实现短延时的方法</h3><pre><code>#include &lt;linux/delay.h&gt;
+void ndelay(unsigned long nsecs);
+void udelay(unsigned long usecs);
+void mdelay(unsigned long msecs);
+</code></pre><p>注意这3个延时函数是忙等待，在实现上本质是根据CPU频率进行一定次数的循环，其他任务在时间流失时不能运行。</p>
+<p>中断处理程序中的延时可以用ndelay，udelay，mdelay等，最好不要使用mdelay，因为毫秒延时比较消耗cpu资源，而且对内核来说已经是非常大长，而我们应该避免在中断处理程序中花费较长的时间。有趣的是：使用for和while等的空循环在中断处理函数中进行延时操作，在实际测试中发现并不能起到延时的功能，linux内核处理这种循环速度很快，并没有延时的效果。这跟裸板程序使用循环来延时的用法不相同。</p>
+<p>对于毫秒级以上时延(和更长)延时而不用涉及到忙等待的方法是使用以下函数（在<linux delay.h="">中声明）:</linux></p>
+<pre><code>void msleep(unsigned int millisecs);
+
+unsigned long msleep_interruptible(unsigned int millisecs);
+
+void ssleep(unsigned int seconds);
+</code></pre><p>上述函数将使得调用它的进程，睡眠参数指定的时间，<code>unsigned long msleep_interruptible()</code>可以被信号打断，另两个不行。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/21/20160221-proc-ctxt-and-int-ctxt/" rel="next" title="进程上下文和中断上下文">
+                <i class="fa fa-chevron-left"></i> 进程上下文和中断上下文
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/03/20160303-lk-task-prio/" rel="prev" title="Linux的任务调度中的优先级概念">
+                Linux的任务调度中的优先级概念 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/02/25/20160225-lk-time/"
+           data-title="Linux的时间管理" data-url="http://unicornx.github.io/2016/02/25/20160225-lk-time/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#内核中的时间概念"><span class="nav-number">1.</span> <span class="nav-text">内核中的时间概念</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#相对时间"><span class="nav-number">1.1.</span> <span class="nav-text">相对时间</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#节拍-tick-和节拍率-HZ"><span class="nav-number">1.1.1.</span> <span class="nav-text">节拍(tick)和节拍率(HZ)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内核节拍计数器-jiffies"><span class="nav-number">1.1.2.</span> <span class="nav-text">内核节拍计数器(jiffies)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#比较节拍数"><span class="nav-number">1.1.3.</span> <span class="nav-text">比较节拍数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内核时间表达和用户态空间表达之间的转换"><span class="nav-number">1.1.4.</span> <span class="nav-text">内核时间表达和用户态空间表达之间的转换</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#jiffies的应用场景"><span class="nav-number">1.1.5.</span> <span class="nav-text">jiffies的应用场景</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#绝对时间"><span class="nav-number">1.2.</span> <span class="nav-text">绝对时间</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核基于时间的应用"><span class="nav-number">2.</span> <span class="nav-text">内核基于时间的应用</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#内核定时器"><span class="nav-number">2.1.</span> <span class="nav-text">内核定时器</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内核定时器的实现"><span class="nav-number">2.1.1.</span> <span class="nav-text">内核定时器的实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#内核定时器的使用"><span class="nav-number">2.1.2.</span> <span class="nav-text">内核定时器的使用</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#延时"><span class="nav-number">2.2.</span> <span class="nav-text">延时</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#实现长延时的方法"><span class="nav-number">2.2.1.</span> <span class="nav-text">实现长延时的方法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#实现短延时的方法"><span class="nav-number">2.2.2.</span> <span class="nav-text">实现短延时的方法</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

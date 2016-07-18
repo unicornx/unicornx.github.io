@@ -1,0 +1,947 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,文件系统," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-21
+总结得还是有点粗糙，但基本思路和涉及的内核主要数据结构都到位了。以后再慢慢改进吧。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="linux内核之虚拟文件系统总结">
+<meta property="og:url" content="http://unicornx.github.io/2016/03/20/20160320-lk-vfs/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-21
+总结得还是有点粗糙，但基本思路和涉及的内核主要数据结构都到位了。以后再慢慢改进吧。">
+<meta property="og:image" content="http://blog.chinaunix.net/attachment/201310/22/14518381_1382450214805y.jpg">
+<meta property="og:image" content="http://www.ibm.com/developerworks/cn/linux/l-linux-filesystem/figure1.gif">
+<meta property="og:image" content="http://blog.chinaunix.net/attachment/201310/22/14518381_138245022444Np.jpg">
+<meta property="og:image" content="http://img.dnbcw.info/2010125/pxup2592610.gif">
+<meta property="og:image" content="http://img.dnbcw.info/2010125/pxup2592611.gif">
+<meta property="og:image" content="http://img.dnbcw.info/2010125/pxup2592612.gif">
+<meta property="og:image" content="http://img.dnbcw.info/2010125/pxup2592613.gif">
+<meta property="og:image" content="http://img.dnbcw.info/2010125/pxup2592614.gif">
+<meta property="og:image" content="http://blog.fangjian.me/images/uploads/2010/10/inode.jpg">
+<meta property="og:updated_time" content="2016-04-21T14:03:45.427Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="linux内核之虚拟文件系统总结">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-21
+总结得还是有点粗糙，但基本思路和涉及的内核主要数据结构都到位了。以后再慢慢改进吧。">
+<meta name="twitter:image" content="http://blog.chinaunix.net/attachment/201310/22/14518381_1382450214805y.jpg">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/03/20/20160320-lk-vfs/"/>
+
+  <title> linux内核之虚拟文件系统总结 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                linux内核之虚拟文件系统总结
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-03-20T15:26:12+08:00" content="2016-03-20">
+              2016-03-20
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/03/20/20160320-lk-vfs/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/03/20/20160320-lk-vfs/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-21</p>
+<p>总结得还是有点粗糙，但基本思路和涉及的内核主要数据结构都到位了。以后再慢慢改进吧。</p>
+<a id="more"></a>
+<p>主要参考:</p>
+<ul>
+<li>LKD3rd</li>
+<li><a href="http://www.ibm.com/developerworks/cn/linux/l-linux-filesystem/" target="_blank" rel="external">Linux 文件系统剖析</a></li>
+<li><a href="http://wenku.baidu.com/view/e77321768e9951e79b892705.html" target="_blank" rel="external">LINUX VFS精华版PPT</a></li>
+<li>内核代码v2.6.32.2</li>
+<li><a href="http://blog.chinaunix.net/uid-14518381-id-3957854.html" target="_blank" rel="external">关于VFS文件系统中的superblock、inode、d_entry和file数据结构</a> 开头的几张图开启了我的思路</li>
+<li><a href="http://biancheng.dnbcw.info/linux/258239.html" target="_blank" rel="external">vfs,superblock,inode,dentry,file结构体图解</a> 主要参考的上面的图，其基于的代码有点老，但和我主要参考的v2.6.32.2的内核代码差别不是很大S</li>
+<li><a href="http://zixun.zhongsou.com/faster/24/9cab7e1da8af323081f44d19058f673c.html" target="_blank" rel="external">VFS文件系统结构分析</a> 几张图和例子真心不错。</li>
+<li><a href="http://www.51ou.com/browse/linuxnh/18855.html" target="_blank" rel="external">linux内核之文件系统</a> 貌似有点老，基于2.4内核</li>
+</ul>
+<h1 id="VFS的定义"><a href="#VFS的定义" class="headerlink" title="VFS的定义"></a>VFS的定义</h1><p>Linux下的文件系统中宏观上主要分为三层：</p>
+<ul>
+<li>一是上层的文件系统的系统调用；</li>
+<li>二是虚拟文件系统VFS(Virtual File System)层，</li>
+<li>三是挂载到VFS中的各种实际文件系统。</li>
+</ul>
+<p><img src="http://blog.chinaunix.net/attachment/201310/22/14518381_1382450214805y.jpg" alt=""></p>
+<p>这个下面的是另外一张类似的图解，表达的应该是相同的意思：</p>
+<p><img src="http://www.ibm.com/developerworks/cn/linux/l-linux-filesystem/figure1.gif" alt=""></p>
+<p>上面的图主要想要表达的意思是：VFS作为一个中间层，主要的作用是提供了一种软件机制，对上层应用屏蔽底层不同的调用方法，提供一套统一的调用接口；对下层的不同的文件系统，实现一种组织管理和映射，映射的实现可以理解为并抽象和定义了一套规范的行为要求不同的文件系统来适配并实现，类似于OOP中的虚函数或者Java中的接口类的意思。因此，VFS其实就是文件系统组织管理中的一个抽象层。</p>
+<p>VFS层由四个主要部件构成</p>
+<ul>
+<li>superblock（超级块）：代表一个特定的外存设备上的文件系统</li>
+<li>inode：文件系统中管理的每个对象（文件或目录）在Linux中表示为一个inode，inode包含管理文件系统中的对象所需的所有元数据（包括可以在对象上执行的操作）。</li>
+<li>dentry：用来实现名称和 inode 之间的映射，有一个目录缓存用来保存最近使用的 dentry。dentry 还维护目录和文件之间的关系，从而支持在文件系统中移动。</li>
+<li>file：从进程的角度维护一个打开的文件，（保存打开的文件的状态，比如写偏移量等等）。</li>
+</ul>
+<p>以上组成元素只存在于内存中，每次系统初始化期间Linux都会先在<font color="red"><strong>内存</strong></font>中构造一棵VFS的目录树（也就是源码中的namespace）。注意VFS作为一个虚拟的文件系统，其存在于内存中，一旦关机后就不复存在，而实际的文件系统(不考虑虚拟文件系统，譬如sysfs或者proc等)，即我们常说的ext，ntfs等常见的磁盘文件系统存在于硬盘上，或者叫外存上。为方便区别，后面凡是提到”文件系统”指的是外存上的，特指磁盘上的一个分区。而VFS我们叫它虚拟文件系统，则表示其存在于内存中。</p>
+<p>上面说的VFS的组成，譬如superblock，inode，dentry等概念其实都来自Ext这种文件系统的组织方式，所以两者非常相似（毕竟Ext是Linux的原生文件系统）。所以如果VFS映射的是ext文件系统，很多对应关系是一对一的，操作速度会非常快，而如果映射的是其他的文件系统，转换的效率就可想而知了。后面的内容在涉及到实际的文件系统时为方便起见，都是以ext文件系统为例。</p>
+<h1 id="VFS组成的详细介绍"><a href="#VFS组成的详细介绍" class="headerlink" title="VFS组成的详细介绍"></a>VFS组成的详细介绍</h1><p>先看一张实际的磁盘文件系统ext组织磁盘上的数据的方式，</p>
+<p><img src="http://blog.chinaunix.net/attachment/201310/22/14518381_138245022444Np.jpg" alt=""></p>
+<p>这张图告诉我们在磁盘(外存)上：</p>
+<ul>
+<li>一个磁盘由一个或者多个分区组成，每个分区对应着一个文件系统。</li>
+<li>一个文件系统，由自举块(存放引导程序)，超级快(存放该文件系统的全局信息)，以及多个柱面组构成。</li>
+<li>每个柱面组包括了超级快副本(用于冗余备份)，配置信息，节点位图，数据块位图，节点区和数据块区。注，为了避免混用inode的问题，这里把外存上的inode叫做节点，而VFS在内存中构造的叫inode。</li>
+<li>节点区由很多节点构成，每个节点存放一个文件的元数据(metadata)，元数据主要指的是文件的一些属性信息，例如：文件大小，设备标识符，用户标识符，用户组标识符，文件模式，扩展属性，文件读取或修改的时间戳，链接数量，文件分类等等。而该文件的实际内容部分则以数据块的形式存放在数据块区中。</li>
+<li>数据块区由多个数据块和目录块构成，数据块存放的是上面提到的一个文件的实际内容，比如一张照片的信息；目录块存放的是目录项的名称信息，譬如一个全路径<code>/home/fs</code>里面包括两个路径分量<code>home</code>和<code>fs</code>对应两个目录项，分别在两个目录块中存放<code>home</code>和<code>fs</code>的信息。</li>
+</ul>
+<p>注意，以上描述针对的是物理磁盘上的信息。而这张图最下面画的<code>i节点数组</code>，以及目录块所对应的<code>i节点号+文件名</code>实际上应该对应的是VFS在内存中创建的<code>inode</code>和<code>dentry</code>的缓存。我们也从图中可以看到每个<code>dentry</code>，其<code>文件名</code>来自数据块区中的目录块的内容，而其<code>i节点号</code>指向实际的<code>inode</code>，这应该表达的就是一种硬链接的概念。</p>
+<p>因为我们说过，VFS的实现就是以ext文件系统为范本的，所以在内存中的VFS长的样子大致也是如此。譬如VFS在内存中，有<code>super_block</code>对象对应外存上的超级快，<code>inode</code>对应外存上的节点，<code>dentry</code>对应外存上的目录块。只不过对于VFS来说：实际的数据还是放在物理磁盘上，内存中的数据是为了访问方便，特别地，<code>节点</code>和<code>目录块</code>不会全部加载到内存中，只会对部分当前正在频繁操作的<code>节点</code>和<code>目录块</code>会以<code>inode</code>和<code>dentry</code>的形式缓存在内存中以加快访问速度。具体参考上面的第二张图中的cache。</p>
+<h2 id="超级快"><a href="#超级快" class="headerlink" title="超级快"></a>超级快</h2><p>超级块，是每个FS最基本的元数据，它保存了文件系统的类型、大小、状态和其他信息等。超级快对于文件系统是非常关键的，因此一般文件系统都会冗余存储多份(参考上图)。</p>
+<p>VFS中的一个超级块对象可以认为就对应着一个实际的FS。用结构体类型<code>super_block</code>表示，定义在文件<linux fs.h="">中。更多的操作函数，参考<code>fs/super.c</code>。</linux></p>
+<pre><code>struct super_block {
+    struct list_head    s_list;        /* Keep this first */
+    ...
+    const struct super_operations    *s_op;
+    ...
+    struct list_head    s_inodes;    /* all inodes */
+    ...
+    struct list_head    s_instances;
+    ...
+};
+</code></pre><p>有关超级块，只摘录了几个我认为比较重要的成员供参考理解，总结如下:</p>
+<h3 id="s-list和超级快链表"><a href="#s-list和超级快链表" class="headerlink" title="s_list和超级快链表"></a><code>s_list</code>和超级快链表</h3><p>系统中所有(挂载)的FS，即所有的超级快对象通过一个链表维护，参见<code>fs/super.c</code></p>
+<pre><code>LIST_HEAD(super_blocks);
+</code></pre><p>而<code>s_list</code>这个成员就是用来串联所有的超级块对象的，见下图。</p>
+<p><img src="http://img.dnbcw.info/2010125/pxup2592610.gif" alt=""></p>
+<h3 id="s-instances和文件系统类型"><a href="#s-instances和文件系统类型" class="headerlink" title="s_instances和文件系统类型"></a><code>s_instances</code>和文件系统类型</h3><p>对于特定的文件系统类型, 属于同一种<font color="red"><strong>文件系统类型</strong></font>的所有的超级快对象也通过一个链表串联起来。</p>
+<p>提到这里，需要知道VFS中还定义了一个结构体类型<code>file_sytem_type</code>，用来表示一种<font color="red"><strong>文件系统类型</strong></font>，参考<code>&lt;linux/fs.h&gt;</code>。</p>
+<pre><code>struct file_system_type {
+    const char *name;
+    ...
+    int (*get_sb) (struct file_system_type *, int,
+               const char *, void *, struct vfsmount *);
+    void (*kill_sb) (struct super_block *);
+    struct module *owner;
+    struct file_system_type * next;
+    struct list_head fs_supers;
+
+    ...
+};
+</code></pre><p>其中：</p>
+<ul>
+<li>name: 文件系统类型的名字</li>
+<li><code>get_sb()/kill_sb()</code>: 虚函数，由具体的文件系统实现，<code>get_sb()</code>在文件系统被安装时被调用，用于从磁盘上读取超级快，并在内存中组装为<code>super_block</code>对象。<code>kill_sb()</code>则是对应的析构函数。</li>
+<li>owner: 文件系统模块，所以说内核支持文件系统作为一个象驱动模块一样的组件，可以动态安装。</li>
+<li>next：指向下一个文件系统类型的指针。具体参考下图所示。</li>
+<li>fs_supers: 属于同一个文件系统类型的FS，也就是超级块都挂在这个链表上。和<code>super_block</code>的<code>s_instances</code>是对应的关系。</li>
+</ul>
+<p>内核维护了一个全局的链表，用于保存当前支持的<font color="red"><strong>文件系统类型</strong></font>的列表，定义在<code>fs/filesystems.c</code></p>
+<pre><code>static struct file_system_type *file_systems;
+</code></pre><p><img src="http://img.dnbcw.info/2010125/pxup2592611.gif" alt=""></p>
+<p>注意LKD3rd上有这么一句话：</p>
+<pre><code>There is only one file_system_type per filesystem, regardless of how 
+many instances of the filesystem are mounted on the system, or whether
+the filesystem is even mounted at all.
+</code></pre><p>在Linux中添加新文件系统类型的方法是调用<code>register_filesystem()</code>。删除文件系统可以调用<code>unregister_filesystem()</code>。</p>
+<p>另外在命令行上输入<code>cat /proc/filesystems</code>就可以查看这个文件系统类型的列表。</p>
+<h3 id="s-op和超级快操作"><a href="#s-op和超级快操作" class="headerlink" title="s_op和超级快操作"></a><code>s_op</code>和超级快操作</h3><p>这个也是超级快中最重要的一个域，它指向超级块的操作函数表。由结构体<code>super_operations</code>表示，定义在文件<code>&lt;linux/fs.h&gt;</code>中。这里依然是虚函数的概念，这些回调函数由各个具体的文件系统实现，VFS会在合适的时间点上调用它们，针对实际的FS操作其超级块和文件节点对象。</p>
+<p>每一个具体回调函数的意义，查看LKD3第13.6章节的内容。</p>
+<h3 id="s-inodes"><a href="#s-inodes" class="headerlink" title="s_inodes"></a><code>s_inodes</code></h3><p>该超级块中当前操作的inodes对象，采用一个链表维护在这里，具体参考后面有关文件节点inode的总结。</p>
+<h2 id="索引节点inode"><a href="#索引节点inode" class="headerlink" title="索引节点inode"></a>索引节点inode</h2><p>inode包含了一个文件的元数据，要理解所谓元数据的概念，</p>
+<ul>
+<li>首先要注意数据分成：元数据+数据本身两部分。元数据主要指的是文件的一些属性信息，例如：文件大小，设备标识符，用户标识符，用户组标识符，文件模式，扩展属性，文件读取或修改的时间戳，链接数量，指向存储该内容的磁盘区块的指针，文件分类等等。</li>
+<li>其次需要注意这里所说的文件的概念包括了实际的磁盘文件、目录以及设备等等。</li>
+<li>还要注意inode不包含文件名。文件名存放在目录项dentry中。为何这么做，原因是在VFS中一个inode和一个物理上的文件可以认为是一一对应的，而我们知道由于硬链接的原因，可能在VFS中一个实际的物理文件，也就是一个inode可能对应着多个路径，所以inode和文件名之间不是一对一的关系，而可能是一对多的关系。下面在dentry中一起总结。</li>
+</ul>
+<p>VFS的索引节点inode仅当文件被访问时，才会在内存中创建。</p>
+<p>索引节点用inode结构体表示，定义在文件<code>&lt;linux/fs.h&gt;</code>中。</p>
+<pre><code>struct inode {
+    struct hlist_node    i_hash;
+    struct list_head    i_list;        /* backing dev IO list */
+    struct list_head    i_sb_list;
+    struct list_head    i_dentry;
+    unsigned long        i_ino;
+    atomic_t        i_count;
+    ...
+    unsigned int        i_nlink;
+    uid_t            i_uid;
+    gid_t            i_gid;
+    ...
+    loff_t            i_size;
+    ...
+    struct timespec        i_mtime;
+    ...
+    umode_t            i_mode;
+    ...
+    const struct inode_operations    *i_op;
+    ...
+    union {
+        struct pipe_inode_info    *i_pipe;
+        struct block_device    *i_bdev;
+        struct cdev        *i_cdev;
+    };
+
+    ...
+    void            *i_private; /* fs or device private pointer */
+};
+</code></pre><p>有关索引节点，只摘录了几个我认为比较重要的成员供参考理解，总结如下:</p>
+<h3 id="索引节点号i-ino"><a href="#索引节点号i-ino" class="headerlink" title="索引节点号i_ino"></a>索引节点号<code>i_ino</code></h3><p>索引节点号，注意节点号在FS中独立分配，所以两个FS之间的索引节点号有可能重复。</p>
+<h3 id="引用计数i-count"><a href="#引用计数i-count" class="headerlink" title="引用计数i_count"></a>引用计数<code>i_count</code></h3><h3 id="索引节点的组织结构"><a href="#索引节点的组织结构" class="headerlink" title="索引节点的组织结构"></a>索引节点的组织结构</h3><p>以下三个成员和索引节点的组织有关：</p>
+<pre><code>struct hlist_node    i_hash;
+struct list_head    i_list;        /* backing dev IO list */
+struct list_head    i_sb_list;
+</code></pre><p>管理inode的四个链表，系统根据inode的使用状态，将它们组织在多个双向链表中:</p>
+<ul>
+<li><code>inode_unused</code>：将目前还没有使用的inode链接起来(通过<code>i_list</code>域链接)</li>
+<li><code>inode_in_use</code>：目前正在使用的inode链接起来(通过<code>i_list</code>域链接)</li>
+<li>超级块<code>super_block</code>结构体中的<code>s_dirty</code>：该链表链接了所有被修改过的inode，这些inode将被更新到磁盘上。(通过i_list域链接起来)。</li>
+<li><code>inode_hashtable</code>：注意为了加快inode的查找效率，将正在使用的inode和脏inode也会放在<code>inode_hashtable</code>这样一个hash结构中，但是，不同的inode的hash值可能相等，所以将hash值相等的这些inode通过这个<code>i_hash</code>字段连接起来。</li>
+</ul>
+<p>参考<code>fs/inode.c</code></p>
+<pre><code>/*
+ * Each inode can be on two separate lists. One is
+ * the hash list of the inode, used for lookups. The
+ * other linked list is the &quot;type&quot; list:
+ *  &quot;in_use&quot; - valid inode, i_count &gt; 0, i_nlink &gt; 0
+ *  &quot;dirty&quot;  - as &quot;in_use&quot; but also dirty
+ *  &quot;unused&quot; - valid inode, i_count = 0
+ *
+ * A &quot;dirty&quot; list is maintained for each super block,
+ * allowing for low-overhead inode sync() operations.
+ */
+
+LIST_HEAD(inode_in_use);
+LIST_HEAD(inode_unused);
+static struct hlist_head *inode_hashtable __read_mostly;
+</code></pre><p>inode的大致组织图如下：</p>
+<p><img src="http://img.dnbcw.info/2010125/pxup2592612.gif" alt=""></p>
+<h3 id="文件的元数据"><a href="#文件的元数据" class="headerlink" title="文件的元数据"></a>文件的元数据</h3><pre><code>...
+unsigned int        i_nlink;
+uid_t            i_uid;
+gid_t            i_gid;
+...
+loff_t            i_size;
+...
+struct timespec        i_mtime;
+...
+umode_t            i_mode;
+...
+</code></pre><h3 id="索引节点操作i-op"><a href="#索引节点操作i-op" class="headerlink" title="索引节点操作i_op"></a>索引节点操作<code>i_op</code></h3><p>是结构体<code>inode_operations</code>的指针类型。该结构体类型定义在<code>&lt;linux/fs.h&gt;</code>文件中，VFS通过这个结构体定义了所有操作索引节点的虚函数，需要由具体的文件系统实现。具体内容参考LKD3rd的13.8章节。</p>
+<h3 id="和驱动开发有关的成员"><a href="#和驱动开发有关的成员" class="headerlink" title="和驱动开发有关的成员"></a>和驱动开发有关的成员</h3><pre><code>union {
+    struct pipe_inode_info    *i_pipe;
+    struct block_device    *i_bdev;
+    struct cdev        *i_cdev;
+};
+...
+void            *i_private; /* fs or device private pointer */
+</code></pre><p>如果我们做过驱动开发的话，会发现这些成员很熟悉，对，在驱动模块中它们会出现在文件操作函数的参数中传递到驱动的回调函数中。</p>
+<h2 id="目录项dentry"><a href="#目录项dentry" class="headerlink" title="目录项dentry"></a>目录项dentry</h2><p>目录项是描述文件的逻辑属性，和前面描述的超级块和索引节点不同，目录项对象没有对应的磁盘数据结构，它们是VFS根据需要在内存中现场创建出来的，更确切的说是存在于内存的目录项缓存，为了提高查找性能而设计，所以也不存在”脏”标记。注意不管是文件夹还是最终的文件，都是属于目录项，所有的目录项在一起构成一颗庞大的目录树。例如：open一个文件<code>/home/xxx/yyy.txt</code>，需要涉及四个目录项，它们分别是<code>/</code>、<code>home</code>、<code>xxx</code>和<code>yyy.txt</code>，VFS在查找的时候，根据一层一层的目录项找到对应的每个目录项的inode，那么沿着目录项进行操作就可以找到最终的文件。</p>
+<p>注意：</p>
+<ul>
+<li>目录也是一种文件(所以也存在对应的inode)。打开目录，实际上就是打开目录文件。</li>
+<li>一个有效的dentry结构必定有一个inode结构，这是因为一个目录项要么代表着一个文件，要么代表着一个目录，而目录实际上也是文件。所以，只要dentry结构是有效的，则其指针d_inode必定指向一个inode结构。但是一个inode却可以对应多个dentry，譬如硬链接的问题。</li>
+<li>所有的dentry形成的其实就是我们用户看到的一棵大的树。</li>
+</ul>
+<p>该结构体类型定义在<code>&lt;linux/dcache.h&gt;</code>文件中,</p>
+<pre><code>struct dentry {
+    atomic_t d_count;
+    ...
+    struct inode *d_inode;        /* Where the name belongs to - NULL is
+                     * negative */
+    ...
+    struct dentry *d_parent;    /* parent directory */
+    struct qstr d_name;
+
+    struct list_head d_lru;        /* LRU list */
+    /*
+     * d_child and d_rcu can share memory
+     */
+    union {
+        struct list_head d_child;    /* child of parent list */
+         struct rcu_head d_rcu;
+    } d_u;
+    struct list_head d_subdirs;    /* our children */
+    struct list_head d_alias;    /* inode alias list */
+    ...
+    const struct dentry_operations *d_op;
+    struct super_block *d_sb;    /* The root of the dentry tree */
+    void *d_fsdata;            /* fs-specific data */
+
+    unsigned char d_iname[DNAME_INLINE_LEN_MIN];    /* small names */
+};
+</code></pre><p>dentry对象存在于三个双向链表中:</p>
+<ul>
+<li>表示父子目录结构的链表：每个dentry对象的<code>d_subdirs</code>成员维护了一个链表，用于管理其子entry。每个子entry通过<code>d_child</code>域链接。</li>
+<li>所有未被使用的目录项: “未被使用”指的是曾经被使用，但当前没有使用(<code>d_count</code>为0)，该目录项仍然保留在内存中以便需要时再使用，如果内存紧张时可以释放它们。我查了一下v2.6.32.2的代码，这个链表的链表头不是<code>dentry_unused</code>，而是改为超级快的一个成员<code>s_dentry_lru</code>。具体可以参考<code>dentry_lru_add_tail</code>这个函数的实现。LRU的意思是<code>Least Recently Used</code>，很少使用项，内存紧张时可以丢弃的意思。</li>
+<li>正在被使用的目录项: “正在被使用”的目录项(<code>d_count</code>&gt;0)。该项在缓存中不可以被丢弃。该链表的链表头维护在inode的<code>i_dentry</code>成员。譬如表达硬链接的概念。</li>
+<li>另外,还有一个重要的链表: <code>inode_hashtable</code>(这个暂不介绍，主要用于加快查找速度)。</li>
+</ul>
+<p>更多有关所谓“正在被使用”和“未被使用”，包括源代码注释中的<code>NULL is negative</code>的描述，涉及目录项的三个状态，主要和缓存的使用机制有关，详细参考LKD3的13.9.1章节。</p>
+<p>以上概念参考下图：</p>
+<p><img src="http://img.dnbcw.info/2010125/pxup2592613.gif" alt=""></p>
+<p>有关inode和dentry之间的关系，譬如VFS是如何利用它们表达硬链接，符号链接等概念的，可以参考一篇不错的博客<a href="http://zixun.zhongsou.com/faster/24/9cab7e1da8af323081f44d19058f673c.html" target="_blank" rel="external">VFS文件系统结构分析</a>，上面有些图画的真心不错。</p>
+<h2 id="文件"><a href="#文件" class="headerlink" title="文件"></a>文件</h2><p>从进程的角度来看待虚拟文件系统。正如LKD3所述，如果我们从用户的角度来看待VFS，文件对象会首先进入我们的视野。进程直接处理的是文件，而不是超级块，索引节点以及目录项。</p>
+<p>进程打开文件时涉及到的内核结构体：</p>
+<ul>
+<li>每个进程都有自己的<code>namespace</code>。有关命名空间的概念，参考<a href="http://blog.csdn.net/preterhuman_peak/article/details/40857117" target="_blank" rel="external">Linux Namespaces机制</a>，我们这主要关心的应该是<code>mnt_namespace</code>。每个进程都看到了一棵大树，这棵大树是怎么创建出来的，参考后面的”VFS的构建”。</li>
+<li><code>fs_struct</code>用于表示进程与文件系统之间的结构关系,比如当前的工作目录,进程的根目录等等。</li>
+<li><code>files_struct</code>用于维护当前进程打开的所有的文件。</li>
+<li>而对于一个进程所打开的每一个文件,由<code>file</code>对象来表示。</li>
+</ul>
+<p><img src="http://img.dnbcw.info/2010125/pxup2592614.gif" alt=""></p>
+<p>有关open等系统调用对进程打开文件影响的例子，依然参考<a href="http://zixun.zhongsou.com/faster/24/9cab7e1da8af323081f44d19058f673c.html" target="_blank" rel="external">VFS文件系统结构分析</a>，上面有些图画的真心不错。</p>
+<h3 id="文件对象file"><a href="#文件对象file" class="headerlink" title="文件对象file"></a>文件对象file</h3><p>其中<code>file</code>结构体值得仔细看看。</p>
+<p>其主要成员</p>
+<ul>
+<li><code>f_op</code>: <code>file_operations</code>的结构体的指针。这些操作是标准Unix系统调用的基础，也是驱动开发中最多涉及的东东。</li>
+</ul>
+<p>和目录项<code>dentry</code>一样，文件对象实际上没有对应的磁盘数据，所以结构体中没有“脏”标志。</p>
+<p><code>file</code>和<code>dentry</code>之间是多对一的关系，<code>dentry</code>和<code>inode</code>之间又是多对一的关系。讲到这里，以前一直困惑我们的一张关系图应该很明了了。</p>
+<p><img src="http://blog.fangjian.me/images/uploads/2010/10/inode.jpg" alt=""></p>
+<h3 id="fs-struct"><a href="#fs-struct" class="headerlink" title="fs_struct"></a><code>fs_struct</code></h3><h3 id="files-struct"><a href="#files-struct" class="headerlink" title="files_struct"></a><code>files_struct</code></h3><h1 id="VFS的构建"><a href="#VFS的构建" class="headerlink" title="VFS的构建"></a>VFS的构建</h1><p>主要涉及挂载的概念。</p>
+<p>所以说这里的列表维护的仅仅是当前支持的文件系统类型，具体一个文件系统的挂载情况通过另外一个结构体<code>vfsmount</code>来表达。The vfsmount structure is defined in <linux mount.h="">。</linux></p>
+<p>系统维护了一张”文件系统安装表”，记录了所有挂载在当前系统上的挂载点的实例。</p>
+<p>因为一个文件系统可以被挂载多次，所以一个超级快可以对应多个<code>vfsmount</code>。</p>
+<p>应用程序通过mount系统调用挂载文件系统时，</p>
+<ul>
+<li>内核首先根据设备名称检查VFS内部维护的超级快对象链表，判断该FS的超级快对象在内存是否已经存在，否则查看FS类型注册表，如果是系统支持的FS类型，则通过调用<code>file_system_type</code>结构体的<code>get_sb()</code>读该设备的超级块，建立该设备的内存超级快对象和根目录项对象</li>
+<li>创建对应的<code>vfsmount</code>并填写其各项内容，包括其指向的超级快指针，设备名，安装点，根目录项指针等。</li>
+</ul>
+<h1 id="VFS总结"><a href="#VFS总结" class="headerlink" title="VFS总结"></a>VFS总结</h1><p>这么多结构体和对象，之间的对应关系，可以总结一下。<a href="http://wenku.baidu.com/view/e77321768e9951e79b892705.html" target="_blank" rel="external">LINUX VFS精华版PPT</a>上有一张类图，但个人感觉不是很清楚。</p>
+<p>VFS作为一个中间层，对下层的文件系统和驱动开发提出了哪些要求，即有哪些虚函数需要我们去支持。可以总结一下。</p>
+<p>另外一张有关VFS和驱动开发之间的关系图可以参考宋宝华《Linux设备驱动开发详解(第2版)》的图5.1<br>其中：<br>字符设备：<br>VFS-&gt;字符设备文件(/dev/…)-&gt;字符设备驱动（直接提供file_operations）</p>
+<p>块设备：<br>VFS-&gt;块设备文件系统(ext, fat, jffs等，由这些文件系统实现file_operations)-&gt;块设备驱动（看不到file_operations，是不是完全看不到，标识怀疑）。</p>
+<p>这张图还体现了一个概念，就是我们通过设备文件(/dev/…)直接访问设备，也通过驱动实现，这里指的是ioctl吗？</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/文件系统/" rel="tag">#文件系统</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/17/20160317-lk-sched/" rel="next" title="Linux的任务调度">
+                <i class="fa fa-chevron-left"></i> Linux的任务调度
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/03/25/20160325-cmd-free/" rel="prev" title="物理内存的监控命令free">
+                物理内存的监控命令free <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/03/20/20160320-lk-vfs/"
+           data-title="linux内核之虚拟文件系统总结" data-url="http://unicornx.github.io/2016/03/20/20160320-lk-vfs/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#VFS的定义"><span class="nav-number">1.</span> <span class="nav-text">VFS的定义</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#VFS组成的详细介绍"><span class="nav-number">2.</span> <span class="nav-text">VFS组成的详细介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#超级快"><span class="nav-number">2.1.</span> <span class="nav-text">超级快</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#s-list和超级快链表"><span class="nav-number">2.1.1.</span> <span class="nav-text">s_list和超级快链表</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#s-instances和文件系统类型"><span class="nav-number">2.1.2.</span> <span class="nav-text">s_instances和文件系统类型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#s-op和超级快操作"><span class="nav-number">2.1.3.</span> <span class="nav-text">s_op和超级快操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#s-inodes"><span class="nav-number">2.1.4.</span> <span class="nav-text">s_inodes</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#索引节点inode"><span class="nav-number">2.2.</span> <span class="nav-text">索引节点inode</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#索引节点号i-ino"><span class="nav-number">2.2.1.</span> <span class="nav-text">索引节点号i_ino</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#引用计数i-count"><span class="nav-number">2.2.2.</span> <span class="nav-text">引用计数i_count</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引节点的组织结构"><span class="nav-number">2.2.3.</span> <span class="nav-text">索引节点的组织结构</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#文件的元数据"><span class="nav-number">2.2.4.</span> <span class="nav-text">文件的元数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#索引节点操作i-op"><span class="nav-number">2.2.5.</span> <span class="nav-text">索引节点操作i_op</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#和驱动开发有关的成员"><span class="nav-number">2.2.6.</span> <span class="nav-text">和驱动开发有关的成员</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#目录项dentry"><span class="nav-number">2.3.</span> <span class="nav-text">目录项dentry</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#文件"><span class="nav-number">2.4.</span> <span class="nav-text">文件</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#文件对象file"><span class="nav-number">2.4.1.</span> <span class="nav-text">文件对象file</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#fs-struct"><span class="nav-number">2.4.2.</span> <span class="nav-text">fs_struct</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#files-struct"><span class="nav-number">2.4.3.</span> <span class="nav-text">files_struct</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#VFS的构建"><span class="nav-number">3.</span> <span class="nav-text">VFS的构建</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#VFS总结"><span class="nav-number">4.</span> <span class="nav-text">VFS总结</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

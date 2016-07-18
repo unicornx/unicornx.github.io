@@ -1,0 +1,879 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="bootloader,U-boot,make," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+参考：u-boot的配置过程 – 3
+触发xxx_config规则执行
+在u-boot执行make之前，需要完成针对具体某开发板的配置规则执行，以versatilepb为例：
+$ make versatilepb_config">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解u-boot的make xxx_config机制(基于v2009.11)">
+<meta property="og:url" content="http://unicornx.github.io/2015/06/28/20150628-notes-uboot-config-v2009-11/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+参考：u-boot的配置过程 – 3
+触发xxx_config规则执行
+在u-boot执行make之前，需要完成针对具体某开发板的配置规则执行，以versatilepb为例：
+$ make versatilepb_config">
+<meta property="og:updated_time" content="2016-03-18T23:02:48.988Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="理解u-boot的make xxx_config机制(基于v2009.11)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+参考：u-boot的配置过程 – 3
+触发xxx_config规则执行
+在u-boot执行make之前，需要完成针对具体某开发板的配置规则执行，以versatilepb为例：
+$ make versatilepb_config">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/06/28/20150628-notes-uboot-config-v2009-11/"/>
+
+  <title> 理解u-boot的make xxx_config机制(基于v2009.11) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                理解u-boot的make xxx_config机制(基于v2009.11)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-06-28T22:39:52+08:00" content="2015-06-28">
+              2015-06-28
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Bootloader/" itemprop="url" rel="index">
+                    <span itemprop="name">Bootloader</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/06/28/20150628-notes-uboot-config-v2009-11/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/06/28/20150628-notes-uboot-config-v2009-11/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>参考：<br><a href="http://linux.chinaunix.net/techdoc/system/2009/05/02/1109741.shtml" target="_blank" rel="external">u-boot的配置过程 – 3</a></p>
+<h1 id="触发xxx-config规则执行"><a href="#触发xxx-config规则执行" class="headerlink" title="触发xxx_config规则执行"></a>触发xxx_config规则执行</h1><hr>
+<p>在u-boot执行make之前，需要完成针对具体某开发板的配置规则执行，以versatilepb为例：</p>
+<pre><code>$ make versatilepb_config
+</code></pre><a id="more"></a>
+<p>查看顶层目录下的Makefile文件，有以下规则：</p>
+<pre><code>versatile_config    \
+versatileab_config    \
+versatilepb_config :    unconfig
+    @board/armltd/versatile/split_by_variant.sh $@
+</code></pre><p>unconfig会先被强制执行，因为该目标没有依赖。</p>
+<pre><code>unconfig:
+    @rm -f $(obj)include/config.h $(obj)include/config.mk \
+        $(obj)board/*/config.tmp $(obj)board/*/*/config.tmp \
+        $(obj)include/autoconf.mk $(obj)include/autoconf.mk.dep
+</code></pre><p>执行完unconfig后，即清理了一下原来的配置环境，然后具体执行的动作是执行split_by_variant.sh这个脚本，其中$@会被替换为命令行中输入的目标名称，所以该语句等价于：</p>
+<pre><code>@board/armltd/versatile/split_by_variant.sh versatilepb_config
+</code></pre><p>查看split_by_variant.sh该脚本：大致的意思是，如果指定的目标是versatilepa_config则会在${obj}include/config.h里定义宏CONFIG_ARCH_VERSATILE_PA；否则都认为是versatilepb_config并会在${obj}include/config.h里定义宏CONFIG_ARCH_VERSATILE_PB。</p>
+<p>该脚本最后调用</p>
+<pre><code>$MKCONFIG -a versatile arm arm926ejs versatile armltd versatile
+</code></pre><p>即调用uboot根目录下的mkconfig文件, 同时给它传递7个参数:</p>
+<ul>
+<li>$1: -a    </li>
+<li>$2: versatile    </li>
+<li>$3: arm            </li>
+<li>$4: arm926ejs        </li>
+<li>$5: versatile   </li>
+<li>$6: armltd  </li>
+<li>$7: versatile</li>
+</ul>
+<h1 id="mkconfig的作用"><a href="#mkconfig的作用" class="headerlink" title="mkconfig的作用"></a>mkconfig的作用</h1><hr>
+<p>mkconfig是一个shell脚本文件</p>
+<pre><code>#!/bin/sh -e
+
+# Script to create header files and links to configure
+# U-Boot for a specific board.
+#
+# Parameters:  Target  Architecture  CPU  Board [VENDOR] [SOC]
+#
+# (C) 2002-2006 DENX Software Engineering, Wolfgang Denk &lt;wd@denx.de&gt;
+#
+</code></pre><p>知道它可以接受最多传递六个参数，形如：<br>mkconfig Target  Architecture  CPU  Board [VENDOR] [SOC]</p>
+<ul>
+<li>Target：指定目标板的名称, 譬如</li>
+<li>Architecture：指定处理器架构，譬如arm，第二个参数的取值范围，可以参考include目录下的asm-xxx目录。</li>
+<li>CPU：</li>
+<li><p>Board：   </p>
+<p>  APPEND=no    # Default: Create new config file<br>  BOARD_NAME=””    # Name to print in make output<br>  TARGETS=””</p>
+<p>  while [ $# -gt 0 ] ; do</p>
+<pre><code>case &quot;$1&quot; in
+--) shift ; break ;;
+-a) shift ; APPEND=yes ;;
+-n) shift ; BOARD_NAME=&quot;${1%%_config}&quot; ; shift ;;
+-t) shift ; TARGETS=&quot;`echo $1 | sed &apos;s:_: :g&apos;` ${TARGETS}&quot; ; shift ;;
+*)  break ;;
+esac
+</code></pre><p>  done</p>
+</li>
+</ul>
+<p>以上语句的意思大概是如果第1个参数是形如“–”，“-a”等则会对参数进行预处理，其中用到shift指令，shift用于向左平移shell脚本的参数。比如说，我们执行了一次shift，那么 $1 没了，$2变为$1，$3变为$2。并且参数个的个数$#也跟着改变。同理，如果是shift 3,那么$4变为s$1。$5变成$2。依次类推。shitf 不跟参数，等于shitf 1。<br>所以进过shift后，传入的参数对应关系就变了:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center">参数</th>
+<th style="text-align:center">对应的值</th>
+<th style="text-align:left">对应的格式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">$1</td>
+<td style="text-align:center">versatile</td>
+<td style="text-align:left">Target</td>
+</tr>
+<tr>
+<td style="text-align:center">$2</td>
+<td style="text-align:center">arm</td>
+<td style="text-align:left">Architecture</td>
+</tr>
+<tr>
+<td style="text-align:center">$3</td>
+<td style="text-align:center">arm926ejs</td>
+<td style="text-align:left">CPU</td>
+</tr>
+<tr>
+<td style="text-align:center">$4</td>
+<td style="text-align:center">versatile</td>
+<td style="text-align:left">Board</td>
+</tr>
+<tr>
+<td style="text-align:center">$5</td>
+<td style="text-align:center">armltd</td>
+<td style="text-align:left">VENDOR, ltd就是有限责任公司的意思咯</td>
+</tr>
+<tr>
+<td style="text-align:center">$6</td>
+<td style="text-align:center">versatile</td>
+<td style="text-align:left">SOC</td>
+</tr>
+</tbody>
+</table>
+<p>继续：</p>
+<pre><code>[ &quot;${BOARD_NAME}&quot; ] || BOARD_NAME=&quot;$1&quot;
+[ $# -lt 4 ] &amp;&amp; exit 1
+[ $# -gt 6 ] &amp;&amp; exit 1
+
+if [ &quot;${ARCH}&quot; -a &quot;${ARCH}&quot; != &quot;$2&quot; ]; then
+    echo &quot;Failed: \$ARCH=${ARCH}, should be &apos;$2&apos; for ${BOARD_NAME}&quot; 1&gt;&amp;2
+    exit 1
+fi
+
+echo &quot;Configuring for ${BOARD_NAME} board...&quot;
+
+#
+# Create link to architecture specific headers
+#
+if [ &quot;$SRCTREE&quot; != &quot;$OBJTREE&quot; ] ; then
+    mkdir -p ${OBJTREE}/include
+    mkdir -p ${OBJTREE}/include2
+    cd ${OBJTREE}/include2
+    rm -f asm
+    ln -s ${SRCTREE}/include/asm-$2 asm
+    LNPREFIX=&quot;../../include2/asm/&quot;
+    cd ../include
+    rm -rf asm-$2
+    rm -f asm
+    mkdir asm-$2
+    ln -s asm-$2 asm
+else
+    cd ./include
+    rm -f asm
+    ln -s asm-$2 asm
+fi
+</code></pre><p>判断源码目录跟目标文件目录是否一致，不一致的话就在目标文件目录创建相关的文件和链接，这样可以使源码目录保持干净，不过我们一般都是直接在源码目录进行编译的。<br>最后会创建一个指向”asm-$2”的符号链接asm<br>注：到目前为止，pwd为”./include”</p>
+<pre><code>rm -f asm-$2/arch
+
+if [ -z &quot;$6&quot; -o &quot;$6&quot; = &quot;NULL&quot; ] ; then
+    ln -s ${LNPREFIX}arch-$3 asm-$2/arch
+else
+    ln -s ${LNPREFIX}arch-$6 asm-$2/arch
+fi
+
+if [ &quot;$2&quot; = &quot;arm&quot; ] ; then
+    rm -f asm-$2/proc
+    ln -s ${LNPREFIX}proc-armv asm-$2/proc
+fi
+
+#
+# Create include file for Make
+#
+echo &quot;ARCH   = $2&quot; &gt;  config.mk
+echo &quot;CPU    = $3&quot; &gt;&gt; config.mk
+echo &quot;BOARD  = $4&quot; &gt;&gt; config.mk
+
+[ &quot;$5&quot; ] &amp;&amp; [ &quot;$5&quot; != &quot;NULL&quot; ] &amp;&amp; echo &quot;VENDOR = $5&quot; &gt;&gt; config.mk
+
+[ &quot;$6&quot; ] &amp;&amp; [ &quot;$6&quot; != &quot;NULL&quot; ] &amp;&amp; echo &quot;SOC    = $6&quot; &gt;&gt; config.mk
+</code></pre><p>创建include/config.mk，并在文件中打印如下内容：    </p>
+<pre><code>ARCH   = arm        // $2 Architecture
+CPU    = arm926ejs    // $3 CPU
+BOARD  = versatile    // $4 Board
+VENDOR = armltd        // $5 [VENDOR]
+SOC    = versatile    // $6 [SOC]
+</code></pre><p>最后就开始创建include/config.h，注意这里对versatile我们采用的是-a，即APPEND的方式:</p>
+<pre><code>#
+# Create board specific header file
+#
+if [ &quot;$APPEND&quot; = &quot;yes&quot; ]    # Append to existing config file
+then
+    echo &gt;&gt; config.h
+else
+    &gt; config.h        # Create new config file
+fi
+echo &quot;/* Automatically generated - do not edit */&quot; &gt;&gt;config.h
+
+for i in ${TARGETS} ; do
+    echo &quot;#define CONFIG_MK_${i} 1&quot; &gt;&gt;config.h ;
+done
+
+echo &quot;#include &lt;configs/$1.h&gt;&quot; &gt;&gt;config.h
+echo &quot;#include &lt;asm/config.h&gt;&quot; &gt;&gt;config.h
+
+exit 0
+</code></pre><p>最后生成的include/config.h之中包含了两个头文件，对于versatile来说的这两个头文件就是include/configs/versatile.h,以及include/asm/config.h(即include/asm-arm/config.h，注意asm是指向asm-arm的符号链接), 如果你打开这两个文件就会发现很多CONFIG_的宏定义，当然include/asm-arm/config.h没有定义啥，但是在其他平台的这个文件中就有一些宏定义了。</p>
+<h1 id="总结："><a href="#总结：" class="headerlink" title="总结："></a>总结：</h1><hr>
+<p>总的来说，对于我们目前的开发板”make versatilepb_config”就是干了这么几件事：  </p>
+<ul>
+<li>1 uncofig： 清理当前的配置环境</li>
+<li>2 调用board/armltd/versatile/split_by_variant.sh，其中会创建include/config.h，并根据我们调用的是”make versatilepb_config”写入标识开发板类型的宏CONFIG_ARCH_VERSATILE_PB</li>
+<li>3 调用mkconfig<ul>
+<li>3.1 ln -s include/asm-arm include/asm  </li>
+<li>3.2 创建include/config.mk,根据我们调用mkconfig的参数对ARCH,CPU等变量赋值，这些变量是否为空会影响后期make时的顶层config.mk里决定对应级别的配置文件是否会被导入<br>ARCH   = arm        // Architecture级别<br>CPU    = arm926ejs    // CPU级别<br>SOC    = versatile    // SOC级别<br>BOARD  = versatile    // BOARD和VENDOR两者决定开发板Board级别<br>VENDOR = armltd        // </li>
+<li>3.3 继续修改include/config.h，include以下头文件，这协些头文件中会打开一些开关，影响编译的结果，包括：<br>  include/configs/versatile.h: 针对各种开发板的主要配置开关都在这里<br>  include/asm/config.h -&gt; include/asm-arm/config.h： 只定义了一个宏CONFIG_RELOC_FIXUP_WORKS</li>
+</ul>
+</li>
+</ul>
+<p>到了这里我们就已经可以算是配置完成了</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/bootloader/" rel="tag">#bootloader</a>
+          
+            <a href="/tags/U-boot/" rel="tag">#U-boot</a>
+          
+            <a href="/tags/make/" rel="tag">#make</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/06/28/20150628-how-to-write-article-by-hexo/" rel="next" title="用hexo发布文章">
+                <i class="fa fa-chevron-left"></i> 用hexo发布文章
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/06/28/20150628-notes-uboot-config-mk-v2009-11/" rel="prev" title="理解u-boot的顶层config.mk(基于v2009.11)">
+                理解u-boot的顶层config.mk(基于v2009.11) <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/06/28/20150628-notes-uboot-config-v2009-11/"
+           data-title="理解u-boot的make xxx_config机制(基于v2009.11)" data-url="http://unicornx.github.io/2015/06/28/20150628-notes-uboot-config-v2009-11/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#触发xxx-config规则执行"><span class="nav-number">1.</span> <span class="nav-text">触发xxx_config规则执行</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#mkconfig的作用"><span class="nav-number">2.</span> <span class="nav-text">mkconfig的作用</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#总结："><span class="nav-number">3.</span> <span class="nav-text">总结：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

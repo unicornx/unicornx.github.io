@@ -1,0 +1,753 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="mini2440,clock,s3c2440," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-8-21
+S3C2440的系统时钟简介S3C2440的系统时钟分两个独立的部分，主时钟和USB时钟，这两个时钟的时钟源可以通过设置引脚OM[3:2]，分别采用以下两种方式。
+方式一，Crystal，即外接晶振，通过内部锁相环电路产生时钟源方式二，E">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于mini2440开发板学习S3C2440的系统时钟">
+<meta property="og:url" content="http://unicornx.github.io/2015/07/26/20150726-mini2440-clock/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-8-21
+S3C2440的系统时钟简介S3C2440的系统时钟分两个独立的部分，主时钟和USB时钟，这两个时钟的时钟源可以通过设置引脚OM[3:2]，分别采用以下两种方式。
+方式一，Crystal，即外接晶振，通过内部锁相环电路产生时钟源方式二，E">
+<meta property="og:image" content="http://unicornx.github.io/img/20150726-mini2440-clock/mini2440-clock-src.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150726-mini2440-clock/mpll.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150726-mini2440-clock/s3c2440-ahb-bus.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150726-mini2440-clock/s3c2440-apb-bus.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150726-mini2440-clock/sysclock_init_flow.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150726-mini2440-clock/mpll_workflow.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:49.877Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于mini2440开发板学习S3C2440的系统时钟">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-8-21
+S3C2440的系统时钟简介S3C2440的系统时钟分两个独立的部分，主时钟和USB时钟，这两个时钟的时钟源可以通过设置引脚OM[3:2]，分别采用以下两种方式。
+方式一，Crystal，即外接晶振，通过内部锁相环电路产生时钟源方式二，E">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20150726-mini2440-clock/mini2440-clock-src.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/07/26/20150726-mini2440-clock/"/>
+
+  <title> 基于mini2440开发板学习S3C2440的系统时钟 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                基于mini2440开发板学习S3C2440的系统时钟
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-07-26T14:50:19+08:00" content="2015-07-26">
+              2015-07-26
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ARM裸机接口/" itemprop="url" rel="index">
+                    <span itemprop="name">ARM裸机接口</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/07/26/20150726-mini2440-clock/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/07/26/20150726-mini2440-clock/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-8-21</p>
+<h1 id="S3C2440的系统时钟简介"><a href="#S3C2440的系统时钟简介" class="headerlink" title="S3C2440的系统时钟简介"></a>S3C2440的系统时钟简介</h1><p>S3C2440的系统时钟分两个独立的部分，主时钟和USB时钟，这两个时钟的时钟源可以通过设置引脚OM[3:2]，分别采用以下两种方式。</p>
+<p>方式一，Crystal，即外接晶振，通过内部锁相环电路产生时钟源<br>方式二，EXTCLK，直接使用外部提供的时钟源<br><a id="more"></a><br>系统上电后，S3C2440处理器会自动锁存OM3和OM2引脚的电平值，这两个引脚用于选择外部时钟输入方式，参考UM的Table 7-1所示。你可以从我们的mini2440开发板的电路图看到，开发板上的OM3和OM2均接地，即OM[3:2]=00。所以，mini2440对主时钟源和USB时钟源都采用方式一，即Crystal/外部晶振。已知mini2440采用的外部晶振的频率为12MHz。<br><img src="/img/20150726-mini2440-clock/mini2440-clock-src.png" alt=""></p>
+<p>主时钟和USB时钟的内部的锁相环电路分别为MPLL和UPLL，并可以使用独立的寄存器对这两个锁相环电路进行配置。</p>
+<ul>
+<li><p>MPLL，主时钟锁相环电路，用于产生三种时钟信号</p>
+<p><img src="/img/20150726-mini2440-clock/mpll.png" alt=""></p>
+<ul>
+<li>FCLK, 给CPU内核提供时钟信号作为工作频率。</li>
+<li>HCLK，为连接在AHB总线(Advanced High performance Bus)上的外设提供时钟信号作为工作频率，AHB总线主要挂接有内存，NAND，LCD控制器等硬件，参考UM第1-5页<code>Figure 1-1. S3C2440A Block Diagram</code>：<br><img src="/img/20150726-mini2440-clock/s3c2440-ahb-bus.png" alt=""></li>
+<li>PCLK，为连接在APB总线上的外设提供时钟信号作为工作频率，参考UM第1-5页<code>Figure 1-1. S3C2440A Block Diagram</code>如下所示，APB总线主要挂接UART串口，Watchdog等硬件控制器。<br><img src="/img/20150726-mini2440-clock/s3c2440-apb-bus.png" alt=""></li>
+</ul>
+</li>
+<li><p>UPLL：USB时钟锁相环电路，用于产生供USB设备使用的时钟信号。</p>
+</li>
+</ul>
+<p>这两个时钟的配置方法类似，本文以MPLL为主介绍。</p>
+<h1 id="系统时钟初始化流程"><a href="#系统时钟初始化流程" class="headerlink" title="系统时钟初始化流程"></a>系统时钟初始化流程</h1><p>下面这张图是针对UM的Figure 7-4的中文注释，供参考。<br><img src="/img/20150726-mini2440-clock/sysclock_init_flow.png" alt=""><br>结合系统时钟初始化时序流程,开发板上电后，晶振OSC开始提供晶振时钟，由于系统刚刚上电，电压信号等都还不稳定，这时复位信号（nRESET）拉低。MPLL虽然默认启动，但是如果系统复位后不向MPLLCON中写入有效设置值，那么外部晶振产生的震荡信号将直接作为系统时钟FCLK（12MHZ）。过几毫秒后，复位信号上拉，CPU开始取指运行，这时可以通过代码设置MPLCON寄存器启动MPLL。</p>
+<p>MPLL启动需要一定锁定时间（LockTime），这是因为MPLL输出频率还没有稳定，在软件上只要我们一设置MPLLCON之后，即图上所标识的“通过硬件或者软件第一次配置PLL(PLL is configured by S/W first time)”, LockTime就被自动插入，在这期间FCLK都停止输出，CPU停止工作，过了LockTime后时钟稳定输出，CPU工作在新设置的频率FCLK下。</p>
+<h1 id="MPLL系统时钟的设置"><a href="#MPLL系统时钟的设置" class="headerlink" title="MPLL系统时钟的设置"></a>MPLL系统时钟的设置</h1><p>大致的设置流程如下图，可以认为由两个阶段构成。期间主要涉及三个寄存器的设置：</p>
+<ul>
+<li>设置LOCKTIME寄存器调整变频锁定时间LockTime</li>
+<li>设置MPLLCON寄存器控制FCLK与晶振输入频率（Fin）的倍数</li>
+<li>设置CLKDIVN寄存器控制FCLK，HCLK，PCLK三者之间的比例</li>
+</ul>
+<p><img src="/img/20150726-mini2440-clock/mpll_workflow.png" alt=""></p>
+<p>第一个阶段的主要工作是以12MHZ的晶振产生的震荡信号Fin作为输入，倍频后产生FCLK作为下一阶段的输入。设置内部锁相环电路的倍频值，FCLK与晶振输入频率（Fin）的倍数值可以通过设置MPLLCON来获得。需要满足以下关系：</p>
+<pre><code>MPLL(FCLK) = (2*m*Fin)/(p*2^s)
+其中：m = MDIV + 8, p = PDIV + 2, s = SDIV
+</code></pre><p>参考<a href="http://blog.csdn.net/mr_raptor/article/details/6555734" target="_blank" rel="external">S3C2440系统时钟</a>博文的表2-10，官方推荐的一些MPLL参考设置(目前还不知道这张表是哪里来的)以及该博文一开始说到ARM920T内核的S3C2440的最高正常工作频率如下大致为FCLK：400MHz；HCLK：100MHz；PCLK：50MHz。所以在采用12MHz晶振作为输入的情况下可以取输出在405MHz左右最为适宜。</p>
+<p>由前面系统时钟初始化流程中我们知道，由于变频后开发板所有依赖时钟工作的硬件都需要一小段调整时间，所以MPLL启动需要一定锁定时间（LockTime），这段锁定时间长度是可以调整的，可以通过设置LOCKTIME寄存器[31:16]来设置UPLL（USB时钟锁相环）调整时间，通过设置LOCKTIME寄存器[15:0]设置MPLL调整时间，这两个调整时间数值一般用其默认值即可。  </p>
+<p>以tekkaman提供的U-boot代码初始化中设置时钟的代码为例：</p>
+<pre><code>#define MDIV_405    0x7f &lt;&lt; 12    /* tekkaman */
+#define PSDIV_405    0x21        /* tekkaman */
+...
+mov    r1, #CLK_CTL_BASE    
+mov    r2, #MDIV_405    
+add    r2, r2, #PSDIV_405    
+str    r2, [r1, #0x04]        /* MPLLCON tekkaman */
+</code></pre><p>即设置MPLLCON的值为<code>0x7f &lt;&lt; 12 + 0x21</code>，等价于设置MDIV为0x7f，PDIV为2，SDIV为1。</p>
+<p>查数据手册</p>
+<pre><code>m = MDIV + 8 = 127 + 8 = 135
+p = PDIV + 2 = 2 + 2 = 4
+s = SDIV = 1
+Fin = 12MHz    
+Mpll = (2 * m * Fin)/(p * 2 ^ S)
+     = (2 * 135 * 12M)/(4 * 2 ^ 1)
+     = 405MHz
+</code></pre><p>即倍频后得到FCLK为405MHz。</p>
+<p>第二个阶段的工作是在获得FCLK的基础上分频，产生HCLK和PCLK。我们可以通过设置CLKDIVN控制FCLK，HCLK，PCLK三者之间的比例。具体比例和CLKDIVN的取值，参考UM第7-8的表格。<br>注：CLKDIVN寄存器中主要包括两部分，HDIVN和PDIVN，缺省情况下HDIVN的值为0，表示FCLK:HCLK:PCLK=1：1：1，此时CPU的主频FCLK和快速总线时钟频率HCLK一致，此时的总线模式我们称之为“快速总线模式”。但如果不是这个比例，譬如对mini2440，我们设置的FCLK:HCLK:PCLK=1：4：8，或者说HDIVN!=0的时候，此时总线上的频率和CPU的频率就不一样了，即所谓的异步方式，由于S3C2440不支持同步总线模式，所以我们要把总线模式改为异步总线模式。参考UM Page7-9的注释，参考代码如下：</p>
+<pre><code>;MRC和MCR是协处理器相关命令
+mrc    p15, 0, r0, c1, c0, 0    ;读出控制寄存器
+orr    r0, r0, #0xC0000000    ;设置asynchronous bus mode
+mcr    p15, 0, r1, c1, c0, 0    ;写入控制寄存器
+</code></pre><p>以tekkaman提供的U-boot代码初始化中设置时钟的代码为例：</p>
+<pre><code>/* FCLK:HCLK:PCLK = 1:4:8 */
+ldr    r0, =CLKDIVN
+mov    r1, #5
+str    r1, [r0]
+</code></pre><p>所以得到HCLK为~100MHz，PCLK为~50MHz。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><ul>
+<li>S3C2440A 32-BIT CMOS MICROCONTROLLER USER’S MANUAL Revision 1 - 本文简称UM</li>
+<li>PAES</li>
+<li><a href="http://blog.csdn.net/mybelief321/article/details/8914299" target="_blank" rel="external">一起学mini2440裸机开发(三)–S3C2440时钟学习</a></li>
+<li><a href="http://blog.csdn.net/vanson18/article/details/6780674" target="_blank" rel="external">关于arm时钟频率的设置及编程</a> - 基本概念介绍</li>
+<li><a href="http://blog.csdn.net/mr_raptor/article/details/6555734" target="_blank" rel="external">S3C2440系统时钟</a></li>
+</ul>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+            <a href="/tags/clock/" rel="tag">#clock</a>
+          
+            <a href="/tags/s3c2440/" rel="tag">#s3c2440</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/07/25/20150725-linux-shell-diff-patch/" rel="next" title="Shell命令学习-diff和patch">
+                <i class="fa fa-chevron-left"></i> Shell命令学习-diff和patch
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/07/28/20150728-mini2440-sdram/" rel="prev" title="基于mini2440开发板学习S3C2440的内存控制器">
+                基于mini2440开发板学习S3C2440的内存控制器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/07/26/20150726-mini2440-clock/"
+           data-title="基于mini2440开发板学习S3C2440的系统时钟" data-url="http://unicornx.github.io/2015/07/26/20150726-mini2440-clock/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#S3C2440的系统时钟简介"><span class="nav-number">1.</span> <span class="nav-text">S3C2440的系统时钟简介</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#系统时钟初始化流程"><span class="nav-number">2.</span> <span class="nav-text">系统时钟初始化流程</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#MPLL系统时钟的设置"><span class="nav-number">3.</span> <span class="nav-text">MPLL系统时钟的设置</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考"><span class="nav-number">4.</span> <span class="nav-text">参考</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

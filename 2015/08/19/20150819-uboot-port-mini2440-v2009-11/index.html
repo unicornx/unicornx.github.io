@@ -1,0 +1,1722 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="mini2440,U-boot," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-09-24
+总体目标网上看了很多高手移植U-boot到mini2440的帖子，但发现大部分就是一个过程的流水账，跟着做一趟下来，思路不是很明确。所以最后还是痛下决心，按照自己的理解，从需求出发，以更贴近实战的方式，分步骤，一步一步实现一次比较完整的">
+<meta property="og:type" content="article">
+<meta property="og:title" content="针对mini2440开发板的U-boot移植笔记(v2009.11)">
+<meta property="og:url" content="http://unicornx.github.io/2015/08/19/20150819-uboot-port-mini2440-v2009-11/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-09-24
+总体目标网上看了很多高手移植U-boot到mini2440的帖子，但发现大部分就是一个过程的流水账，跟着做一趟下来，思路不是很明确。所以最后还是痛下决心，按照自己的理解，从需求出发，以更贴近实战的方式，分步骤，一步一步实现一次比较完整的">
+<meta property="og:updated_time" content="2016-03-18T23:02:50.345Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="针对mini2440开发板的U-boot移植笔记(v2009.11)">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-09-24
+总体目标网上看了很多高手移植U-boot到mini2440的帖子，但发现大部分就是一个过程的流水账，跟着做一趟下来，思路不是很明确。所以最后还是痛下决心，按照自己的理解，从需求出发，以更贴近实战的方式，分步骤，一步一步实现一次比较完整的">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/08/19/20150819-uboot-port-mini2440-v2009-11/"/>
+
+  <title> 针对mini2440开发板的U-boot移植笔记(v2009.11) | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                针对mini2440开发板的U-boot移植笔记(v2009.11)
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-08-19T22:57:17+08:00" content="2015-08-19">
+              2015-08-19
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Bootloader/" itemprop="url" rel="index">
+                    <span itemprop="name">Bootloader</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/08/19/20150819-uboot-port-mini2440-v2009-11/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/08/19/20150819-uboot-port-mini2440-v2009-11/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-09-24</p>
+<h1 id="总体目标"><a href="#总体目标" class="headerlink" title="总体目标"></a>总体目标</h1><p>网上看了很多高手移植U-boot到mini2440的帖子，但发现大部分就是一个过程的流水账，跟着做一趟下来，思路不是很明确。所以最后还是痛下决心，按照自己的理解，从需求出发，以更贴近实战的方式，分步骤，一步一步实现一次比较完整的移植。</p>
+<a id="more"></a>
+<p>首先确定一下我的目标，这里的移植总的参考蓝本还是以友善之臂提供的<a href="http://www.arm9.net/download.asp" target="_blank" rel="external">Mini2440之U-boot使用及移植详细手册2010-4-16</a>为主要蓝本，以tekkaman的2009.11的U-boot移植代码为主要代码参考（注：本文的代码修改基本上就是参考tekkaman的2009.11版本，其中除了明显觉得是错误的地方做了修改，其他地方，比如可以那么改，不是这么改的，计划等这次熟悉了以后再按自己的思路做一遍）。功能上做了部分裁剪，没有实现那么多。主要是期望实现一个具备以下功能点的u-boot loader:</p>
+<ul>
+<li>支持串口显示</li>
+<li>支持nandflash启动，支持nandflash的一些基本操作维护命令</li>
+<li>支持usb传输并在nandflash上烧写u-boot/kernel/rootfs,（注：对rootfs的大小目前有限制，不可以超过STACK_BASE/0x33F00000-PHYS_SDRAM_1/0x30000000 = 0x3F00000 = 63MB</li>
+<li>支持通过U-boot引导nandflash上的内核</li>
+<li>(可选)支持norflash启动，支持norflash的一些基本操作维护命令，目前暂未实现。</li>
+</ul>
+<p>涉及的知识点：</p>
+<ul>
+<li>execption/interrupt</li>
+<li>clock</li>
+<li>gpio/led</li>
+<li>sdram</li>
+<li>uart</li>
+<li>nand-flash</li>
+<li>usb（涉及DMA）</li>
+<li>nor-flash （可选）</li>
+</ul>
+<p>大致的计划步骤如下：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Step1</td>
+<td>建立基本框架，为后继工作打下基础，仅保证编译通过</td>
+</tr>
+<tr>
+<td>Step2</td>
+<td>确保第一阶段运行正常。通过Norflash启动后利用supervivi对SDRAM初始化，然后通过supervivi将程序下载到sdram上运行，通过点灯确认第一阶段步骤正常</td>
+</tr>
+<tr>
+<td>Step3</td>
+<td>仍然针对第一阶段，但在这一步使能代码重定向，利用重定向将代码从nandflash搬移到SDRAM自动运行，通过点灯确认第一阶段步骤正常，并可以跳转到第二阶段的入口处。</td>
+</tr>
+<tr>
+<td>Step4</td>
+<td>确保代码重定向后第二阶段的基本流程正确，通过点灯验证start_armboot基本流程正确，添加UART打印功能，为后面更复杂的功能调试做准备</td>
+</tr>
+<tr>
+<td>Step5</td>
+<td>为第二阶段添加nandflash功能</td>
+</tr>
+<tr>
+<td>Step6</td>
+<td>添加usb传输功能</td>
+</tr>
+<tr>
+<td>Step7</td>
+<td>在step5和step6的基础上从nandflash引导内核</td>
+</tr>
+</tbody>
+</table>
+<p>对应的代码我已经上传到<code>https://git.oschina.net</code>，可以使用如下命令获得</p>
+<pre><code>$ git clone https://git.oschina.net/unicornx/mini2440.git
+$ git checkout uboot-200911-1st-try
+</code></pre><h1 id="Step1-基本框架搭建"><a href="#Step1-基本框架搭建" class="headerlink" title="Step1 基本框架搭建"></a>Step1 基本框架搭建</h1><p>目标：建立基本框架，为后继工作打下基础，仅保证编译通过<br>涉及知识点：<br>除了需要了解u-boot的项目框架外无其他要求</p>
+<h2 id="Step1-1-建立mini2440-config"><a href="#Step1-1-建立mini2440-config" class="headerlink" title="Step1.1 建立mini2440_config"></a>Step1.1 建立mini2440_config</h2><p>修改顶层Makefile如下，增加一个新的<code>mini2440_config</code></p>
+<pre><code>@@ -3047,6 +3047,9 @@
+ smdk2410_config        :       unconfig
+        @$(MKCONFIG) $(@:_config=) arm arm920t smdk2410 samsung s3c24x0
+
++mini2440_config        :       unconfig
++       @$(MKCONFIG) $(@:_config=) arm arm920t mini2440 tekkamanninja s3c24x0
++
+ SX1_stdout_serial_config \
+ SX1_config:            unconfig
+        @mkdir -p $(obj)include
+</code></pre><p>执行<code>make mini2440_config</code>则对应mkconfig的参数就是：</p>
+<table>
+<thead>
+<tr>
+<th>Target</th>
+<th>Architecture</th>
+<th>CPU</th>
+<th>Board</th>
+<th>VENDOR</th>
+<th>SOC</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>mini2440</td>
+<td>arm</td>
+<td>arm920t</td>
+<td>mini2440</td>
+<td>tekkamanninja</td>
+<td>s3c24x0</td>
+</tr>
+<tr>
+<td>$1</td>
+<td>$2</td>
+<td>$3</td>
+<td>$4</td>
+<td>$5</td>
+<td>$6</td>
+</tr>
+</tbody>
+</table>
+<h2 id="Step1-2-建立开发板mini2440的目录"><a href="#Step1-2-建立开发板mini2440的目录" class="headerlink" title="Step1.2 建立开发板mini2440的目录"></a>Step1.2 建立开发板mini2440的目录</h2><p>根据<a href="/2015/07/02/20150702-note-uboot-make-summary-v2009-11/">对U-boot的平台定制机制的理解(基于v2009.11)</a>的总结，相应的，对mini2440的平台定制策略大致如下：</p>
+<table>
+<thead>
+<tr>
+<th>定制层次</th>
+<th>VAR</th>
+<th>value</th>
+<th>对应的目录</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>架构</td>
+<td>ARCH</td>
+<td>arm</td>
+<td>lib_arm，已存在，有待修改</td>
+</tr>
+<tr>
+<td>处理器核</td>
+<td>CPU</td>
+<td>arm920t</td>
+<td>cpu/arm920t，已存在，有待修改</td>
+</tr>
+<tr>
+<td>集成芯片</td>
+<td>SOC</td>
+<td>s3c24x0</td>
+<td>cpu/arm920t/s3c24x0，已存在，有待修改</td>
+</tr>
+<tr>
+<td>目标板</td>
+<td>VENDOR + BOARD</td>
+<td>tekkamanninja + mini2440</td>
+<td>board/tekkamanninja/mini2440，需要新增，注：如果VENDOR设置为NULL，则目录结构为board/mini2440</td>
+</tr>
+</tbody>
+</table>
+<p>所以建立开发板mini2440的目录<code>board/tekkamanninja/mini2440</code>，并复制sbc2410x的文件到此，做适当修改。目的：以sbc2410x 为蓝本，加快移植进度。<br>顺便说一下，有关<code>board/sbc2410x</code>和<code>board/samsung/smdk2410</code>以前也没太去区分，这次上网查了一下，原来sbc2410x是广州友善之臂设计生产的一款基于三星ARM处理器S3C2410X的开发板，而smdk2410则是三星自己设计的一款基于S3C2410的开发板，SMDK就是Samsung MCU Development Kit的意思。mini2440也是广州友善之臂设计生产的一款基于三星ARM处理器S3C2440的开发板，难怪mini2440的U-boot手册首先选择基于sbc2410x为蓝本了。不过我略微多心扫了一下U-boot-2013.01版本，似乎sbc2410x被移除了。是不是以后就拷贝<code>board/samsung/smdk2410</code>做蓝本了呢</p>
+<pre><code>$ cd board
+$ mkdir -p tekkamanninja
+$ cp -rf ./sbc2410x ./tekkamanninja/mini2440
+$ cd tekkamanninja/mini2440
+$ mv sbc2410x.c mini2440.c
+</code></pre><p>同时相应修改<code>board/tekkamanninja/mini2440/Makefile</code></p>
+<pre><code>@@ -25,7 +25,7 @@
+
+ LIB    = $(obj)lib$(BOARD).a
+
+-COBJS  := sbc2410x.o flash.o
++COBJS  := mini2440.o flash.o
+ SOBJS  := lowlevel_init.o
+
+ SRCS   := $(SOBJS:.o=.S) $(COBJS:.o=.c)
+</code></pre><h2 id="Step1-3-建立开发板配置头文件"><a href="#Step1-3-建立开发板配置头文件" class="headerlink" title="Step1.3 建立开发板配置头文件"></a>Step1.3 建立开发板配置头文件</h2><p>根据<a href="/2015/07/02/20150702-note-uboot-make-summary-v2009-11/">对U-boot的平台定制机制的理解(基于v2009.11)</a>的总结图，我们知道在执行<code>make xxx_config</code>过程中会新建一个<code>include/config.h</code>，该文件中会包含<code>include/config/$1.h</code>，其中<code>$1</code>对应的就是mkconfig的Target参数，所以就是<code>mini2440</code>，即我们需要对每个开发板都提供一个自己的配置头文件，这里就是<code>include/config/mini2440.h</code>。这里我们依然以sbc2410x的配置为蓝本</p>
+<pre><code>$ cp include/configs/sbc2410x.h include/configs/mini2440.h
+</code></pre><p>为后面条件编译做准备，同时在该文件中为目标板的SOC和板子分别定义类型宏如下</p>
+<pre><code>@@ -44,8 +44,8 @@
+  * (easy to change)
+  */
+ #define CONFIG_ARM920T         1       /* This is an ARM920T Core      */
+-#define        CONFIG_S3C2410          1       /* in a SAMSUNG S3C2410 SoC     */
+-#define CONFIG_SBC2410X                1       /* on a friendly-arm SBC-2410X Board  */
++#define        CONFIG_S3C2440          1       /* in a SAMSUNG S3C2440 SoC     */
++#define CONFIG_MINI2440                1       /* on a friendly-arm MINI2440 Board  */
+
+ /* input clock of PLL */
+ #define CONFIG_SYS_CLK_FREQ    12000000/* the SBC2410X has 12MHz input clock */
+</code></pre><p>并在原来所有条件编译中出现<code>CONFIG_S3C2410</code>和<code>CONFIG_SBC2410</code>的地方添加<code>CONFIG_S3C2440</code>和<code>CONFIG_MINI2440</code>，例如下所示：</p>
+<pre><code>@@ -32,13 +32,14 @@
+ #include &lt;common.h&gt;
+ #if defined(CONFIG_S3C2400) || \
+     defined(CONFIG_S3C2410) || \
++    defined(CONFIG_S3C2440) || \
+     defined(CONFIG_TRAB)
+</code></pre><h2 id="Step1-4-测试编译环境"><a href="#Step1-4-测试编译环境" class="headerlink" title="Step1.4 测试编译环境"></a>Step1.4 测试编译环境</h2><p>在U-boot源码的根目录下：</p>
+<pre><code>$ export CROSS_COMPILE=arm-linux-
+$ export ARCH=arm
+$ make mini2440_config
+$ Configuring for mini2440 board...
+$ make
+</code></pre><p>编译生成u-boot.bin成功。注：暂时未发现移植手册上提到的<code>-msoft-float</code>的问题，所以这里我没有改</p>
+<p>以上测试通过后，说明编译环境和基本的开发板的代码创建都没有问题。现在编译出来的都是针对蓝本SBC2410 的，下面按照代码的执行流程来针对mini2440 做修改。</p>
+<h1 id="Step2-确保第一阶段运行正常"><a href="#Step2-确保第一阶段运行正常" class="headerlink" title="Step2 确保第一阶段运行正常"></a>Step2 确保第一阶段运行正常</h1><p>先总结一下mini2440的启动部分的代码大致逻辑如下，总体上分为两个阶段：</p>
+<pre><code>@cpu/arm920t/start.S
+_start:    b start_code
+... //异常向量表
+//第一阶段
+start_code: 
+{
+    1.1&gt; 让系统进入SVC（管理员模式）
+    1.2&gt; 关闭看门狗
+    1.3&gt; 关闭所有中断
+    1.4&gt; 设置时钟的分频比
+    1.5&gt; cpu_init_crit
+    {
+        1.5.1&gt; 关闭MMU和cache    
+        1.5.2&gt; lowlevel_init@board/tekkamanninja/mini2440
+        {
+            1.5.2.1&gt; 初始化SDRAM
+        }
+    }
+    1.6&gt; 代码重定向，如果不是在内存中(一般是在NOR-Flash里，就将自己从NOR-Flash拷贝到SDRAM中
+    1.7&gt; 堆栈初始化，为第二阶段的C语言做准备
+    1.8&gt; 对BSS段清零，为第二阶段的C语言做准备
+    1.9&gt; 跳向第二阶段的C语言代码入口_start_armboot，该部分代码已经被重定向到内存
+}
+
+@lib_arm/board.c
+//第二阶段
+void start_armboot(void)
+{
+    ...
+}
+</code></pre><p>由于该Step的目标主要是要确保第一阶段的主体逻辑运行正常，为简化该阶段的工作，尽量不涉及外设的操作：</p>
+<ul>
+<li>可以屏蔽第一阶段中的代码重定向，所以不需要使能nandflash和SDRAM</li>
+<li>屏蔽第二阶段</li>
+<li>仅使用点灯的方式确认程序运行状态，所以不涉及串口终端输出，即不涉及UART</li>
+</ul>
+<p>该过程中应该会涉及</p>
+<ul>
+<li>中断处理，仅仅是初始化为关闭</li>
+<li>时钟的初始化设置，必须的。</li>
+<li>GPIO/LED点灯，用于调试</li>
+</ul>
+<p>综上所述，由于该阶段不使能SDRAM，所以可以采用如下手段之一进行测试ﺿ<br>手段一：先选择Norflash启动后，使用supervivi将编译后的U-boot程序通过DWN烧写到nandflash中，切换为nandflash启动，上电后S3C2440内部机制会将nandflash的前4KB自动拷贝到内部的SRAM中执行，利用点灯查看第一阶段主体逻辑运行状况<br>手段二：Norflash启动后，使用supervivi对SDRAM初始化，然后通过supervivi和DWN将我的处于开发阶段的uboot下载到sdram上运行，同样利用点灯查看第一阶段主体逻辑运行状况</p>
+<h2 id="Step2-1-修改第一阶段的部分初始化"><a href="#Step2-1-修改第一阶段的部分初始化" class="headerlink" title="Step2.1 修改第一阶段的部分初始化"></a>Step2.1 修改第一阶段的部分初始化</h2><p>主要包括时钟，相关修改的理论基础分析，参考<a href="/2015/07/26/20150726-mini2440-clock">基于mini2440开发板学习S3C2440的系统时钟</a><br>修改文件<code>cpu/arm920t/start.S</code>，相关的修改代码如下，中间我加了点注释：</p>
+<pre><code>@@ -114,8 +114,8 @@
+        orr     r0, r0, #0xd3
+        msr     cpsr, r0
+
+-       bl      coloured_LED_init
+-       bl      red_LED_on
++@      bl      coloured_LED_init
++@      bl      red_LED_on
+
+ #if    defined(CONFIG_AT91RM9200DK) || defined(CONFIG_AT91RM9200EK)
+        /*
+@@ -144,6 +144,12 @@
+ #  define INTSUBMSK    0x4A00001C
+ #  define CLKDIVN      0x4C000014      /* clock divisor register */
+ # endif
++#define CLK_CTL_BASE   0x4C000000      /* tekkaman */
++#define MDIV_405       0x7f &lt;&lt; 12      /* tekkaman */
++#define PSDIV_405      0x21            /* tekkaman */
++#define MDIV_200       0xa1 &lt;&lt; 12      /* tekkaman */
++#define PSDIV_200      0x31            /* tekkaman */
++
+
+        ldr     r0, =pWTCON
+        mov     r1, #0x0
+@@ -155,18 +161,54 @@
+        mov     r1, #0xffffffff
+        ldr     r0, =INTMSK
+        str     r1, [r0]
+-# if defined(CONFIG_S3C2410) || defined(CONFIG_S3C2440)
+-       ldr     r1, =0x3ff
++# if defined(CONFIG_S3C2410)
++       ldr     r1, =0x7ff
+        ldr     r0, =INTSUBMSK
+        str     r1, [r0]
+ # endif
+
+//注释：根据S3C2440芯片手册，INTSUBMSK寄存器有15位可配
++#if defined(CONFIG_S3C2440)
++       ldr     r1, =0x7fff
++       ldr     r0, =INTSUBMSK
++       str     r1, [r0]
++#endif
++
++
++#if defined(CONFIG_S3C2440)
+//注释：设置CLKDIVN
++       /* FCLK:HCLK:PCLK = 1:4:8 */
++       ldr     r0, =CLKDIVN
++       mov     r1, #5
++       str     r1, [r0]
++
+//注释：设置异步总线模式
++       mrc     p15, 0, r1, c1, c0, 0
++       orr     r1, r1, #0xc0000000
++       mcr     p15, 0, r1, c1, c0, 0
++
++
+//注释：设置MPLLCON，注:参考S3C2440手册，MPLLCON的地址是CLK_CTL_BASE+4
++       mov     r1, #CLK_CTL_BASE
++       mov     r2, #MDIV_405
++       add     r2, r2, #PSDIV_405
++       str     r2, [r1, #0x04]         /* MPLLCON tekkaman */
++
++#else
+        /* FCLK:HCLK:PCLK = 1:2:4 */
+        /* default FCLK is 120 MHz ! */
+        ldr     r0, =CLKDIVN
+        mov     r1, #3
+        str     r1, [r0]
+-#endif /* CONFIG_S3C2400 || CONFIG_S3C2410 || CONFIG_S3C2440 */
++
++
++       mrc     p15, 0, r1, c1, c0, 0
++       orr     r1, r1, #0xc0000000
++       mcr     p15, 0, r1, c1, c0, 0   /*write ctrl register tekkaman*/
++
++
++       mov     r1, #CLK_CTL_BASE       /* tekkaman*/
++       mov     r2, #MDIV_200
++       add     r2, r2, #PSDIV_200
++       str     r2, [r1, #0x04]
++#endif
++#endif /* CONFIG_S3C2400 || CONFIG_S3C2410  || CONFIG_S3C2440*/
+
+        /*
+         * we do sys-critical inits only at reboot,
+</code></pre><p><a name="rules_main" id="step2_2"></a></p>
+<h2 id="Step2-2-屏蔽代码重定向和第二阶段"><a href="#Step2-2-屏蔽代码重定向和第二阶段" class="headerlink" title="Step2.2 屏蔽代码重定向和第二阶段"></a>Step2.2 屏蔽代码重定向和第二阶段</h2><p>修改文件<code>include/configs/mini2440.h</code>，增加两个开关宏<code>CONFIG_SKIP_LOWLEVEL_INIT</code>和<code>CONFIG_SKIP_RELOCATE_UBOOT</code>如下:</p>
+<pre><code>@@ -39,6 +39,10 @@
+  */
+ #undef CONFIG_SKIP_LOWLEVEL_INIT       /* undef for developing */
+
++/* define following flags just to skip some operations */
++#define CONFIG_SKIP_LOWLEVEL_INIT
++#define CONFIG_SKIP_RELOCATE_UBOOT
++
+ /*
+  * High Level Configuration Options
+  * (easy to change)
+</code></pre><p>这样start.S里有关SDRAM初始化和代码重定向的代码就不会被执行</p>
+<pre><code>#ifndef CONFIG_SKIP_LOWLEVEL_INIT
+    bl    cpu_init_crit
+#endif
+
+#ifndef CONFIG_SKIP_RELOCATE_UBOOT
+relocate:                /* relocate U-Boot to RAM        */
+    ...
+#endif    /* CONFIG_SKIP_RELOCATE_UBOOT */
+</code></pre><p>修改文件<code>lib_arm/board.c</code>，屏蔽start_arm()函数的内容</p>
+<pre><code>@@ -267,6 +267,23 @@
+
+ void start_armboot (void)
+ {
+... //此处省略点灯操作，具体参考后面Step2.3
++
++       while(1);
++#if 0
+        init_fnc_t **init_fnc_ptr;
+        char *s;
+ #if defined(CONFIG_VFD) || defined(CONFIG_LCD)
+@@ -440,6 +457,7 @@
+        }
+
+        /* NOTREACHED - no way out of command loop except booting */
++#endif
+ }
+
+ void hang (void)
+</code></pre><h2 id="Step2-3-增加点灯跟踪程序逻辑"><a href="#Step2-3-增加点灯跟踪程序逻辑" class="headerlink" title="Step2.3 增加点灯跟踪程序逻辑"></a>Step2.3 增加点灯跟踪程序逻辑</h2><p>修改文件<code>include/configs/mini2440.h</code>，增加一个开关宏<code>CONFIG_MINI2440_LED</code></p>
+<pre><code>@@ -48,7 +52,7 @@
+ //#define CONFIG_SBC2410X              1       /* on a friendly-arm SBC-2410X Board  */
+ #define        CONFIG_S3C2440          1       /* in a SAMSUNG S3C2440 SoC     */
+ #define CONFIG_MINI2440                1       /* on a friendly-arm MINI2440 Board  */
+-
++#define CONFIG_MINI2440_LED    1
+ /* input clock of PLL */
+ #define CONFIG_SYS_CLK_FREQ    12000000/* the SBC2410X has 12MHz input clock */
+</code></pre><p>修改文件<code>cpu/arm920t/start.S</code>如下，在跳转start_armboot()之前点一个灯LED1，在跳转start_armboot()之后点亮所有的四个灯，如果start_armboot()运行成功，应该看不到所有的四个灯都亮才对</p>
+<pre><code>@@ -215,6 +257,23 @@
+        cmp     r0, r1
+        ble     clbss_l
+
++#if defined(CONFIG_MINI2440_LED)
++#define GPIO_CTL_BASE 0x56000000
++#define oGPIO_B 0x10
++#define oGPIO_CON 0x0
++/* R/W, Configures the pins of the port */
++#define oGPIO_DAT 0x4
++#define oGPIO_UP 0x8
++/* light LED1 */
++       mov     r1, #GPIO_CTL_BASE
++       add     r1, r1, #oGPIO_B
++       ldr     r2, =0x15400
++       str     r2, [r1, #oGPIO_CON]
++       ldr     r2, =0xfff
++       str     r2, [r1, #oGPIO_UP]
++       ldr     r2, =0x1c0
++       str     r2, [r1, #oGPIO_DAT]
++#endif
+        ldr     pc, _start_armboot
++
++    /*
++     * light LED3 on
++     * should not reach here
++     * if call _start_armboot successfully
++     */
++    ldr     r2, =0x100
++    str     r2, [r1, #oGPIO_DAT]
+
+ _start_armboot:        .word start_armboot
+</code></pre><p>修改文件<code>lib_arm/board.c</code>如下，在跳转进入start_armboot()后点亮另一个LED2。：</p>
+<pre><code>@@ -267,6 +267,23 @@
+
+ void start_armboot (void)
+ {
++#if defined(CONFIG_MINI2440_LED)
++
++typedef struct {
++       unsigned int CON;
++       unsigned int DAT;
++       unsigned int UP;
++}gpb;
++#define GPB (* (volatile gpb *)0x56000010)
++
++       GPB.CON = 0x15400;
++       GPB.UP = 0xff;
++       GPB.DAT = 0x180; /* light on LED1 and LED2 */
++
++#endif
++
++       while(1);
++#if 0
+        init_fnc_t **init_fnc_ptr;
+        char *s;
+ #if defined(CONFIG_VFD) || defined(CONFIG_LCD)
+@@ -440,6 +457,7 @@
+        }
+
+        /* NOTREACHED - no way out of command loop except booting */
++#endif
+ }
+
+ void hang (void)
+</code></pre><h2 id="Step2-4-测试"><a href="#Step2-4-测试" class="headerlink" title="Step2.4 测试"></a>Step2.4 测试</h2><p>先用手段一：Norflash启动后，使用supervivi将编译后的U-boot程序通过DWN烧写到nandflash中。然后切换为nandflash启动，上电后S3C2440内部机制会将nandflash的前4KB自动拷贝到内部的SRAM中执行，该种测试条件下只会看到LED1亮，LED2不亮，原因很简单，由于此时SDRAM还未初始化也没有执行代码重定位动作，所以在start.S中执行到<code>ldr    pc, _start_armboot</code>语句后跳转到SDRAM的<code>TEXT_BASE</code>处无法获得代码，所以不会点亮LED2</p>
+<p>再用手段二：Norflash启动后，使用supervivi对SDRAM初始化，然后通过supervivi和DWN将我的处于开发阶段的uboot下载到sdram上运行，supervivi菜单选<code>d</code>，下载地址选择<code>TEXT_BASE</code>，即0x33f80000。这时应该可以看到LED1和LED2都亮了。其实可以基于该手段的思想，直接在SDRAM上调试U-boot的第二阶段，这样就用不着每次都烧写nandflash了。</p>
+<h1 id="Step3-使能代码重定向"><a href="#Step3-使能代码重定向" class="headerlink" title="Step3  使能代码重定向"></a>Step3  使能代码重定向</h1><p>在该步骤，摆脱对S3C2440的stepstone以及supervivi初始化内存操作的依赖，自己初始化SDRAM，使能代码重定向，利用重定向自己将代码从nandflash搬移到SDRAM运行。当然这里仍然要依赖supervivi将U-boot烧写到nandflash的指定区域。</p>
+<p>测试方法：在start_armboot函数里打开点灯，从s3c2440的内部SRAM里跳转到SDRAM里运行start_armboot，看到灯被点亮即可</p>
+<p>涉及(在上一步的基础上)</p>
+<ul>
+<li>SDRAM初始化</li>
+<li>nandflash基本初始化nand_read</li>
+<li>代码重定向</li>
+</ul>
+<h2 id="Step3-1-取消上一步对代码重定向的屏蔽"><a href="#Step3-1-取消上一步对代码重定向的屏蔽" class="headerlink" title="Step3.1 取消上一步对代码重定向的屏蔽"></a>Step3.1 取消上一步对代码重定向的屏蔽</h2><p>参考<a href="#step2_2">Step2.2 屏蔽代码重定向和第二阶段</a></p>
+<h2 id="Step3-2-为第一阶段初始化SDRAM"><a href="#Step3-2-为第一阶段初始化SDRAM" class="headerlink" title="Step3.2 为第一阶段初始化SDRAM"></a>Step3.2 为第一阶段初始化SDRAM</h2><p>由于需要在第一阶段实现将nandflash里的代码拷贝到SDRAM上，所以自然要自己初始化内存。有关SDRAM的理论基础分析，参考<a href="/2015/07/28/20150728-mini2440-sdram">基于mini2440开发板学习S3C2440的内存控制器</a></p>
+<p>相关的修改代码如下，中间我加了点注释，详细的参考Mini2440之U-boot使用及移植详细手册的.2.3节，修改<code>board/tekkamanninja/mini2440/lowlevel_init.S</code>文件部分，对SDRAM的初始化设置就是涉及到了这3个寄存器ﺿ</p>
+<pre><code>@@ -116,10 +116,18 @@
+ /* REFRESH parameter */
+ #define REFEN                  0x1     /* Refresh enable */
+ #define TREFMD                 0x0     /* CBR(CAS before RAS)/Auto refresh */
+-#define Trp                    0x0     /* 2clk */
+ #define Trc                    0x3     /* 7clk */
+ #define Tchr                   0x2     /* 3clk */
++
++#if defined(CONFIG_S3C2440)
++#define Trp                    0x2     /* 4clk */
++#define REFCNT                 1012
++#else
++#define Trp                    0x0     /* 2clk */
+ #define REFCNT                 0x0459
++#endif
++
++
+ /**************************************/
+
+ _TEXT_BASE:
+@@ -131,8 +139,10 @@
+        /* make r0 relative the current location so that it */
+        /* reads SMRDATA out of FLASH rather than memory ! */
+        ldr     r0, =SMRDATA
+-       ldr     r1, _TEXT_BASE
++       ldr     r1, =lowlevel_init
+        sub     r0, r0, r1
++       adr     r3, lowlevel_init               /* r3 &lt;- current position of code   */
++       add     r0, r0, r3
+        ldr     r1, =BWSCON     /* Bus Width Status Controller */
+        add     r2, r0, #13*4
+ 0:
+</code></pre><h2 id="Step3-3-为第一阶段提供读nandflash功能"><a href="#Step3-3-为第一阶段提供读nandflash功能" class="headerlink" title="Step3.3 为第一阶段提供读nandflash功能"></a>Step3.3 为第一阶段提供读nandflash功能</h2><p>增加一个新的文件<code>board/tekkamanninja/mini2440/nand_read.c</code>，只所以不直接使用<code>drivers/mtd/nand</code>目录下的有关nandflash操作的文件和函数，主要目的是为了缩小第一阶段的程序的大小，要知道根据s3c2440提供的启动机制，当采用nandflash方式启动时，其存储控制器只会自动加载nandflash的前4K字节指令到内部的SRAM中去，为了精简第一阶段的指令，所以将有关nandflash初始化以及和读操作有关的指令提取出来，其中初始化部分放在<code>cpu/arm920t/start.S</code>里，这个后面有描述，而读nandflash的内容就整合到<code>nand_read.c</code>文件中，够用就好。<code>drivers/mtd/nand</code>下的内容用于第二阶段</p>
+<p><code>nand_read.c</code>的内容和nandflash初始化的指令分析这里不再赘述，可以参考<a href="/2015/08/09/20150809-mini2440-nandflash">基于mini2440开发板学习Nandflash</a></p>
+<p>增加<code>nand_read.c</code>文件后还要修改<code>board/tekkamanninja/mini2440/Makefile</code>文件，将<code>nand_read.c</code>加入工程</p>
+<pre><code>@@ -24,7 +24,7 @@
+
+ LIB    = $(obj)lib$(BOARD).a
+
+-COBJS  := mini2440.o  flash.o
++COBJS  := nand_read.o mini2440.o  flash.o
+ SOBJS  := lowlevel_init.o
+
+ SRCS   := $(SOBJS:.o=.S) $(COBJS:.o=.c)
+</code></pre><p>同时为确保<code>start.S</code>，<code>lowlevel_init.S</code>和<code>nand_read.c</code>对应的指令链接后被放置在最终生成的u-boot.bin文件的前4K字节范围内，修改<code>cpu/arm920t/u-boot.lds</code>文件如下</p>
+<pre><code>@@ -40,6 +40,8 @@
+        .text :
+        {
+                cpu/arm920t/start.o     (.text)
++               board/tekkamanninja/mini2440/lowlevel_init.o    (.text)
++               board/tekkamanninja/mini2440/nand_read.o        (.text)
+                *(.text)
+        }
+</code></pre><h2 id="Step3-4-增加代码重定向"><a href="#Step3-4-增加代码重定向" class="headerlink" title="Step3.4 增加代码重定向"></a>Step3.4 增加代码重定向</h2><p>修改文件<code>cpu/arm920t/start.S</code>，具体参考Tekkaman Ninja的blog</p>
+<p>注：tekkman提供的区分nandflash还是norflash的方法似乎不是最好的。有关自动识别boot flash的方法，tekkaman的方法结合Embedi的方法还是不错的，可以最后试试<br><a href="http://blog.chinaunix.net/uid-22337711-id-1774867.html" target="_blank" rel="external">u-boot从Nand Flash 吿Nor Flash 双启动方法探秿軿 </a><br><a href="http://blog.chinaunix.net/uid-20543672-id-94363.html" target="_blank" rel="external">在U-boot下实现自动识别启动Flash的原理（针对S3C24x0）</a></p>
+<h2 id="Step3-5-测试"><a href="#Step3-5-测试" class="headerlink" title="Step3.5 测试"></a>Step3.5 测试</h2><p>Norflash启动后，使用supervivi将编译后的U-boot程序通过DWN烧写到nandflash中。然后切换为nandflash启动，上电后S3C2440内部机制会将nandflash的前4KB自动拷贝到内部的SRAM中执行，该种测试条件下应该会看到LED1亮，LED2也亮，说明跳转到SDRAM执行start_arm()执行成功，由于start_arm()里有个while无穷循环，所以不会点亮LED3</p>
+<h1 id="Step4-确保第二阶段的基本流程正确，"><a href="#Step4-确保第二阶段的基本流程正确，" class="headerlink" title="Step4 确保第二阶段的基本流程正确，"></a>Step4 确保第二阶段的基本流程正确，</h1><p>目标：在确保第二阶段的基本流程正确的基础上添加UART功能支持串口和终端显示。</p>
+<h2 id="Step4-1-第二阶段的初始化"><a href="#Step4-1-第二阶段的初始化" class="headerlink" title="Step4.1 第二阶段的初始化"></a>Step4.1 第二阶段的初始化</h2><p>初始化部分改动不大，主要是我们基于的sbc2410x的管脚定义差异小导致，如果是其他的芯片和开发板就要仔细看看了</p>
+<p>UART部分只要时钟设置正确，基本上不需要做太多的改动就可以工作了</p>
+<p><em>*初始化时钟</em><br>时钟很重要，先设置</p>
+<p>修改<code>\board\tekkamanninja\mini2440\mini2440.c</code>，定义mini2440的时钟配置，这将影响该文件中的board_init函数的初始化时钟的行为</p>
+<pre><code>@@ -45,9 +45,20 @@
+ #define M_PDIV 0x4
+ #define M_SDIV 0x1
+ #elif FCLK_SPEED==1            /* Fout = 202.8MHz */
+-#define M_MDIV 0x5c
+-#define M_PDIV 0x4
+-#define M_SDIV 0x0
++
++#if defined(CONFIG_S3C2410)
++/* Fout = 202.8MHz */
++#define M_MDIV 0xA1
++#define M_PDIV 0x3
++#define M_SDIV 0x1
++#endif
++
++#if defined(CONFIG_S3C2440)
++/* Fout = 405MHz */
++#define M_MDIV 0x7f
++#define M_PDIV 0x2
++#define M_SDIV 0x1
++#endif
+ #endif
+
+ #define USB_CLOCK 1
+</code></pre><p>修改<code>cpu\arm920t\s3c24x0\speed.c</code>文件中的两个函数get_PLLCLK()和get_HCLK()</p>
+<pre><code>@@ -68,7 +68,13 @@
+        m = ((r &amp; 0xFF000) &gt;&gt; 12) + 8;
+        p = ((r &amp; 0x003F0) &gt;&gt; 4) + 2;
+        s = r &amp; 0x3;
+-
++//tekkaman
++#if defined(CONFIG_S3C2440)
++       if (pllreg == MPLL)
++       return ((CONFIG_SYS_CLK_FREQ * m * 2) /(p &lt;&lt; s));
++       else if (pllreg == UPLL)
++#endif
++//tekkaman
+        return (CONFIG_SYS_CLK_FREQ * m) / (p &lt;&lt; s);
+ }
+
+@@ -83,7 +89,21 @@
+ {
+        struct s3c24x0_clock_power *clk_power = s3c24x0_get_base_clock_power();
+
+-       return (readl(&amp;clk_power-&gt;CLKDIVN) &amp; 2) ? get_FCLK() / 2 : get_FCLK();
++//     return (readl(&amp;clk_power-&gt;CLKDIVN) &amp; 2) ? get_FCLK() / 2 : get_FCLK();
++//tekkaman
++#if defined(CONFIG_S3C2440)
++       if (readl(&amp;clk_power-&gt;CLKDIVN) &amp; 0x6)
++                               {
++                               if ((readl(&amp;clk_power-&gt;CLKDIVN) &amp; 0x6)==2) return(get_FCLK()/2);
++                               if ((readl(&amp;clk_power-&gt;CLKDIVN) &amp; 0x6)==6) return((readl(&amp;clk_power-&gt;CAMDIVN) &amp; 0x100) ? get_FCLK()/6 : get_FCLK()/3);
++                               if ((readl(&amp;clk_power-&gt;CLKDIVN) &amp; 0x6)==4) return((readl(&amp;clk_power-&gt;CAMDIVN) &amp; 0x200) ? get_FCLK()/8 : get_FCLK()/4);
++                               return(get_FCLK());
++                               }
++       else    return(get_FCLK());
++#else
++       return((readl(&amp;clk_power-&gt;CLKDIVN) &amp; 0x2) ? get_FCLK()/2 : get_FCLK());
++#endif
++//tekkaman
+ }
+
+ /* return PCLK frequency */
+</code></pre><p><strong>初始化LED和UART相关的GPIO</strong></p>
+<p>修改<code>board/tekkamanninja/mini2440/mini2440.c</code>的board_init()函数<br>LED相关的GPIO是GPB，这里tekkaman对GPB初始化了时除了LED相关管脚外还设置了DMA相关的GPB9和GPB10以及Timer相关的GPB0~GPB4，Timer相关的设置，其中GPB0的设置会导致扬声器鸣叫。这里暂时保持和tekkaman一致。<br>和UART相关的GPH管脚设置无需改动，可以直接用。</p>
+<pre><code>@@ -96,7 +107,12 @@
+
+        /* set up the I/O ports */
+        gpio-&gt;GPACON = 0x007FFFFF;
++
++#if defined(CONFIG_MINI2440)
++       gpio-&gt;GPBCON = 0x00295551;
++#else
+        gpio-&gt;GPBCON = 0x00044556;
++#endif
+        gpio-&gt;GPBUP = 0x000007FF;
+        gpio-&gt;GPCCON = 0xAAAAAAAA;
+        gpio-&gt;GPCUP = 0x0000FFFF;
+@@ -123,7 +139,9 @@
+
+        icache_enable();
+        dcache_enable();
+-
++#if    defined(CONFIG_MINI2440_LED)
++       gpio-&gt;GPBDAT = 0x00000181;
++#endif
+        return 0;
+ }
+</code></pre><h2 id="Step4-2-确保start-armboot基本流程正确"><a href="#Step4-2-确保start-armboot基本流程正确" class="headerlink" title="Step4.2 确保start_armboot基本流程正确"></a>Step4.2 确保start_armboot基本流程正确</h2><p>通过点灯<br>start_armboot - 进入点LED1<br>board_init    - 完成后LED2<br>display_banner - 完成后LED3<br>start_armboot 进入cmd循环之前 -LED4</p>
+<p>基本初始化流程可以参考<code>lib_arm/board.c</code>如下代码，添加了一些注释</p>
+<pre><code>init_fnc_t *init_sequence[] = {
+#if defined(CONFIG_ARCH_CPU_INIT)
+    arch_cpu_init,        //N/A /* basic arch cpu dependent setup */
+#endif
+    board_init,        //board/../mini2440.c /* basic board dependent setup */
+#if defined(CONFIG_USE_IRQ)
+    interrupt_init,        //lib_arm/interrupts.c /* set up exceptions */
+#endif
+    timer_init,        //cpu/arm920t/s3c24x0/timer.c /* initialize timer */
+    env_init,        //common/env_flash.c /* initialize environment */
+    init_baudrate,        //lib_arm/board.c /* initialze baudrate settings */
+    serial_init,        //drivers/serial/serial_s3c24x0.c /* serial communications setup */
+    console_init_f,        //common/console.c /* stage 1 init of console */
+    display_banner,        //lib_arm/board.c /* say that we are here */
+#if defined(CONFIG_DISPLAY_CPUINFO)
+    print_cpuinfo,        //N/A /* display cpu info (and speed) */
+#endif
+#if defined(CONFIG_DISPLAY_BOARDINFO)
+    checkboard,        //N/A /* display board info */
+#endif
+#if defined(CONFIG_HARD_I2C) || defined(CONFIG_SOFT_I2C)
+    init_func_i2c,        //lib_arm/board.c
+#endif
+    dram_init,        //board/../mini2440.c /* configure available RAM banks */
+#if defined(CONFIG_CMD_PCI) || defined (CONFIG_PCI)
+    arm_pci_init,        //lib_arm/board.c
+#endif
+    display_dram_config,    //lib_arm/board.c
+    NULL,
+};
+</code></pre><h2 id="Step4-3-测试"><a href="#Step4-3-测试" class="headerlink" title="Step4.3 测试"></a>Step4.3 测试</h2><p>Norflash启动后，使用supervivi将编译后的U-boot程序通过DWN烧写到nandflash中。然后切换为nandflash启动，上电后S3C2440内部机制会将nandflash的前4KB自动拷贝到内部的SRAM中执行，该种测试条件下应该会看到四个LED亮，说明跳转到SDRAM执行start_arm()执行的几个主要步骤成功，而且如果接上串口，在超级终端上应该会看到有输出，但输出的内容似乎不正确</p>
+<pre><code>U-Boot 2009.11 (Aug 20 2015 - 15:40:27)
+
+ modified by tekkamanninja (tekkamanninja@163.com)
+ Love Linux forever!!
+
+DRAM:  64 MB
+Flash:  1 MB
+*** Warning - bad CRC, using default environment
+
+In:    serial
+Out:   serial
+Err:   serial
+Net:   CS8900-0
+Hit any key to stop autoboot:  0
+[u-boot@MINI2440]#
+</code></pre><h1 id="Step5-为第二阶段添加nandflash功能"><a href="#Step5-为第二阶段添加nandflash功能" class="headerlink" title="Step5 为第二阶段添加nandflash功能"></a>Step5 为第二阶段添加nandflash功能</h1><p>目标：</p>
+<ul>
+<li>在第二阶段支持nandflash的读写</li>
+</ul>
+<h2 id="文件修改"><a href="#文件修改" class="headerlink" title="文件修改"></a>文件修改</h2><table>
+<thead>
+<tr>
+<th>修改文件</th>
+<th>修改内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>board/tekkamanninja/mini2440/mini2440.c</code></td>
+<td>部分Nnadflash操作函数，不再使用，注释掉</td>
+</tr>
+<tr>
+<td><code>cpu/arm920t/start.S</code></td>
+<td>为了保持和tekkaman的代码一致，但不引入支持USB和DMA的栈初始化逻辑</td>
+</tr>
+<tr>
+<td><code>drivers/mtd/nand/s3c2410_nand.c</code></td>
+<td>增加对S3C2440的nandflash操作的支持，感觉最好是另外新建一个文件更好，太多的宏<br> 注：其中对s3c2410_hwcontrol函数的修改是因为该函数有错。在此函数中，把chip-&gt;IO_ADDR_W值改写了，导致在写数据时出现错误。解决方法是使用一全局变量代替 chip-&gt;IO_ADDR_W。在 s3c2410_hwcontrol 函数上一行定义这个全局变量，然后修改 s3c2410_hwcontrol 函数，让它支持 S3C2440</td>
+</tr>
+<tr>
+<td><code>include/configs/mini2440.h</code></td>
+<td>加入部分对nand的支持</td>
+</tr>
+<tr>
+<td><code>include/s3c24x0.h</code></td>
+<td>nandflash相关寄存器地址定义</td>
+</tr>
+</tbody>
+</table>
+<p>注：感觉<code>include/s3c24x0.h</code>里对nand相关寄存器结构的定义不是很合理，其他的部分都是定义s3c24x0_xxxx，然后在内部区分CONFIG_S3C2410或者是CONFIG_S3C2440，但对nand，却是单独定义struct s3c2410_nand，需要考虑一下，是不是可以优化<br>这里有好几个结构体都是单独用s3c2410_xxx命名，譬如s3c2410_sdi，s3c2410_adc，s3c2410_nand<br>还看到有s3c2400_xxx的结构体<br>感觉原来的设计思想是，如果有不同，对同一种外设，对不同的芯片定义不同的结构体，譬如struct s3c2400_adc，struct s3c2410_adc<br>然后再定义不同的头文件s3c2400.h和s3c2410.h，提供不同的xxxx_get_base_xxxx函数<br>但为何不把s3c2400_adc看成是基类，感觉这里的设计怪怪的，要不要花精力去改造？<br>总之看来tekkaman添加对s3c2440的支持是采用了最省事的做法，就把s3c2440当s3c2410看，不同时用宏区分一下</p>
+<h2 id="nandflash代码逻辑整理"><a href="#nandflash代码逻辑整理" class="headerlink" title="nandflash代码逻辑整理"></a>nandflash代码逻辑整理</h2><p>nandflash的初始化逻辑：</p>
+<pre><code>start_armboot() @lib_arm/board.c
+|_nand_init() @drivers/mtd/nand/nand.c 调用nand_init_chip()初始化每块nandflash芯片，同时计算总nandflash的总大小，以MB为单位，显示
+  |_nand_init_chip() @drivers/mtd/nand/nand.c
+    看上去nand_info[i]上没有设置太多的东西，主要是设置的nand_chip[i]，也许借用kernel的mtd_info结构体而已
+    将nand_chip[i]挂到nand_info[i].priv䶿    设置nand_chip[i].IO_ADDR_R和nand_chip[i].IO_ADDR_W为base_address[i]
+    调用board_nand_init()初始化nand_chip[i]
+    |_board_nand_init() @drivers/mtd/nand/s3c2410_nand.c
+      重要的s3c2440 nandflash控制器的初始化都在这里    设置nand_info[i].name
+</code></pre><p>如下几个重要的全局变量</p>
+<pre><code>int nand_curr_device = -1;
+nand_info_t nand_info[CONFIG_SYS_MAX_NAND_DEVICE]; //nand_info是存放nandflash具体信息的地政
+static struct nand_chip nand_chip[CONFIG_SYS_MAX_NAND_DEVICE]; //会重点初始化
+static ulong base_address[CONFIG_SYS_MAX_NAND_DEVICE] = CONFIG_SYS_NAND_BASE_LIST;
+
+static const char default_nand_name[] = &quot;nand&quot;;
+static __attribute__((unused)) char dev_name[CONFIG_SYS_MAX_NAND_DEVICE][8];
+</code></pre><p>命令行对nand命令的处理逻辑<br><code>include/command.h</code></p>
+<pre><code>struct cmd_tbl_s;
+这个结构体包含每个命令的入口函数地址
+typedef struct cmd_tbl_s    cmd_tbl_t;
+
+#define U_BOOT_CMD ...
+
+所有命令都是以全局变量的形式定义在一个数组里，每个成员是struct cmd_tbl_s，链接时放在&quot;.u_boot_cmd&quot;里
+
+#define Struct_Section  __attribute__ ((unused,section (&quot;.u_boot_cmd&quot;)))
+</code></pre><p><code>common/main.c</code></p>
+<pre><code>main_loop(), which will be called by start_armboot
+|_run_command()
+  |_find_cmd() will 遍历数组，根据命令的名称定位到对应的数组成员并返回cmd_tbl_t *
+</code></pre><p><code>common/cmd_nand.c</code></p>
+<pre><code>U_BOOT_CMD(nand, CONFIG_SYS_MAXARGS, 1, do_nand, ...
+
+do_nand()是nand操作的入口{
+    nand_info_t *nand;
+
+}
+</code></pre><h2 id="测试方法"><a href="#测试方法" class="headerlink" title="测试方法:"></a>测试方法:</h2><p>自制裸机跑马灯程序，代码在<code>test/marquee</code>。<br>通过norflash+supervivi更新测试U-boot到nandflash<br>开发板设置为从nandflash启动，进入U-boot后快速回车停留在U-boot界面。</p>
+<ul>
+<li><p>测试nand erase。注意最小erase单位为0x20000字节，注意<code>help nand erase</code>似乎有问题，0x20000似乎应该是长度，但帮助上说是end的地址。其次<code>nand erase all</code>不支持</p>
+<pre><code>[u-boot@MINI2440]# nand erase 0x60000 0x20000
+NAND erase: device 0 offset 0x60000, size 0x20000
+Erasing at 0x6000000000002 --   0% complete.
+OK
+</code></pre></li>
+<li><p>从串口通过kermit协议将测试程序test.bin下载到SDRAM，选择地址为0x30000000，即SDRAM的最低地址，注意避免和当前运行的SDRAM中的U-boot冲突。</p>
+<pre><code>[u-boot@MINI2440]# loadb 0x30000000
+## Ready for binary (kermit) download to 0x30000000 at 115200 bps...
+## Total Size      = 0x000000fc = 252 Bytes
+## Start Addr      = 0x30000000
+</code></pre></li>
+<li><p>测试nandflash的写功能，将SDRAM的程序烧入nandflash，发现一个问题，无法写入小于512字节的image</p>
+<pre><code>[u-boot@MINI2440]# nand write 0x30000000 0x60000 0x2000
+NAND write: device 0 offset 0x60000, size 0x2000
+8192 bytes written: OK
+</code></pre></li>
+<li><p>重启系统</p>
+<pre><code>[u-boot@MINI2440]# reset
+</code></pre></li>
+<li><p>测试nandflash的读功能，可以从nandflash的指定位置(0x60000)读指定大小的数据到SDRAM的指定位置（0x30008000），test.bin的运行地址。</p>
+<pre><code>[u-boot@MINI2440]# nand read 0x30008000 0x60000 0x200
+NAND read: device 0 offset 0x60000, size 0x200
+512 bytes read: OK
+</code></pre></li>
+<li><p>运行程序，看见跑马灯闪烁。说明以上操作运行ok</p>
+<pre><code>[u-boot@MINI2440]# go 0x30008000
+## Starting application at 0x30008000 ...
+</code></pre></li>
+</ul>
+<p>其他cmd测试（暂无）</p>
+<h1 id="Step6-添加usb传输下载功能"><a href="#Step6-添加usb传输下载功能" class="headerlink" title="Step6 添加usb传输下载功能"></a>Step6 添加usb传输下载功能</h1><h2 id="文件修改-1"><a href="#文件修改-1" class="headerlink" title="文件修改"></a>文件修改</h2><table>
+<thead>
+<tr>
+<th>修改文件</th>
+<th>修改内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>board/tekkamanninja/mini2440/mini2440.c</code></td>
+<td>- 设置USB时钟；<br>- 设置和USB相关的GPIO；<br>已知USB slave功能需要使用IRQ和DMA；GPC5是对应的USB_EN，即USB的使能开关；GPD也和USB相关，注意对GPCUP和GPDUP都需要设置，否则会发现USB口启动后反应很慢，需要进一步确认。</td>
+</tr>
+<tr>
+<td><code>common\cmd_usbslave.c</code></td>
+<td>usb slave的命令操作功能实现</td>
+</tr>
+<tr>
+<td><code>common\Makefile</code></td>
+<td>把cmd_usbslave.c加入工程</td>
+</tr>
+<tr>
+<td><code>cpu\arm920t\s3c24x0\interrupts.c</code></td>
+<td>可能是为了支持usb的中断引入，</td>
+</tr>
+<tr>
+<td><code>cpu\arm920t\start.S</code></td>
+<td>和usb相关的中断部分</td>
+</tr>
+<tr>
+<td><code>drivers\usb\slave</code></td>
+<td>对USB slave的主体功能支持</td>
+</tr>
+<tr>
+<td><code>include\configs\mini2440.h</code></td>
+<td>- 打开USB设备开关，对USB使能IRQ<code>#define CONFIG_CMD_USB</code>；<br>- 定义了其他一些usb相关的开关，其中CONFIG_USB_OHCI和CONFIG_DOS_PARTITION是为了编译通过，可是对CONFIG_USB_STORAGE，发现如果不定义usbslave功能工作不正常。具体原因待研究。</td>
+</tr>
+<tr>
+<td><code>include\s3c24x0.h</code></td>
+<td>修改struct s3c24x0_usb_device</td>
+</tr>
+<tr>
+<td><code>lib_arm\board.c</code></td>
+<td>usb_init_slave()调用</td>
+</tr>
+<tr>
+<td><code>lib_arm\bootm.c</code></td>
+<td>do_bootm_linux函数，去掉了udc_disconnect的逻辑，打开CONFIG_USB_DEVICE后该段代码会被使能，但是对s3c2440，这段逻辑不需要，所以直接注释掉了。搜了一下udc_disconnect，该函数在某些芯片的usb控制逻辑上被定义，大部分都不需要。</td>
+</tr>
+<tr>
+<td><code>Makefile</code></td>
+<td>编译加入libusb_slave.a</td>
+</tr>
+</tbody>
+</table>
+<h2 id="测试方法-1"><a href="#测试方法-1" class="headerlink" title="测试方法:"></a>测试方法:</h2><p>自制裸机跑马灯程序。<br>通过norflash+supervivi更新测试U-boot到nandflash<br>开发板设置为从nandflash启动，进入U-boot后快速回车停留在U-boot界面。</p>
+<ul>
+<li><p>测试nand erase。注意最小erase单位为0x20000字节。</p>
+<pre><code>[u-boot@MINI2440]# nand erase 0x60000 0x20000
+NAND erase: device 0 offset 0x60000, size 0x20000
+Erasing at 0x6000000000002 --   0% complete.
+OK
+</code></pre></li>
+<li><p>使用DWN，采用usb方式将测试程序test.bin下载到SDRAM，选择地址为0x30000000，即SDRAM的最低地址，注意避免和当前运行的SDRAM中的U-boot冲突。</p>
+<pre><code>[u-boot@MINI2440]# usbslave 1 0x30000000
+USB host is connected. Waiting a download.
+Now, Downloading [ADDRESS:30000000h,TOTAL:262]
+RECEIVED FILE SIZE:     262 (0KB/S, 1S)
+</code></pre></li>
+<li><p>测试nandflash的写功能，将SDRAM的程序烧入nandflash，发现一个问题，无法写入小于512字节的image</p>
+<pre><code>[u-boot@MINI2440]# nand write 0x30000000 0x60000 0x2000
+NAND write: device 0 offset 0x60000, size 0x2000
+8192 bytes written: OK
+</code></pre></li>
+<li><p>重启系统</p>
+<pre><code>[u-boot@MINI2440]# reset
+</code></pre></li>
+<li><p>测试nandflash的读功能，可以从nandflash的指定位置(0x60000)读指定大小的数据到SDRAM的指定位置（0x30008000），test.bin的运行地址。</p>
+<pre><code>[u-boot@MINI2440]# nand read 0x30008000 0x60000 0x200
+NAND read: device 0 offset 0x60000, size 0x200
+512 bytes read: OK
+</code></pre></li>
+<li><p>运行程序，看见跑马灯闪烁。说明以上操作运行ok</p>
+<pre><code>[u-boot@MINI2440]# go 0x30008000
+## Starting application at 0x30008000 ...
+</code></pre></li>
+</ul>
+<h1 id="Step7-引导内核"><a href="#Step7-引导内核" class="headerlink" title="Step7 引导内核"></a>Step7 引导内核</h1><h2 id="文件修改-2"><a href="#文件修改-2" class="headerlink" title="文件修改"></a>文件修改</h2><table>
+<thead>
+<tr>
+<th>修改文件</th>
+<th>修改内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>board/tekkamanninja/mini2440/mini2440.c</code></td>
+<td>- 设置机器码：通常，在u-boot和kernel中都会有一个机器码(即：MACH_TYPE)，只有这两个机器码一致时才能引导内核，否则就会出现报mach错误信息或者死机。<br> - 关闭tekkaman打开的蜂鸣器</td>
+</tr>
+<tr>
+<td><code>lib_arm/board.c</code></td>
+<td>关闭tekkaman打开的蜂鸣器</td>
+</tr>
+<tr>
+<td><code>include/configs/mini2440.h</code></td>
+<td>- 修改CONFIG_BOOTARGS，即环境变量bootargs的初始值<br> - 修改CONFIG_BOOTCOMMAND，即环境变量bootcmd的初始值<br> - 修改CONFIG_SYS_LOAD_ADDR，内核加载地址为0x30008000</td>
+</tr>
+</tbody>
+</table>
+<p>注：有关如何关闭tekkaman打开的蜂鸣器，避免U-boot启动时总是会叫一声的做法，分析如下：<br>首先看看tekkaman的做法：程序的流程：查看<code>board/tekkamanninja/mini2440/mini2440.c</code>文件中的init_sequence[]数组可知:</p>
+<pre><code>start_armboot()
+    |_board_init() //这里tekkaman会打开一次蜂鸣器
+    |_display_banner() //这里tekkaman会打开一次蜂鸣器
+    ......
+    在所有外设初始化完成，进入命令行处理之前，tekkaman会关闭蜂鸣器
+</code></pre><p>这就是我们在U-boot启动阶段会听到蜂鸣器响一下又灭掉的原因。如果要彻底不让蜂鸣器鸣叫，需要把board_init()和display_banner()两处的蜂鸣器都关闭。</p>
+<p>其他相比tekkaman的版本目前暂不修改的地方：</p>
+<table>
+<thead>
+<tr>
+<th>修改文件</th>
+<th>修改内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>board\tekkamanninja\mini2440\flash.c</code></td>
+<td>NORFlash相关，这里先不改 </td>
+</tr>
+<tr>
+<td><code>common\cmd_load.c</code></td>
+<td>loadx命令的支持，暂不考虑</td>
+</tr>
+<tr>
+<td><code>common\cmd_mem.c</code></td>
+<td>mmc相关，暂不考虑</td>
+</tr>
+<tr>
+<td><code>common\cmd_nand.c</code></td>
+<td>nand支持yaffs，暂不考虑</td>
+</tr>
+<tr>
+<td><code>cpu\arm920t\s3c24x0\Makefile</code></td>
+<td>mmc相关，暂不考虑</td>
+</tr>
+<tr>
+<td><code>cpu\arm920t\s3c24x0\mmc.c</code></td>
+<td>mmc相关，暂不考虑</td>
+</tr>
+<tr>
+<td><code>cpu\arm920t\config.mk</code></td>
+<td>编译选项，参考mini2440移植手册，没影响就先不改。</td>
+</tr>
+<tr>
+<td><code>drivers\mtd\nand\nand_base.c</code></td>
+<td>nand支持yaffs，暂不考虑</td>
+</tr>
+<tr>
+<td><code>drivers\mtd\nand\nand_util.c</code></td>
+<td>nand支持yaffs，暂不考虑</td>
+</tr>
+<tr>
+<td><code>drivers\net\dm9000x.c</code></td>
+<td>网络部分，暂不考虑</td>
+</tr>
+<tr>
+<td><code>drivers\video</code></td>
+<td>LCD，暂不考虑</td>
+</tr>
+<tr>
+<td><code>include\asm-arm\arch-s3c24x0\mmc.h</code></td>
+<td>mmc相关，暂不考虑</td>
+</tr>
+<tr>
+<td><code>include\asm-arm\arch-s3c24x0\regs-sdi.h</code></td>
+<td>mmc相关，暂不考虑</td>
+</tr>
+<tr>
+<td><code>include\linux\mtd\mtd.h</code></td>
+<td>nand支持yaffs，暂不考虑</td>
+</tr>
+<tr>
+<td><code>include\mmc.h</code></td>
+<td>mmc相关，暂不考虑</td>
+</tr>
+<tr>
+<td><code>include\part.h</code></td>
+<td>mmc相关，暂不考虑</td>
+</tr>
+<tr>
+<td><code>lib_arm\board.c</code></td>
+<td>另外一个串口打印，和CONFIG_CFB_CONSOLE有关，功能待定</td>
+</tr>
+<tr>
+<td><code>net\nfs.c</code></td>
+<td>nfs，暂不考虑</td>
+</tr>
+</tbody>
+</table>
+<h2 id="测试方法-2"><a href="#测试方法-2" class="headerlink" title="测试方法:"></a>测试方法:</h2><p>具体的操作和解释参考<a href="/2015/08/08/20150808-bootup-linux">在mini2440上实验U-boot的USB下载到nandflash并通过nandflash引导Linux内核</a>  </p>
+<ul>
+<li><p>norflash+supervivi启动，按<code>f</code>键擦除整个nandflash。</p>
+</li>
+<li><p>在supervivi下按<code>y</code>，下载root_yaffs</p>
+</li>
+<li><p>在supervivi下按<code>v</code>，下载step7编译得到的u-boot.bin</p>
+</li>
+<li><p>重新采用nandflash启动, 启动后停止在monitor mode</p>
+</li>
+<li><p>在U-boot下，采用USB下载kernel文件，uImage_X35</p>
+<pre><code>[u-boot@MINI2440]# nand erase 0x60000 0x500000
+NAND erase: device 0 offset 0x60000, size 0x500000
+Erasing at 0x54000002800000 --   0% complete.
+OK
+[u-boot@MINI2440]# usbslave 1 0x30000000
+USB host is connected. Waiting a download.
+Now, Downloading [ADDRESS:30000000h,TOTAL:2288382]
+RECEIVED FILE SIZE: 2288382 (446KB/S, 5S)
+[u-boot@MINI2440]# nand write 0x30000000 0x60000 0x300000
+NAND write: device 0 offset 0x60000, size 0x300000
+3145728 bytes written: OK
+</code></pre></li>
+<li><p>重启板子，应该会看到U-boot启动成功后，3秒内不按任何键，自动引导启动kernel。</p>
+<pre><code>NAND read: device 0 offset 0x60000, size 0x300000
+ 3145728 bytes read: OK
+## Booting kernel from Legacy Image at 30008000 ...
+   Image Name:   tekkaman
+   Created:      2015-08-08   7:39:52 UTC
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    2288308 Bytes =  2.2 MB
+   Load Address: 30008000
+   Entry Point:  30008040
+   Verifying Checksum ... OK
+   XIP Kernel Image ... OK
+OK
+
+Starting kernel ...
+
+Uncompressing Linux.............................................................
+................................................................................
+....... done, booting the kernel.
+Linux version 2.6.32.2-FriendlyARM (root@localhost.localdomain) (gcc version 4.4
+.3 (ctng-1.6.1) ) #1 Fri Mar 4 18:01:08 CST 2011
+(以下略)
+</code></pre></li>
+</ul>
+<h1 id="再出发"><a href="#再出发" class="headerlink" title="再出发"></a>再出发</h1><p>做完以上步骤后，我考虑了一下感觉结合mini2440提供的supervivi调试移植U-boot有一个更好的流程。与前面第一种方案的主要区别在于将第一阶段的实现放到最后来做，先移植调试第二阶段。即采用norflash+supervivi启动，然后将调试的U-boot下载到SDRAM中运行，调试直到可以引导内核。最后再调试搬运。</p>
+<p>调整后移植的步骤如下：</p>
+<table>
+<thead>
+<tr>
+<th>步骤</th>
+<th>目标</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Step1</td>
+<td>建立基本框架，为后继工作打下基础，仅保证编译通过</td>
+</tr>
+<tr>
+<td>Step2</td>
+<td>通过Norflash启动后利用supervivi对SDRAM初始化，然后通过supervivi将程序下载到sdram上运行，屏蔽第一阶段，通过点灯确认可以跳转到第二阶段的入口处。</td>
+</tr>
+<tr>
+<td>Step3</td>
+<td>通过点灯验证start_armboot基本流程正确，添加UART打印功能，为后面更复杂的功能调试做准备</td>
+</tr>
+<tr>
+<td>Step4</td>
+<td>为第二阶段添加nandflash功能</td>
+</tr>
+<tr>
+<td>Step5</td>
+<td>为第二阶段添加usb传输功能</td>
+</tr>
+<tr>
+<td>Step6</td>
+<td>在step5和step6的基础上从nandflash引导内核</td>
+</tr>
+<tr>
+<td>Step7</td>
+<td>使能代码重定向，利用重定向将代码从nandflash搬移到SDRAM自动运行第二阶段，至此完成。</td>
+</tr>
+</tbody>
+</table>
+<h1 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h1><p><a href="http://www.arm9.net/download.asp" target="_blank" rel="external">Mini2440之U-boot使用及移植详细手册2010-4-16</a>  </p>
+<h2 id="移植U-boot流程"><a href="#移植U-boot流程" class="headerlink" title="移植U-boot流程"></a>移植U-boot流程</h2><p><a href="http://www.linuxidc.com/Linux/2011-05/35982.htm" target="_blank" rel="external">u-boot-2009.08在mini2440上的移植</a>: 非常详细，分步骤的移植，推荐参考，其中<a href="http://www.linuxidc.com/Linux/2011-05/35982p6.htm" target="_blank" rel="external">u-boot-2009.08在mini2440上的移植-增加引导内核功能</a></p>
+<p><a href="http://wenku.baidu.com/link?url=rJkv7HU-i74ahm0TLV51xlZZ4GEchs2wxFChbGBAmDaXpIQdenM-w-oDgzGEj0-wvJ-iOy9TIijrFxFObljbhT7YOiCM8oX4SPoP8fVFGsm" target="_blank" rel="external">一步步教你移植uboot(超精华版)</a>  </p>
+<p><a href="http://blog.chinaunix.net/uid-23787856-id-115382.html" target="_blank" rel="external">移植U-Boot-2009.11.到友善之臂mini2440</a>，该文章的链接失效，能找到的最接近的文章是<a href="http://blog.chinaunix.net/uid-23787856-id-115366.html" target="_blank" rel="external">移植U-Boot.2009.08到友善之臂mini2440（一~八）</a></p>
+<p><a href="http://blog.chinaunix.net/uid-23787856-id-115383.html" target="_blank" rel="external">移植U-Boot.2010.03到友善之臂mini2440</a>，该文章的链接失效，能找到的最接近的文章是<a href="http://blog.chinaunix.net/uid-23787856-id-115374.html" target="_blank" rel="external">移植U-Boot.2010.03到友善之臂mini2440（一~八）</a></p>
+<p><a href="http://wenku.baidu.com/view/6e0b0535a32d7375a417802b.html?re=view" target="_blank" rel="external">最可靠的UBOOT移植</a>：基于TQ2440的移植描述，比较详细。</p>
+<h2 id="一些有用的参考"><a href="#一些有用的参考" class="headerlink" title="一些有用的参考"></a>一些有用的参考</h2><p><a href="http://blog.csdn.net/zhaocj/article/details/6118860" target="_blank" rel="external">s3c2440裸奔之结束语</a><br><a href="http://www.arm9home.net/read.php?tid-15986.html" target="_blank" rel="external">新手移植u-boot的一些建议</a><br><a href="http://blog.chinaunix.net/uid/20543672/cid-6407-list-1.html" target="_blank" rel="external">Tekkaman Ninja的博客</a><br><a href="http://blog.chinaunix.net/uid-22337711-id-1774867.html" target="_blank" rel="external">u-boot从Nand Flash 和Nor Flash 双启动方法探究(转) </a><br><a href="http://blog.chinaunix.net/uid-20543672-id-94363.html" target="_blank" rel="external"> 在U-boot下实现自动识别启动Flash的原理（针对S3C24x0）</a></p>
+<h2 id="以下的流程介绍只是一些简单的代码修改，没啥思想，看看就好了："><a href="#以下的流程介绍只是一些简单的代码修改，没啥思想，看看就好了：" class="headerlink" title="以下的流程介绍只是一些简单的代码修改，没啥思想，看看就好了："></a>以下的流程介绍只是一些简单的代码修改，没啥思想，看看就好了：</h2><p><a href="http://blog.chinaunix.net/uid-24919665-id-435489.html" target="_blank" rel="external">一步一步将uboot移植到mini2440</a><br><a href="http://blog.csdn.net/yaozhenguo2006/article/details/6761282" target="_blank" rel="external">U-BOOT 移植到友善之臂mini2440</a><br><a href="http://blog.csdn.net/fzu_dianzi/article/details/7107547" target="_blank" rel="external">移植u-boot-2009.08到mini2440(一)基础配置篇</a></p>
+<h2 id="比较新的U-boot的移植"><a href="#比较新的U-boot的移植" class="headerlink" title="比较新的U-boot的移植"></a>比较新的U-boot的移植</h2><p><a href="http://blog.chinaunix.net/uid-22609852-id-3515982.html" target="_blank" rel="external">u-boot2012.04.01移植到mini2440</a><br><a href="http://www.codertown.cn/blog/archives/110" target="_blank" rel="external">关于uboot最新版移植的一点想法</a><br><a href="http://www.cnblogs.com/pengdonglin137/p/4264836.html?utm_source=tuicool" target="_blank" rel="external">u-boot-2015.01在tq2440上的初步移植</a></p>
+<h2 id="其他的一些参考文件"><a href="#其他的一些参考文件" class="headerlink" title="其他的一些参考文件"></a>其他的一些参考文件</h2><p><a href="http://wenku.baidu.com/view/b727f1d6240c844769eaee4d.html?re=view" target="_blank" rel="external">u－boot 移植步骤详解</a>里面有硬件调试器BDI2000的介绍</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+            <a href="/tags/U-boot/" rel="tag">#U-boot</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/08/09/20150809-mini2440-nandflash/" rel="next" title="基于mini2440开发板学习Nandflash">
+                <i class="fa fa-chevron-left"></i> 基于mini2440开发板学习Nandflash
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/08/26/20150826-lwn-651833/" rel="prev" title="翻译-lwn-651833">
+                翻译-lwn-651833 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/08/19/20150819-uboot-port-mini2440-v2009-11/"
+           data-title="针对mini2440开发板的U-boot移植笔记(v2009.11)" data-url="http://unicornx.github.io/2015/08/19/20150819-uboot-port-mini2440-v2009-11/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#总体目标"><span class="nav-number">1.</span> <span class="nav-text">总体目标</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step1-基本框架搭建"><span class="nav-number">2.</span> <span class="nav-text">Step1 基本框架搭建</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Step1-1-建立mini2440-config"><span class="nav-number">2.1.</span> <span class="nav-text">Step1.1 建立mini2440_config</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step1-2-建立开发板mini2440的目录"><span class="nav-number">2.2.</span> <span class="nav-text">Step1.2 建立开发板mini2440的目录</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step1-3-建立开发板配置头文件"><span class="nav-number">2.3.</span> <span class="nav-text">Step1.3 建立开发板配置头文件</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step1-4-测试编译环境"><span class="nav-number">2.4.</span> <span class="nav-text">Step1.4 测试编译环境</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step2-确保第一阶段运行正常"><span class="nav-number">3.</span> <span class="nav-text">Step2 确保第一阶段运行正常</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Step2-1-修改第一阶段的部分初始化"><span class="nav-number">3.1.</span> <span class="nav-text">Step2.1 修改第一阶段的部分初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step2-2-屏蔽代码重定向和第二阶段"><span class="nav-number">3.2.</span> <span class="nav-text">Step2.2 屏蔽代码重定向和第二阶段</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step2-3-增加点灯跟踪程序逻辑"><span class="nav-number">3.3.</span> <span class="nav-text">Step2.3 增加点灯跟踪程序逻辑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step2-4-测试"><span class="nav-number">3.4.</span> <span class="nav-text">Step2.4 测试</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step3-使能代码重定向"><span class="nav-number">4.</span> <span class="nav-text">Step3  使能代码重定向</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Step3-1-取消上一步对代码重定向的屏蔽"><span class="nav-number">4.1.</span> <span class="nav-text">Step3.1 取消上一步对代码重定向的屏蔽</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step3-2-为第一阶段初始化SDRAM"><span class="nav-number">4.2.</span> <span class="nav-text">Step3.2 为第一阶段初始化SDRAM</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step3-3-为第一阶段提供读nandflash功能"><span class="nav-number">4.3.</span> <span class="nav-text">Step3.3 为第一阶段提供读nandflash功能</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step3-4-增加代码重定向"><span class="nav-number">4.4.</span> <span class="nav-text">Step3.4 增加代码重定向</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step3-5-测试"><span class="nav-number">4.5.</span> <span class="nav-text">Step3.5 测试</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step4-确保第二阶段的基本流程正确，"><span class="nav-number">5.</span> <span class="nav-text">Step4 确保第二阶段的基本流程正确，</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#Step4-1-第二阶段的初始化"><span class="nav-number">5.1.</span> <span class="nav-text">Step4.1 第二阶段的初始化</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step4-2-确保start-armboot基本流程正确"><span class="nav-number">5.2.</span> <span class="nav-text">Step4.2 确保start_armboot基本流程正确</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#Step4-3-测试"><span class="nav-number">5.3.</span> <span class="nav-text">Step4.3 测试</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step5-为第二阶段添加nandflash功能"><span class="nav-number">6.</span> <span class="nav-text">Step5 为第二阶段添加nandflash功能</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件修改"><span class="nav-number">6.1.</span> <span class="nav-text">文件修改</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#nandflash代码逻辑整理"><span class="nav-number">6.2.</span> <span class="nav-text">nandflash代码逻辑整理</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试方法"><span class="nav-number">6.3.</span> <span class="nav-text">测试方法:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step6-添加usb传输下载功能"><span class="nav-number">7.</span> <span class="nav-text">Step6 添加usb传输下载功能</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件修改-1"><span class="nav-number">7.1.</span> <span class="nav-text">文件修改</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试方法-1"><span class="nav-number">7.2.</span> <span class="nav-text">测试方法:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#Step7-引导内核"><span class="nav-number">8.</span> <span class="nav-text">Step7 引导内核</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#文件修改-2"><span class="nav-number">8.1.</span> <span class="nav-text">文件修改</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#测试方法-2"><span class="nav-number">8.2.</span> <span class="nav-text">测试方法:</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#再出发"><span class="nav-number">9.</span> <span class="nav-text">再出发</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考："><span class="nav-number">10.</span> <span class="nav-text">参考：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#移植U-boot流程"><span class="nav-number">10.1.</span> <span class="nav-text">移植U-boot流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#一些有用的参考"><span class="nav-number">10.2.</span> <span class="nav-text">一些有用的参考</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#以下的流程介绍只是一些简单的代码修改，没啥思想，看看就好了："><span class="nav-number">10.3.</span> <span class="nav-text">以下的流程介绍只是一些简单的代码修改，没啥思想，看看就好了：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#比较新的U-boot的移植"><span class="nav-number">10.4.</span> <span class="nav-text">比较新的U-boot的移植</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#其他的一些参考文件"><span class="nav-number">10.5.</span> <span class="nav-text">其他的一些参考文件</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

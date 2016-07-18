@@ -1,0 +1,943 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,kernel,driver," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-20
+主要参考
+
+Linux kernel v2.6.32.6
+ldd3
+LKD3
+ELDD（Essential Linux Device Driver）
+宋宝华《Linux设备驱动开发详解(第2版)》
+linux内核中的mutex和Sema">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核驱动开发中的并发和竞争总结">
+<meta property="og:url" content="http://unicornx.github.io/2016/01/18/20160118-lk-drv-concur/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-20
+主要参考
+
+Linux kernel v2.6.32.6
+ldd3
+LKD3
+ELDD（Essential Linux Device Driver）
+宋宝华《Linux设备驱动开发详解(第2版)》
+linux内核中的mutex和Sema">
+<meta property="og:updated_time" content="2016-04-25T03:58:11.849Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核驱动开发中的并发和竞争总结">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-20
+主要参考
+
+Linux kernel v2.6.32.6
+ldd3
+LKD3
+ELDD（Essential Linux Device Driver）
+宋宝华《Linux设备驱动开发详解(第2版)》
+linux内核中的mutex和Sema">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/01/18/20160118-lk-drv-concur/"/>
+
+  <title> Linux内核驱动开发中的并发和竞争总结 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux内核驱动开发中的并发和竞争总结
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-01-18T20:55:12+08:00" content="2016-01-18">
+              2016-01-18
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux驱动开发/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux驱动开发</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/01/18/20160118-lk-drv-concur/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/01/18/20160118-lk-drv-concur/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-20</p>
+<p>主要参考</p>
+<ul>
+<li>Linux kernel v2.6.32.6</li>
+<li>ldd3</li>
+<li>LKD3</li>
+<li>ELDD（Essential Linux Device Driver）</li>
+<li>宋宝华《Linux设备驱动开发详解(第2版)》</li>
+<li><a href="http://blog.chinaunix.net/uid-25871104-id-3756719.html" target="_blank" rel="external">linux内核中的mutex和Semaphore接口–信号量和互斥体的区别</a></li>
+</ul>
+<a id="more"></a>
+<h1 id="并发问题的产生"><a href="#并发问题的产生" class="headerlink" title="并发问题的产生"></a>并发问题的产生</h1><font color="red"><strong>注意，对并发的彻底理解需要首先理解中断处理及其相关概念，譬如BH等。</strong></font>
+
+<p>So the first rule of thumb to keep in mind as you design your driver is to avoid shared resources whenever possible.<br>The most obvious application of this idea is to avoid the use of global variables.<br>Here is the hard rule of resource sharing: any time that a hardware or software resource is shared beyond a single thread of execution, and the possibility exists that one thread could encounter an inconsistent view of that resource, you must explicitly manage access to that resource.</p>
+<ul>
+<li>For the purposes of this chapter, a “thread” of execution is any context that is running code. Each process is clearly a thread of execution, but so is an interrupt handler or other code running in response to an asynchronous kernel event.</li>
+</ul>
+<p>按照我目前的理解，并发问题分为两大类，互斥和同步。</p>
+<h1 id="互斥问题"><a href="#互斥问题" class="headerlink" title="互斥问题"></a>互斥问题</h1><p>按照LDD3的说法，要实现互斥，从大的分类看，可以分为两大类：</p>
+<ul>
+<li><p>免锁机制，即不会导致任务执行流阻塞的互斥机制，包括如下手段：</p>
+<ul>
+<li>原子变量</li>
+<li>位操作</li>
+<li>直接使用免锁算法</li>
+<li>其他免锁机制</li>
+</ul>
+</li>
+<li><p>加锁机制，即采用阻塞机制实现互斥，主要包括如下手段：</p>
+<p>  经典的临界资源和临界区的概念。（这里就不啰嗦了）</p>
+<ul>
+<li>自旋锁: 最简单，最直接。</li>
+<li>信号量: 老机制，为了实现互斥，尽可能使用第二种互斥量</li>
+<li><p>互斥量</p>
+<p>当然，再细点，还包括：</p>
+</li>
+<li><p>读写信号量</p>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="不会导致阻塞的免锁互斥机制"><a href="#不会导致阻塞的免锁互斥机制" class="headerlink" title="不会导致阻塞的免锁互斥机制"></a>不会导致阻塞的免锁互斥机制</h2><h3 id="直接使用免锁算法实现"><a href="#直接使用免锁算法实现" class="headerlink" title="直接使用免锁算法实现"></a>直接使用免锁算法实现</h3><h3 id="原子变量"><a href="#原子变量" class="headerlink" title="原子变量"></a>原子变量</h3><h3 id="位操作"><a href="#位操作" class="headerlink" title="位操作"></a>位操作</h3><h3 id="其他按照ldd3的说法比较少见的免锁机制"><a href="#其他按照ldd3的说法比较少见的免锁机制" class="headerlink" title="其他按照ldd3的说法比较少见的免锁机制"></a>其他按照ldd3的说法比较少见的免锁机制</h3><ul>
+<li>seqlock_t <code>include/linux/seqlock.h</code></li>
+<li>RCU <code>include/linux/rcupdate.h</code> 但按照宋的书描述，该方法用得也很普遍，虽然不能完全替代</li>
+</ul>
+<h2 id="采用锁实现阻塞来达到互斥的目的"><a href="#采用锁实现阻塞来达到互斥的目的" class="headerlink" title="采用锁实现阻塞来达到互斥的目的"></a>采用锁实现阻塞来达到互斥的目的</h2><h3 id="自旋锁"><a href="#自旋锁" class="headerlink" title="自旋锁"></a>自旋锁</h3><p>Linux内核中最常见的锁就是自旋锁(spin lock)。</p>
+<p>自旋锁可以用于任务上下文中实现执行流程的阻塞，自旋锁最多只能被一个内核任务持有（在最新的内核上，一个独立可以调度的任务对应的是一段代码执行流，可以是一个线程，也可以是中断处理），如果一个内核任务试图请求一个已被争用(已经被持有)的自旋锁，那么这个任务就会一直进行忙循环，重复执行<code>test-and-set</code>，即进行<code>测试-如果空闲则设置</code>的操作，通俗地说就是“原地打转”，等待锁重新可用。要是锁未被争用，请求它的内核任务便能立刻得到它并且继续进行\。自旋锁可以在任何时刻防止多于一个的内核任务同时进入临界区，因此这种锁可有效地避免多处理器上并发运行的内核任务竞争共享资源，也可以用于避免单处理器上支持任务抢占的内核上并发运行的内核任务竞争共享资源。</p>
+<p>自旋锁的基本形式如下：</p>
+<pre><code>DEFINE_SPINLOCK(mr_lock);
+
+spin_lock(&amp;mr_lock);
+/* 临界区 ... */
+spin_unlock(&amp;mr_lock);
+</code></pre><h4 id="自旋锁的基本使用原则"><a href="#自旋锁的基本使用原则" class="headerlink" title="自旋锁的基本使用原则"></a>自旋锁的基本使用原则</h4><p>应谨慎使用自旋锁，使用中需要注意以下几个基本问题：</p>
+<ul>
+<li><p><font color="red"><strong>加锁和解锁操作应该在一个函数中完成。</strong></font>特别是参考LDD3说针对<code>spin_lock_irqsave()</code>和<code>spin_lock_irqerstore()</code>需要注意这个问题，书上说否则可能在某些架构上会出现问题。没太去深究，这个一般的代码都会满足吧。</p>
+</li>
+<li><p><font color="red"><strong>自旋锁是不可以递归的。</strong></font>可能在其他操作系统中允许自旋锁递归，但是Linux的内核实现不支持递归。如果一个任务在拥有一个自旋锁后再次尝试去获取同一把自旋锁，一样会导致”原地打转“而且无法退出，这也是一种会引起死锁的现象。</p>
+</li>
+</ul>
+<ul>
+<li><p>发明自旋锁的初衷就是：<font color="red"><strong>在短期间内进行轻量级的锁定</strong></font>，因为自旋锁的实现机制实际上就是忙等待(特别浪费处理器时间)。所以自旋锁不应该被持有时间过长，也就是说自旋锁保护的临界区执行时间应该尽可能地短。拥有时间过长将阻止对当前处理器的调度，这意味着更高优先级的任务(真正应该拥有CPU的任务)不得不等待。如果需要长时间锁定的话, 最好使用信号量。</p>
+</li>
+<li><p><font color="red"><strong>自旋锁保护的临界区内不允许发生睡眠。</strong></font>所谓睡眠其本质含义就是指一个任务主动或者被动地触发任务调度而导致本任务让出CPU的使用权。<font color="red"><strong>要知道一旦一个任务拥有自旋锁，其所在处理器上的抢占就会被禁止</strong></font>，也就是说该处理器只能被它一个任务所拥有，其他的任务是不可以抢占该处理器的。但如果持有自旋锁的任务调用了一些函数主动睡眠后，即主动让出处理器，这当然是可以的，而且这会导致另外一个新任务被重新调度到该处理器上运行，这看起来也没什么不对，但问题是万一该新的任务也去申请同一个自旋锁，由于该锁已被睡眠的任务所持有，而导致该新任务永远留在处理器上“原地打转”，而此时抢占已经被禁止，也就是说其他的任务再也无法被调度到这个处理器运行，包括拥有锁并且主动放弃处理器的那个任务。最后的结果必然就是造成死锁。整个系统无法正常运行下去。</p>
+</li>
+<li><p>锁的顺序问题：参考ldd3有一段描述”锁的顺序规则”。</p>
+</li>
+</ul>
+<h4 id="自旋锁和中断"><a href="#自旋锁和中断" class="headerlink" title="自旋锁和中断"></a>自旋锁和中断</h4><p><font color="red">**如果因为临界资源保护的问题，我们需要在中断处理程序中也尝试争抢一把锁时，则一定要在获取锁的同时首先禁止本地中断(当前处理器上的中断请求)</font>。换句话说，如果一把锁会在中断处理程序中被使用，则对这把锁的加锁和解锁需要采用如下形式：</p>
+<pre><code>DEFINE_SPINLOCK(mr_lock);
+unsigned long flags; /* flags用于保存先前的中断状态，然后用于恢复 */
+
+spin_lock_irqsave(&amp;mr_lock, flags); /* 保存当前中断状态到flags，并禁止本地中断，然后再去获取指定的锁 */
+/* 临界区 ... */
+spin_unlock_irqrestore(&amp;mr_lock, flags); /* 解锁，然后根据flags将中断恢复到加锁前的状态 */
+</code></pre><p>我们知道<font color="red"><strong>一个任务拥有自旋锁后会禁止抢占，但不会禁止中断</strong></font>。所以尽管使用自旋锁可以保证拥有锁后进入临界区不受其他线程的打扰，但在临界区内还是会受到中断的影响。举例来说，譬如驱动代码在进程上下文中已经拥有了一个自旋锁，此时产生了一个中断，导致中断处理函数被调用，而中断处理函数也要尝试获取同一把锁，如果该中断例程和驱动代码在同一个处理器上运行，由于该自旋锁已经被拥有则中断处理进入自旋就不会退出该处理器，非中断代码无法获得处理器执行自然也就没有机会释放该锁，两者又进入一种死锁状态，处理器将永远自旋下去。</p>
+<p>在中断处理中还可以使用的另外一对自旋锁函数是<code>spin_lock_irq()</code>和<code>spin_unlock_irq()</code>。该对函数只会在尝试获取锁时禁止本地中断但不会保存和，并且参考LKD3所述，该对函数的使用并不提倡。</p>
+<h4 id="自旋锁和BH"><a href="#自旋锁和BH" class="headerlink" title="自旋锁和BH"></a>自旋锁和BH</h4><p>详细的讨论如下，主要是要考虑临界资源的竞争发生的条件：</p>
+<ul>
+<li><p>如果临界资源只在同类的tasklet之间共享，则不会存在竞争，压根就不需要使用自旋锁进行保护，因为同类的tasklet不可能同时运行。</p>
+</li>
+<li><p>如果临界资源只会在两个不同类的tasklet之间共享，一定会存在竞争，所以要使用锁来进行保护，但可以只使用基本的<code>spin_lock()</code>和<code>spin_unlock()</code>而不需要禁止下半部，因为在同一个处理器上绝不会出现tasklet相互抢占的情况。</p>
+</li>
+<li><p>如果临界资源只会在两个软中断之间共享，无论是同一类软中断还是不同类的软中断，一定会存在竞争，所以要使用锁来进行保护，但可以只使用基本的<code>spin_lock()</code>和<code>spin_unlock()</code>而不需要禁止下半部，因为在同一个处理器上绝不会出现软中断相互抢占的情况。</p>
+</li>
+<li><p>如果下半部和进程上下文会竞争临界资源，但不会在中断处理中涉及临界资源的话，只要考虑下半部会抢占进程上下文中代码的情况，可以使用上面提到的<code>spin_lock_bh()</code>和<code>spin_unlock_bh()</code>来操作，即在加锁的时候禁止下半部执行即可。具体对这把锁的加锁和解锁需要采用如下形式。其目的是<font color="red">**在安全地避免死锁的同时还能服务硬件中断</font>：</p>
+<pre><code>DEFINE_SPINLOCK(mr_lock);
+
+spin_lock_bh(&amp;mr_lock;
+/* 临界区 ... */
+spin_unlock_bh(&amp;mr_lock);
+</code></pre></li>
+<li><p>但如果共享临界资源的行为会涉及硬中断处理，那还是得在操作自旋锁的时候禁止中断，即使用<code>spin_lock_irqsave()</code>和<code>spin_unlock_irqrestore()</code>。</p>
+</li>
+</ul>
+<h4 id="自旋锁相关函数的总结"><a href="#自旋锁相关函数的总结" class="headerlink" title="自旋锁相关函数的总结"></a>自旋锁相关函数的总结</h4><p>最后把上面所涉及的所有和自旋锁操作的函数列出来做一个总结（参考LKD3）：</p>
+<table>
+<thead>
+<tr>
+<th>函数</th>
+<th>注释</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>spin_lock()/spin_unlock()</code></td>
+<td>获取自旋锁和释放自旋锁的基本方法，如果对共享资源的保护只存在于进程上下文中时建议使用</td>
+</tr>
+<tr>
+<td><code>spin_lock_irq()/spin_unlock_irq()</code></td>
+<td>获取自旋锁时会禁止本地中断，释放自旋锁时会激活本地中断，如果对共享资源的保护会发生在硬中断处理程序中并且能确定中断在加锁前一定是激活的可以使用，但考虑到在内核的执行路线上我们很难搞清楚中断在当前调用点上是否一定处于激活状态，所以该对函数并不提倡使用。</td>
+</tr>
+<tr>
+<td><code>spin_lock_irqsave()/spin_unlock_irqrestore()</code></td>
+<td>获取自旋锁时会保存本地中断的当前状态，并禁止本地中断，释放自旋锁时会激活本地中断，并让本地中断恢复到获取锁之前的状态。如果对共享资源的保护会发生在硬中断处理程序中建议使用该对函数来操作自旋锁。</td>
+</tr>
+<tr>
+<td><code>spin_lock_bh()/spin_unlock_bh()</code></td>
+<td>获取自旋锁时会禁止下半部，释放自旋锁时会激活下半部。如果对共享资源的访问会发生在不同类型的tasklet或者软中断中但不会发生在硬中断处理程序中则建议使用该对函数来操作自旋锁。</td>
+</tr>
+</tbody>
+</table>
+<h3 id="信号量"><a href="#信号量" class="headerlink" title="信号量"></a>信号量</h3><p>内核中用<code>struct semaphore</code>表示信号量，参考<code>&lt;linux/semphone.h&gt;</code>：</p>
+<pre><code>/* Please don&apos;t access any members of this structure directly */
+struct semaphore {
+    spinlock_t        lock;
+    unsigned int        count;
+    struct list_head    wait_list;
+};
+
+其中lock为自旋锁，放到这里是为了保护count的原子增减，无符号数count为我们竞争的信号量（PV操作的核心），wait_list为等待此信号量的进程链表。
+</code></pre><p>参考LKD3的10.4节定义：</p>
+<pre><code>Semaphores in Linux are sleeping locks. When a task attempts to acquire a semaphore
+that is unavailable, the semaphore places the task onto a wait queue and puts the task to
+sleep. The processor is then free to execute other code. When the semaphore becomes
+available, one of the tasks on the wait queue is awakened so that it can then acquire the
+semaphore.
+</code></pre><p>严格地说，信号量发明的初衷并不是仅仅为了支持互斥，而是为了支持一些更复杂的同步场景。参考LKD3的10.4.1节“Counting and Binary Semaphores”中提到的“计数信号量”和“二值信号量”（又被称为“互斥信号量”）两种信号量的使用方式。内核中似乎使用信号量的方式是以“二值信号量”为主，即用来互斥。原文如下：</p>
+<pre><code>Counting semaphores are not used to enforce mutual exclusion because they enable
+multiple threads of execution in the critical region at once. Instead, they are used to
+enforce limits in certain code.They are not used much in the kernel. If you use a semaphore,
+you almost assuredly want to use a mutex (a semaphore with a count of one).
+</code></pre><p>LDD3中也有类似的说法：</p>
+<pre><code>Almost all semaphores found in the Linux kernel are used for mutual exclusion. 
+
+Usually, however, semaphores are used in a mutex mode. To make this common 
+case a little easier, the kernel has provided a set of helper functions and macros.
+Thus, a mutex can be declared and initialized with one of the following:
+
+DECLARE_MUTEX(name);
+DECLARE_MUTEX_LOCKED(name);
+</code></pre><p>典型的使用信号量实现互斥的例子参考LKD3：</p>
+<pre><code>/* define and declare a semaphore, named mr_sem, with a count of one */
+static DECLARE_MUTEX(mr_sem);
+
+/* attempt to acquire the semaphore ... */
+if (down_interruptible(&amp;mr_sem)) {
+    /* signal received, semaphore not acquired ... */
+}
+
+/* critical region ... */
+
+/* release the given semaphore */
+up(&amp;mr_sem);
+</code></pre><p>注意根据LKD3的说明，</p>
+<pre><code>use of down_interruptible() is much more common (and correct) than down().
+</code></pre><p>说了这么多，实际上在最新的内核里，已经不鼓励使用“二值信号量”来实现互斥。这个在LKD3的10.6章节和10.6.1章节中都有所表露。以及参考<a href="http://blog.chinaunix.net/uid-25871104-id-3756719.html" target="_blank" rel="external">linux内核中的mutex和Semaphore接口–信号量和互斥体的区别</a>。</p>
+<p>在最新的内核中(v4.5),参考<code>include/linux/semaphore.h</code>，甚至已经找不到<code>DECLARE_MUTEX</code>和<code>DECLARE_MUTEX_LOCKED</code>。这对宏已经过时。用<code>__SEMAPHORE_INITIALIZER</code>，或者<code>DEFINE_SEMAPHORE</code>代替。可见如果我们仅仅是为了实现互斥，更倾向于使用内核中的“互斥量”，而对信号量还是用于解决更复杂的同步问题。</p>
+<h3 id="互斥量"><a href="#互斥量" class="headerlink" title="互斥量"></a>互斥量</h3><p>对于大部分我们需要使用互斥的场景，应该直接用内核提供的mutex结构。</p>
+<pre><code>The old semaphore-based mutexes were replaced by the new Mutex API like others said. Look at `Documentation/locking/mutex-design.txt` for more infos
+[Where has init_MUTEX gone in linux kernel version 3.2?](http://stackoverflow.com/questions/27801529/where-has-init-mutex-gone-in-linux-kernel-version-3-2)
+</code></pre><p>典型的使用信号量实现互斥的例子参考LKD3：</p>
+<pre><code>The mutex is represented by struct mutex. It behaves similar to a semaphore with a
+count of one, but it has a simpler interface, more efficient performance, and additional
+constraints on its use. To statically define a mutex, you do:
+
+DEFINE_MUTEX(name);
+
+To dynamically initialize a mutex, you call
+
+mutex_init(&amp;mutex);
+
+Locking and unlocking the mutex is easy:
+
+mutex_lock(&amp;mutex);
+/* critical region ... */
+mutex_unlock(&amp;mutex);
+
+That is it! Simpler than a semaphore and without the need to manage usage counts.
+</code></pre><p>使用互斥量实现互斥时有一些需要注意的事项，这个可以参考LKD3的10.6章节的描述：</p>
+<pre><code>The simplicity and efficiency of the mutex comes from the additional constraints it
+imposes on its users over and above what the semaphore requires. Unlike a semaphore,
+which implements the most basic of behavior in accordance with Dijkstra’s original design,
+the mutex has a stricter, narrower use case:
+
+(1) Only one task can hold the mutex at a time.That is, the usage count on a mutex is
+    always one.
+(2) Whoever locked a mutex must unlock it.That is, you cannot lock a mutex in one
+    context and then unlock it in another.This means that the mutex isn’t suitable for
+    more complicated synchronizations between kernel and user-space. Most use cases,
+    however, cleanly lock and unlock from the same context.
+(3) Recursive locks and unlocks are not allowed.That is, you cannot recursively acquire
+    the same mutex, and you cannot unlock an unlocked mutex.
+(4) A process cannot exit while holding a mutex.
+(5) A mutex cannot be acquired by an interrupt handler or bottom half, even with mutex_trylock().
+(6) A mutex can be managed only via the official API: It must be initialized via the methods
+    described in this section and cannot be copied, hand initialized, or reinitialized.
+</code></pre><h3 id="信号量和自旋锁区别"><a href="#信号量和自旋锁区别" class="headerlink" title="信号量和自旋锁区别"></a>信号量和自旋锁区别</h3><p>虽然听起来两者之间的使用条件复杂，其实在实际使用中信号量和自旋锁并不易混淆。注意以下原则:</p>
+<ul>
+<li>如果临界区需要睡眠——这往往是发生在和用户空间同步时——使用信号量是唯一的选择。由于不受睡眠的限制，使用信号量通常来说更加简单一些。</li>
+<li>如果没有睡眠的要求，我们可以在自旋锁和信号量中作选择，选择的依据应该取决于临界区时间长短。理想情况是所有的锁都应该尽可能短的被持有，但是如果锁的持有时间较长的话，使用信号量是更好的选择。在实际应用中自旋锁代码只有几行，而持有自旋锁的时间也一般不会超过两次上下文切换所需时间，因为线程一旦要进行切换，就至少花费切出切入两次，自旋锁的占用时间如果远远长于两次上下文切换，我们就干脆让线程睡眠算了，这就失去了使用自旋锁的意义。 </li>
+<li>如果被保护的共享资源只在进程上下文访问，使用信号量保护该共享资源非常合适，如果对共享资源的访问时间非常短，自旋锁也可以。但是如果被保护的共享资源需要在中断上下文访问（包括底半部即中断处理句柄和顶半部即软中断），就必须使用自旋锁。 当然如果一定要在中断上下文中使用信号量，可以通过_trylock的变种，不能获取就立即返回避免阻塞。</li>
+<li>另外，信号量不同于自旋锁，它不会关闭内核抢占，所以持有信号量的代码可以被抢占。这意味者使用信号量不会影响调度反应时间，否则可能会对实时调度带来负面影响。</li>
+</ul>
+<p><code>自旋锁 vs 信号量</code> 的一般使用原则</p>
+<table>
+<thead>
+<tr>
+<th>需求</th>
+<th>建议的加锁方法</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>低开销加锁</td>
+<td>优先使用自旋锁</td>
+</tr>
+<tr>
+<td>短期锁定</td>
+<td>优先使用自旋锁</td>
+</tr>
+<tr>
+<td>长期加锁</td>
+<td>优先使用信号量</td>
+</tr>
+<tr>
+<td>中断上下文中加锁</td>
+<td>使用自旋锁</td>
+</tr>
+<tr>
+<td>持有锁后需要睡眠、调度</td>
+<td>使用信号量</td>
+</tr>
+</tbody>
+</table>
+<h1 id="内核中的同步"><a href="#内核中的同步" class="headerlink" title="内核中的同步"></a>内核中的同步</h1><h2 id="信号量用于同步"><a href="#信号量用于同步" class="headerlink" title="信号量用于同步"></a>信号量用于同步</h2><h2 id="用于同步的completion"><a href="#用于同步的completion" class="headerlink" title="用于同步的completion"></a>用于同步的completion</h2><p><code>include/linux/completion.h</code></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/kernel/" rel="tag">#kernel</a>
+          
+            <a href="/tags/driver/" rel="tag">#driver</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/01/17/20160117-lk-drv-cdev/" rel="next" title="Linux内核驱动开发-字符设备驱动">
+                <i class="fa fa-chevron-left"></i> Linux内核驱动开发-字符设备驱动
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/01/23/20160123-s3c2440-interrupt/" rel="prev" title="基于s3c2440学习中断控制器">
+                基于s3c2440学习中断控制器 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/01/18/20160118-lk-drv-concur/"
+           data-title="Linux内核驱动开发中的并发和竞争总结" data-url="http://unicornx.github.io/2016/01/18/20160118-lk-drv-concur/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#并发问题的产生"><span class="nav-number">1.</span> <span class="nav-text">并发问题的产生</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#互斥问题"><span class="nav-number">2.</span> <span class="nav-text">互斥问题</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#不会导致阻塞的免锁互斥机制"><span class="nav-number">2.1.</span> <span class="nav-text">不会导致阻塞的免锁互斥机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#直接使用免锁算法实现"><span class="nav-number">2.1.1.</span> <span class="nav-text">直接使用免锁算法实现</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#原子变量"><span class="nav-number">2.1.2.</span> <span class="nav-text">原子变量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#位操作"><span class="nav-number">2.1.3.</span> <span class="nav-text">位操作</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#其他按照ldd3的说法比较少见的免锁机制"><span class="nav-number">2.1.4.</span> <span class="nav-text">其他按照ldd3的说法比较少见的免锁机制</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#采用锁实现阻塞来达到互斥的目的"><span class="nav-number">2.2.</span> <span class="nav-text">采用锁实现阻塞来达到互斥的目的</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#自旋锁"><span class="nav-number">2.2.1.</span> <span class="nav-text">自旋锁</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#自旋锁的基本使用原则"><span class="nav-number">2.2.1.1.</span> <span class="nav-text">自旋锁的基本使用原则</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#自旋锁和中断"><span class="nav-number">2.2.1.2.</span> <span class="nav-text">自旋锁和中断</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#自旋锁和BH"><span class="nav-number">2.2.1.3.</span> <span class="nav-text">自旋锁和BH</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#自旋锁相关函数的总结"><span class="nav-number">2.2.1.4.</span> <span class="nav-text">自旋锁相关函数的总结</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#信号量"><span class="nav-number">2.2.2.</span> <span class="nav-text">信号量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#互斥量"><span class="nav-number">2.2.3.</span> <span class="nav-text">互斥量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#信号量和自旋锁区别"><span class="nav-number">2.2.4.</span> <span class="nav-text">信号量和自旋锁区别</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内核中的同步"><span class="nav-number">3.</span> <span class="nav-text">内核中的同步</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#信号量用于同步"><span class="nav-number">3.1.</span> <span class="nav-text">信号量用于同步</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#用于同步的completion"><span class="nav-number">3.2.</span> <span class="nav-text">用于同步的completion</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

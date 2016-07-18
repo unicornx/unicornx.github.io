@@ -1,0 +1,1161 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="mini2440,s3c2440,dma," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-09-24
+一、DMA的工作原理首先以外设与计算机内存为例，理解一下两个不同设备之间(譬如磁盘设备和内存之间)进行数据交换的不同方式，大致可以分为如下三种：">
+<meta property="og:type" content="article">
+<meta property="og:title" content="基于mini2440开发板学习DMA">
+<meta property="og:url" content="http://unicornx.github.io/2015/09/06/20150906-mini2440-dma/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-09-24
+一、DMA的工作原理首先以外设与计算机内存为例，理解一下两个不同设备之间(譬如磁盘设备和内存之间)进行数据交换的不同方式，大致可以分为如下三种：">
+<meta property="og:image" content="http://unicornx.github.io/img/20150906-mini2440-dma/s3c2440-sys-block-diagram.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150906-mini2440-dma/s3c2440-dma-req-srcs.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150906-mini2440-dma/s3c2440-dma-fsm.png">
+<meta property="og:image" content="http://unicornx.github.io/img/20150906-mini2440-dma/s3c2440-dma-basic-timing.png">
+<meta property="og:updated_time" content="2016-03-18T23:02:50.564Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="基于mini2440开发板学习DMA">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-09-24
+一、DMA的工作原理首先以外设与计算机内存为例，理解一下两个不同设备之间(譬如磁盘设备和内存之间)进行数据交换的不同方式，大致可以分为如下三种：">
+<meta name="twitter:image" content="http://unicornx.github.io/img/20150906-mini2440-dma/s3c2440-sys-block-diagram.png">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/09/06/20150906-mini2440-dma/"/>
+
+  <title> 基于mini2440开发板学习DMA | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                基于mini2440开发板学习DMA
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-09-06T22:57:17+08:00" content="2015-09-06">
+              2015-09-06
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/ARM裸机接口/" itemprop="url" rel="index">
+                    <span itemprop="name">ARM裸机接口</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/09/06/20150906-mini2440-dma/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/09/06/20150906-mini2440-dma/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-09-24</p>
+<h1 id="一、DMA的工作原理"><a href="#一、DMA的工作原理" class="headerlink" title="一、DMA的工作原理"></a>一、DMA的工作原理</h1><p>首先以外设与计算机内存为例，理解一下两个不同设备之间(譬如磁盘设备和内存之间)进行数据交换的不同方式，大致可以分为如下三种：</p>
+<a id="more"></a>
+<h2 id="程序查询方式："><a href="#程序查询方式：" class="headerlink" title="程序查询方式："></a>程序查询方式：</h2><p>计算机系统最早采取的一种管理方式，又叫“程序控制方式”。是指CPU主动检查设备就绪状态，定时对各种设备轮流询问一遍有无处理要求。轮流询问之后，对有读写要求的设备则加以处理，仍然由CPU控制，在设备和内存之间数据传输操作。在处理完该I/O设备的读写操作之后，CPU继续进行查询工作。尽管轮询需要时间，但由于CPU轮询的速度比I/O设备的速度要快得多，所以一般不会发生不能及时处理的问题。当然，再快的处理机，能处理的输入输出设备的数量也是有一定限度的。而且，程序轮询毕竟占据了CPU相当一部分处理时间，因此程序轮询是一种效率较低的方式，在一些单片机处理程序中还有应用，但在现代计算机系统中已很少应用。</p>
+<h2 id="中断处理方式："><a href="#中断处理方式：" class="headerlink" title="中断处理方式："></a>中断处理方式：</h2><p>所谓中断方式，是针对处理器的高速和输入输出设备的低速之间这一对主要矛盾，从提高系统整体效率出发，所采用的一种信息交换方式。该方式引入了一种叫做中断控制器的控制单元。CPU发起对外设的读写操作后，不再同步等待外设，而是让外设异步地自己进行数据准备，当数据准备好之后由外设通过中断控制器异步地通知CPU设备就绪，此后在设备和内存之间数据传输操作仍由CPU控制处理。在中断方式下，CPU在处理内存与I/O设备之间数据的传输步骤如下：</p>
+<ol>
+<li>程序需要对外设输入/输出数据时，通过CPU发出指令通过中断控制器启动输入输出设备准备数据</li>
+<li>程序可以继续利用CPU执行其他操作</li>
+<li>当I/O操作完成时，外设通过中断控制器向CPU发出中断请求信号，CPU收到中断信号之后，打断当前执行流程，转向预先设计好的中断处理程序，对数据传送工作进行相应的处理。</li>
+<li>中断处理程序处理完成后，恢复中断流程继续执行。</li>
+</ol>
+<p>中断方式的优点:</p>
+<ul>
+<li>中断方式使处理器的利用率提高，在速度较慢的外围设备准备自己的数据时，CPU可以照常执行自己的程序 。在这个意义上说，CPU和外围设备的一些操作是<strong>并行</strong>地进行的，因而同串行进行的“程序控制方式”相比，计算机系统的整体效率是大大提高了。</li>
+<li>中断方式能够协调CPU与外设间的速度差异，能够协调各种外设间的速度差异，提高系统的工作效率（速度指标）。使应用程序与外设操作基本脱离开来，降低了程序的设备相关性（关联可靠性指标、局部修改指标）。虽然目前某些快速设备相互间的通信可以不通过CPU，譬如后面要介绍的DMA方式，但是对于慢速设备、设备故障的处理来说，中断处理方式仍然是最有效的。无论将来计算机系统中的元件怎样变化，只要存在慢速设备与快速CPU之间的矛盾，使用中断处理方式都是适合的。</li>
+</ul>
+<p>不过，中断方式仍然存在一些问题。</p>
+<ul>
+<li>首先，现代计算机系统通常配置有各种各样的输入输出设备。如果这些I/O设备都同过中断处理方式进行并行操作，那么中断次数的急剧增加会造成CPU无法响应中断和出现数据丢失现象。</li>
+<li>其次，如果I/O控制器的数据缓冲区比较小，由于每次缓冲区装满数据之后都将会发生中断。那么，在大量数据传送过程中，发生中断的次数会很多，这将耗去大量的CPU处理时间。</li>
+</ul>
+<p><strong>这里简单总结一下“程序查询方式”和“中断处理方式”。</strong></p>
+<p>如果将访问外设的过程分为两个阶段，一个是等待设备就绪阶段，一个是实际读写外设接口(寄存器)阶段，则该两种方式在实际读写外设接口阶段都是在CPU的控制下进行的，通过CPU执行指令对接口（寄存器）进行读写操作，从本质上看并无差别。区别主要在于等待设备就绪阶段，“程序查询方式”在该阶段仍然强调由CPU控制进行，需要消耗CPU的指令周期进行查询。而“中断处理方式”在等待设备就绪的问题上将主导权交给了设备，由外设自己检测数据就绪后通过中断线异步通知CPU，然后CPU再执行实际读写动作，在等待设备就绪期间不会占用CPU的指令周期，换句话说就是CPU可以去干更多的事情，整体上系统的效率更高。这两种方式在历史上有一个先后过程，在应用上轮询并不是完全退出，两者各有适合自己的应用场景：</p>
+<ul>
+<li>轮询通常用于低优先级，低响应性，高频度大数据量业务，键盘扫描是一个典型</li>
+<li>中断通常用于高优先级，高响应性，低频度业务，串口的接收就是一个典型</li>
+</ul>
+<p>当然这不是绝对的，通常情况是中断与轮询相配合，例如定时功能，在定时器中断里设置标志位，程序主任务里轮询该标志位，做具体操作。键盘扫描也通常是外部中断记录按下了哪个键，轮询再做进一步的扫描处理(例如去抖功能)。</p>
+<p>但无论是“程序查询方式”，还是“中断处理方式”，我们看到在实际读写外设时，数据的传送仍然需要CPU的介入,数据传送路径都是外设&lt;-&gt;CPU&lt;-&gt;内存。这种方式每传送一个字节都需要耗用较长时间。在程序查询方式时，CPU要反复测试外设状态，在外设未准备好时，CPU就处于等待状态，直到外设准备好，才进行数据传送。在中断方式下，每次中断均需保存断点和现场；中断返回时，要恢复断点和现场。同时，CPU采用流水线技术后，进入中断和从中断返回均使CPU指令队列被清除。显然对于高速的I/O设备以及大量数据交换的场合(如软、硬磁盘等)，这两种传送方式就不能满足速度的要求了。对于这些高速外设，如果传送速度太慢，不仅降低传送效率，还会造成数据丢失，导致传送出错。 为此，提出了DMA(直接存储器存取)传输方式。</p>
+<h2 id="直接内存存取（DMA，Direct-Memory-Access）方式"><a href="#直接内存存取（DMA，Direct-Memory-Access）方式" class="headerlink" title="直接内存存取（DMA，Direct Memory Access）方式"></a>直接内存存取（DMA，Direct Memory Access）方式</h2><p>在一段时间内，由DMA控制器取代CPU，获得总线控制权，从而实现内存与外设或者内存不同区域间的大量成块数据的快速传递。<br>我们知道通常系统的总线是由CPU管理的。在DMA方式下，就是希望CPU把一部分总线时间让出来，即某段时间CPU连到这些总线上的线处于第三态–高阻状态，而由DMA控制器接管，DMA控制器控制传送的字节数，判断DMA是否结束，以及发出DMA结束信号，所以DMA控制器必须有以下功能：</p>
+<ol>
+<li>能向CPU发出系统保持（HOLD）信号，提出总线接管请求；</li>
+<li>当CPU发出允许接管信号后，负责对总线的控制，进入DMA方式；</li>
+<li>能对存储器寻址及能修改地址指针，实现对内存的读写操作；</li>
+<li>能决定本次DMA传送的字节数，判断DMA传送是否结束</li>
+<li>发出DMA结束信号，使CPU恢复正常工作状态。</li>
+</ol>
+<h3 id="DMA工作原理："><a href="#DMA工作原理：" class="headerlink" title="DMA工作原理："></a>DMA工作原理：</h3><p>一个设备接口试图通过总线直接向另一个设备发送数据(一般是大批量的数据)，它会先向CPU发送DMA请求信号。外设通过DMA的一种专门接口电路――DMA控制器（DMAC），向CPU提出接管总线控制权的总线请求，CPU收到该信号后，在当前的总线周期结束后，会按DMA信号的优先级和提出DMA请求的先后顺序响应DMA信号。CPU对某个设备接口响应DMA请求时，会让出总线控制权。于是在DMA控制器的管理下，外设和存储器直接进行数据交换，而不需CPU干预。数据传送完毕后，设备接口会向CPU发送DMA结束信号，交还总线控制权。</p>
+<p>###DMA传送的基本操作过程：</p>
+<ol>
+<li>当进程要求设备输入数据时，CPU把准备存放输入数据的内存起始地址以及要传送的字节数分别送入DMA控制器中的内存地址寄存器和传送字节计数器。</li>
+<li>外设可通过DMA控制器向CPU发出数据传输要求，进程进入等待状态。此时正在执行的CPU指令被暂时挂起。进程调度程序调度其他进程占据CPU。注意：DMA请求信号可能会打断一条指令的执行，使它暂时停止执行，数据传送完毕后才恢复该指令的执行。</li>
+<li>CPU响应DMA请求，系统转变为DMA工作方式，并把总线控制权交给DMA控制器；</li>
+<li>将数据缓冲寄存器中的数据源源不断地写入内存，直到所要求的字节全部传送完毕。</li>
+<li>DMA控制器在传送完所有字节时，通过中断请求线发出中断信号。CPU在接收到中断信号后，转入中断处理程序进行后续处理。</li>
+<li>中断处理结束后，CPU返回到被中断的进程中，或切换到新的进程上下文环境中，继续执行。</li>
+</ol>
+<h3 id="DMA与中断的区别"><a href="#DMA与中断的区别" class="headerlink" title="DMA与中断的区别"></a>DMA与中断的区别</h3><ul>
+<li>中断方式是在数据缓冲寄存器满之后发出中断，要求CPU进行中断处理，而DMA方式则是在所要求传送的数据块全部传送结束时要求CPU 进行中断处理。这就大大减少了CPU进行中断处理的次数。</li>
+<li>中断方式的数据传送是在中断处理时由CPU控制完成的，而DMA方式则是在DMA控制器的控制下，不经过CPU控制完成的。这就排除了CPU因并行设备过多而来不及处理以及因速度不匹配而造成数据丢失等现象。</li>
+</ul>
+<h3 id="DMA方式的优缺点"><a href="#DMA方式的优缺点" class="headerlink" title="DMA方式的优缺点"></a>DMA方式的优缺点</h3><p>相比于前面的“程序查询”和“中断处理”方式，在DMA方式中，是不经过CPU干预，直接在外设与内存储器之间进行数据传送的方式。实现DMA传送，需要一个专用硬件DMA控制器(DMAC)，在DMA传送期间，CPU要让出对系统总线的控制权，交给DMA控制。总线在DMA的控制下，数据直接在存储器和外设之间传送，而不经过CPU干预，其传送速度大大提高，可接近于存储器的最快存取速度。这种传送方式适用于图像显示、磁盘存取、磁盘间数据传送和高速的数据采集等系统。因此在现代计算机系统中，得到了广泛的应用。许多输入输出设备的控制器，特别是块设备的控制器，都支持DMA方式。    通过上述分析可以看出，DMA控制器功能的强弱，是决定DMA效率的关键因素。DMA控制器需要为每次数据传送做大量的工作，数据传送单位的增大意味着传送次数的减少。另外，DMA方式窃取了CPU时钟周期，即DMA接口会向CPU申请占用总线的存取周期，CPU处理效率降低了，要想尽量少地窃取时钟周期，就要设法提高DMA控制器的性能，这样可以较少地影响CPU处理效率。</p>
+<h1 id="二、S3C2440的DMA控制器-DMAC"><a href="#二、S3C2440的DMA控制器-DMAC" class="headerlink" title="二、S3C2440的DMA控制器(DMAC)"></a>二、S3C2440的DMA控制器(DMAC)</h1><p>通过了解S3C2440的DMA控制器来进一步了解DMA的工作原理。注意对于S3C2440的DMA控制器来说，不仅可以支持外设和内存之间的DMA传输，也可以实现除内存之外两个设备之间的DMA传输，这个可以参考后面“DMA传输的源设备和目的设备”相关章节。</p>
+<h2 id="DMA的工作过程"><a href="#DMA的工作过程" class="headerlink" title="DMA的工作过程"></a>DMA的工作过程</h2><ol>
+<li>当两个外设准备就绪，希望通过DMA方式进行数据传送时，源设备向DMA控制器(DMAC)发出DMA请求信号(DREQ)。DMAC收到此信号后，向CPU发出总线请求信号(HOLD)。</li>
+<li>CPU在完成当前总线操作后立即对DMA请求信号做出响应：先放弃对总线的控制(包括控制总线、数据总线、地址总线)，然后将有效的HLDA信号加到DMAC上。此时，CPU便放弃对总线的控制，DMAC获得总线的控制权。</li>
+<li>DMAC获得总线的控制权后，向地址总线发出地址信号，指出传送过程需使用的内存地址(DMAC内部设有“地址寄存器”，在DMA操作过程中，每传送一字节数据，DMAC自动修改地址寄存器的值，以指向下一个内存地址)。同时，向外设发出DMA应答信号(DACK)，实现该外设与内存之间进行DMA传送。</li>
+<li>在DMA传送期间，DMAC发出内存和外设的读/写信号。</li>
+<li>为了决定数据块传输的字节数，在DMAC内部必须有一个“字节计数器”。在开始时，由软件设置数据块的长度，在DMA传送过程中，每传送一字节，字节计数器减1，减为0时，该次DMA传输结束。</li>
+<li>DMA过程结束时，DMAC向CPU发出结束信号（撤消HOLD请求），将总线控制权交还CPU。</li>
+</ol>
+<h2 id="DMAC通道的开关"><a href="#DMAC通道的开关" class="headerlink" title="DMAC通道的开关"></a>DMAC通道的开关</h2><p>本文采用基于S3C2440的开发板。S3C2440的DMA控制器(简称DMAC)支持4个DMA通道。这四个通道可以独立工作，需要独立设置。</p>
+<p>S3C2440自带的DMAC可以支持对每个DMA通道独立打开和关闭，参考DMASKTRIGn[1]/ON_OFF。根据手册的提示，不建议在DMA传输过程中直接关闭DMA通道，而是通过设置DCONn[22]/RELOAD或者DMASKTRIGn[2]/STOP来优雅地关闭DMA通道，其中DCONn[22]/RELOAD可以实现在完成一次传输服务后停止通道，而DMASKTRIGn[2]/STOP则可以在一次原子传输(atomic transfer)后停止，当然如果当前没有DMA传输进行，则设置DMASKTRIGn[2]/STOP也会立即关闭DMA通道。有关原子传输和传输服务的概念，参考…</p>
+<h2 id="DMA传输的源设备和目的设备："><a href="#DMA传输的源设备和目的设备：" class="headerlink" title="DMA传输的源设备和目的设备："></a>DMA传输的源设备和目的设备：</h2><p>DMAC的每个通道都可以支持在系统总线上的设备和外围总线上设备之间的快速数据传送。</p>
+<p><strong>按传输的设备类型分，能支持：</strong></p>
+<ul>
+<li>存储设备不同地址之间, memory to memory</li>
+<li>其他外设和存储设备之间, IO to memory / memory to IO</li>
+<li>其他外设之间，IO to IO</li>
+</ul>
+<p><strong>按设备连接的总线类型分，包括支持下面4种情况：</strong></p>
+<ul>
+<li>源和目标器件都在系统总线AHB上。</li>
+<li>源器件在系统总线AHB上，目标器件在外围总线APB上。</li>
+<li>源器件在外围总线APB上，目标器件在系统总线AHB上。</li>
+<li>源和目标器件都在外围总线APB上。</li>
+</ul>
+<p>设置时需要告诉S3C2440的DMAC，发起请求的源设备或者目的设备是在AHB总线上，还是在APB总线上，这个可以通过设置DISRCCn[1]/LOC或者DIDSTCn[1]/LOC来完成。</p>
+<p><img src="/img/20150906-mini2440-dma/s3c2440-sys-block-diagram.png" alt=""></p>
+<p><strong>有关源器件的选择和设置：</strong><br>发起DMA请求操作的源可以有两种，通过软件发起或者由硬件设备自己发起。DCONn[23]/SWHW_SEL可以用于设置该选项。<br>如果选择采用硬件设备请求模式，那么DMA控制器可以从对应通道的DMA请求源中选择一个，每个通道可以从Source0到Source6共7个源中选一个，具体的DMA请求源如下表所列。但如果选择采用软件发起DMA请求，那么这些DMA请求源将没有任何意义。设置硬件设备请求源可以使用DCONn[26:24]/HWSRCSEL。</p>
+<p><img src="/img/20150906-mini2440-dma/s3c2440-dma-req-srcs.png" alt=""></p>
+<p>其中nXDREQ0和nXDREQ1代表S3C2440引出的两个外部DMA请求引脚，可以引入对外接设备的DMA请求信号。</p>
+<h2 id="DMA的传输-Transfer"><a href="#DMA的传输-Transfer" class="headerlink" title="DMA的传输(Transfer)"></a>DMA的传输(Transfer)</h2><p>在描述传输相关概念之前，有几个手册上的名词要理解一下：</p>
+<ul>
+<li>DMA Request：DMA请求，DMAC和源设备之间有一条信号线。信号方向为由发起DMA传输的源设备发送给DMAC，DMAC收到此信号后，会启动transfer。</li>
+<li>DMA ACK：DMA应答，DMAC和源设备之间有一条信号线。信号方向为由DMAC发送给发起DMA传输的源设备。用于DMAC完成一次传输服务后通知外设传输结束。</li>
+<li>INT REQ：DMA传输完成中断。由DMAC发送给中断控制器，进而发送给CPU的中断线。用于在DMA传输服务结束时通知CPU结束。</li>
+</ul>
+<h3 id="原子性传输-atomic-transfer"><a href="#原子性传输-atomic-transfer" class="headerlink" title="原子性传输(atomic transfer)"></a>原子性传输(atomic transfer)</h3><p>在理解传输服务模式之前，先要理解原子性传输(atomic transfer)的概念。所谓atomic transfer是指在这段传输的时间内一直占有总线不释放，从而保证传输不会被其他可以操作总线的设备打断，atomic transfer完成后DMAC才会释放总线，其他设备，比如CPU才可以访问总线。<br>原子性传输的方式有两种，一种叫unit transfer，即read一次再write一次。还有一种叫burst transfer，即连续read四次再连续write四次。选择原子传输的方式用的是DCONn[28]/TSZ。<br>无论是unit方式还是burst方式，每read和write一次的数据宽度(Data Size)是可以配置的，参考DCONn[21:20]/DSZ，可以是Byte(8位)，Half word(16位)或者是Word(32位)。</p>
+<h3 id="DMA的传输服务模式"><a href="#DMA的传输服务模式" class="headerlink" title="DMA的传输服务模式"></a>DMA的传输服务模式</h3><p>缺省情况下DMAC每完成一次原子传输就停止，并等待下一次DMA REQ才会重新开始一次原子传输，即对应Single service mode。但有时候我们可能希望在传输一个较长的数据中避免每次等待同步，为此S3C2440的DMAC引入了另一种传输的工作模式，Whole service mode来提供这种增强型服务。</p>
+<ul>
+<li>在Single service mode下，每完成一次传输，包括以下三个步骤：接管总线-&gt;一次原子传输(可以是unit transfer也可以是burst  transfer)-&gt;释放总线并产生DMA ACK后DMAC就停止操作并等待下一次DMA Request。即每次原子传输需要手动地触发。</li>
+<li>在Whole service mode下，DMAC是根据其维护的一个计数器来自动触发原子传输动作。这个计数器是DSTATn[19:0]/CURR_TC。在该模式下，完成一次原子传输该计数器CURR_TC自动减一，直到减为0，DMAC才会停止传输操作，期间不需要等待DMA Request。<br>在该模式下还有几个寄存器需要一起考虑。一个是DCONn[19:0]/TC。这个寄存器和DSTATn[19:0]/CURR_TC一起配合实现计数器缓冲机制，即我们设置计数器初始值的时候操作的是DCONn[19:0]/TC，当DMA ACK变为1并且CURR_TC的值为0时，缺省情况下DMAC会将TC中的值自动加载到CURR_TC中。如果不想自动加载，则可以通过设置DCONn[22]/RELOAD为1关闭这种缺省处理。<br>注意，即使在Whole service mode下，每次原子传输完成后DMAC还是会释放总线的，以避免占用总线时间过长导致其他需要访问总线的设备饿死。</li>
+</ul>
+<p>综上所述，DMAC一次传输的数据总长度计算如下：</p>
+<ul>
+<li>对于Single service mode，<code>Total_Size = Data_Size * Atomic_transfer_size</code></li>
+<li>对于Whole service mode，<code>Total_Size = Data_Size * Atomic_transfer_size * TC</code><br>单位都是字节。</li>
+</ul>
+<h3 id="DMA传输的状态机"><a href="#DMA传输的状态机" class="headerlink" title="DMA传输的状态机"></a>DMA传输的状态机</h3><p>DMA的一次传输过程也可以用有限状态机FSM(Finite State Machine)来描述:</p>
+<p><img src="/img/20150906-mini2440-dma/s3c2440-dma-fsm.png" alt=""></p>
+<ul>
+<li>State-1：初始状态，此阶段，DMA ACK和INT REQ 为0。DMA等待一个DMA request，若请求到达，进入状态2。</li>
+<li>State-2：在此状态，经过一定时间延时同步后DMA ACK变为1，触发DMAC从DCONn[19:0]/TC里读取初始计数值并加载到DSTATn[19:0]/CURR_TC。此后DMA ACK保持1，直到它被清0。</li>
+<li>State-3：在此状态，执行DMA传输服务。根据我们配置的传输服务模式(是Single service mode还是Whole service mode)；atomic transfer方式(unit or burst)；DSZ, data size(byte, half word, word)，DMAC从源地址读取数据后将数据写入目标地址。<br>至于何时会从State-3返回State-1，总的来说就是DMA传输服务结束就会返回State-1，按Service mode分:<ul>
+<li>在Single service mode下，一次原子传输一结束State-3状态就结束，同时DMA ACK被清除，DMAC释放总线。</li>
+<li>在Whole service mode下，原子传输会重复自动执行直到CURR_TC变为0才会清除DMA ACK释放总线。<br>在FSM退出State-3时，，如果我们使能了中断的话，DMAC就会发出INT REQ（中断请求信号）。设置中断使能需要设置DCONn[29]/INT为1。</li>
+</ul>
+</li>
+</ul>
+<h2 id="外接设备的DMA工作时序"><a href="#外接设备的DMA工作时序" class="headerlink" title="外接设备的DMA工作时序"></a>外接设备的DMA工作时序</h2><p>注意：这里指的是S3C2440的DMAC引出的供外接其他设备实行DMA传输时nXDREQ信号和nXDACK信号的同步方法。只对特别外接的设备需要考虑，如果是挂接的S3C2440内部控制器上的设备和这些协议无关。</p>
+<h3 id="信号线定义"><a href="#信号线定义" class="headerlink" title="信号线定义"></a>信号线定义</h3><p>DMAC(DMA控制器)的每个工作通道上有以下三个主要引脚：</p>
+<ul>
+<li>XnXDREQ：相对DMAC为输入，连接请求发起DMA的外设。当外设准备就绪，希望进行DMA传送时，通过XnXDREQ向DMAC发出DMA请求信号(DREQ)。DMAC收到此信号后，向CPU发出总线请求信号(HOLD)。CPU在完成当前总线操作后立即对DMA请求信号做出响应：先放弃对总线的控制(包括控制总线、数据总线、地址总线)，然后将有效的HLDA信号加到DMAC上。此时，CPU便放弃对总线的控制，DMAC获得总线的控制权。注意该信号为低电平(0)有效。</li>
+<li>XnXDACK：相对DMAC为输出，连接请求发起DMA的外设。DMAC获得总线的控制权后，向外设发出DMA应答信号(DACK)，实现一种和外设之间的同步。然后就在总线上开始源设备和外设备之间的数据传输。注意该信号为低电平(0)有效。</li>
+<li>nINT_REQ：相对DMAC为输出，连接中断控制器，进而连接CPU的中断线。DMA数据传输过程结束时，DMAC向CPU发出结束信号（撤消HOLD请求），将总线控制权交还CPU。如果外设使能可中断，DMAC会通过nINT_REQ通知CPU中断，CPU可以在中断处理函数中目标设备中得到的数据进行处理。</li>
+</ul>
+<h3 id="基本时序图"><a href="#基本时序图" class="headerlink" title="基本时序图"></a>基本时序图</h3><p>基本的XnXDREQ和XnXDACK的时序图，参考S3C2440数据手册如下：</p>
+<p><img src="/img/20150906-mini2440-dma/s3c2440-dma-basic-timing.png" alt=""></p>
+<p>其中t1之前可以认为对应FSM的State-1，t1和t2之间对应State-2，t2和t3之间对应State-3。</p>
+<p>注意这只是一种基本的DMAC工作时序图，至于DMAC和外设之间的同步方式，其实有三种，后面再介绍。这里的基本时序图主要参考的是Single Service的Handshake模式。而且这里t2和t3之间的XnXDREQ从0到1的跃迁并没有太多的含义，仅仅是为了说明XnXDREQ从1到0和从0到1都需要相同的setup延迟时间。</p>
+<h3 id="DMAC和外设之间的同步方式"><a href="#DMAC和外设之间的同步方式" class="headerlink" title="DMAC和外设之间的同步方式"></a>DMAC和外设之间的同步方式</h3><p>我们知道DMAC和发起DMA传输请求的源外设之间通过XnXDREQ和XnXDACK信号进行同步，这里讨论的就是在时序上同步的方式。手册上称之为“EXTERNAL DMA DREQ/DACK PROTOCOL”。<br>S3C2440的DMAC支持两种同步方式，Demard mode 和 Handshake mode。结合传输类型上的Single Service和Whole Service。组合下来一共有三种方式：</p>
+<ul>
+<li>Single service Demand</li>
+<li>Single service Handshake</li>
+<li>Whole service Handshake</li>
+</ul>
+<p>但注意对外接的设备，无论是Demand还是handshake，在每次原子传输完成后DMA控制器都会使DACK信号无效。这一点和对内接控制器上的设备的处理，特别是Whole service方式是不一样的。因为对内接设备，DACK信号只有在CUR_TC变成0后才会设置为无效。</p>
+<p>在每次原子传输结束的时候，DMAC会通过两次时钟同步检查XnXDREQ信号。</p>
+<ul>
+<li>在Demard模式下，如果检查的时间点上发现XnXDREQ仍然有效，那么DMAC就立即开始下一次原子传输；否则DMAC就等待XnXDREQ再次变为有效才开始下一次原子传输。</li>
+<li>在Handshake模式下，如果检查的时间点上发现XnXDREQ仍然有效，则DMAC会一直等待直到XnXDREQ变成无效，然后将XnXDACK设置为无效，并保留两个时钟周期，再等待下一次XnXDREQ变为有效。这个设计外部DMA请求时可能要用到。</li>
+</ul>
+<h1 id="三、S3C2440的DMA控制器配置接口"><a href="#三、S3C2440的DMA控制器配置接口" class="headerlink" title="三、S3C2440的DMA控制器配置接口"></a>三、S3C2440的DMA控制器配置接口</h1><p>S3C2440的DMAC支持4个DMA通道，每个DMA通道对应9个控制寄存器，所以共有36个寄存器。<br>对应每个DMA通道的9个寄存器中，其中6个用于控制通道动作，3个用于查看通道状态。</p>
+<p>使用DMA主要要解决以下几个问题，注意这里按照功能和操作的对象将寄存器及子域分了分类，不是简单按寄存器列的，这点和手册上的列表可能不一致，注意看一下。</p>
+<h2 id="数据从哪里来，到哪里去？"><a href="#数据从哪里来，到哪里去？" class="headerlink" title="数据从哪里来，到哪里去？"></a>数据从哪里来，到哪里去？</h2><ul>
+<li><strong>使用DMA首先要知道数据的流向。即：源设备是什么，目的设备是什么。</strong></li>
+</ul>
+<p><strong>DCONn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SWHW_SEL</td>
+<td>[23]</td>
+<td>设置DMA源是通过软件触发方式还是硬件触发方式</td>
+</tr>
+<tr>
+<td>HWSRCSEL</td>
+<td>[26:24]</td>
+<td>如果DMA源是硬件触发方式，则选择具体的源设备类型</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DMASKTRIGn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SW_TRIG</td>
+<td>[0]</td>
+<td>用于软件触发DMA Request，参考数据手册</td>
+</tr>
+</tbody>
+</table>
+<p>对于目的设备一般不需要特别指明，只需要指定目标的地址就好了。源设备会触发DMA REQ信号，所以需要特别指明。</p>
+<ul>
+<li><strong>确定好源设备和目的设备后，就知道源设备和目的设备挂在什么总线上。</strong></li>
+</ul>
+<p><strong>DISRCCn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LOC</td>
+<td>[1]</td>
+<td>设置源设备的位置(在APB还是在AHB上)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DIDSTCn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LOC</td>
+<td>[1]</td>
+<td>设置目标设备的位置(在APB还是在AHB上)</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>知道挂接的总线类型，就知道传输时同步时钟的类型。</strong></li>
+</ul>
+<p><strong>DCONn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>SYNC</td>
+<td>[30]</td>
+<td>设置DREQ和DACK信号的同步时钟，可以是PCLK，也可以是HCLK，具体参考手册描述</td>
+</tr>
+</tbody>
+</table>
+<p>##数据的传输</p>
+<ul>
+<li><strong>参考定义的FSM，从最小的Data Size开始一直到Service mode，外部握手协议分别进行相应配置</strong></li>
+</ul>
+<p><strong>DCONn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DSZ</td>
+<td>[21:20]</td>
+<td>Data Size，Byte，Half-Word, Word</td>
+</tr>
+<tr>
+<td>TSZ</td>
+<td>[28]</td>
+<td>atomic tranfer 类型，unit 还是 burst</td>
+</tr>
+<tr>
+<td>SERVMODE</td>
+<td>[27]</td>
+<td>Single service mode 还是 Whole service mode</td>
+</tr>
+<tr>
+<td>TC</td>
+<td>[19:0]</td>
+<td>针对Whole service mode设置atomic transfer的自动触发次数</td>
+</tr>
+<tr>
+<td>RELOAD</td>
+<td>[22]</td>
+<td>决定是否会在一次Whole service 传输结束后自动将TC中的值加载到CURR_TC中去，注意如果将RELOAD设置为1会间接导致该DMA通道停止工作。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DSTATn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CURR_TC</td>
+<td>[19:0]</td>
+<td>Whole service mode中当前剩余atomic transfer的次数。该值在传输过程中会被DMAC修改(自减)。CURR_TC和TC一起配合实现计数器缓冲机制，即我们设置计数器初始值的时候操作的是TC，当DMA ACK变为1并且CURR_TC的值为0时，缺省情况下DMAC会将TC中的值自动加载到CURR_TC中。如果不想自动加载，则可以通过设置RELOAD为1关闭这种缺省处理。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DIDSTCn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CHK_INT</td>
+<td>[2]</td>
+<td>如果我们设置了退出State-3时产生中断，还可以通过这个标志设置具体发生中断的时间点，是在TC变为0之后还是在自动加载之后。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DCONn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>DMD_HS</td>
+<td>[31]</td>
+<td>外部连接设备传输握手协议控制，选择是Demand模式还是Handshake模式，注只对扩展的外部设备有效。</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>在传输过程中需要指定源设备上要读取的数据的起始地址是什么。以及每次atomic tranfer后源地址是否要自动偏移。</strong></li>
+</ul>
+<p><strong>DISRCn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>S_ADDR</td>
+<td>[30:0]</td>
+<td>用于初始化传输的源设备中的开始地址。当FSM进入State-2后，<br>当DMA ACK变为1且CURR_SRC为0时DMAC会将DISRCn中的地址值加载<br>到CURR_SRC中。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DCSRCn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CURR_SRC</td>
+<td>[30:0]</td>
+<td>传输过程中的源设备中的当前地址。当FSM进入State-3后，每完成一次atomic transfer，该值会相应偏移。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DISRCCn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INC</td>
+<td>[0]</td>
+<td>决定是否要对CURR_SRC中的地址值在每次原子传输进行递增还是固定不变。</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>在传输过程中需要指定目标设备上数据存放（写入）的起始地址是什么。以及每次atomic tranfer后目的地址是否要自动偏移。</strong></li>
+</ul>
+<p><strong>DIDSTn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>D_ADDR</td>
+<td>[30:0]</td>
+<td>用于初始化传输的目标设备中的开始地址。当FSM进入State-2后，当DMA ACK变为1且CURR_DST为0时DMAC会将DIDSTn中的地址值加载到CURR_DST中。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DCDSTn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CURR_DST</td>
+<td>[30:0]</td>
+<td>传输过程中的目的设备中的当前地址。当FSM进入State-3后，每完成一次atomic transfer，该值会相应偏移。</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DIDSTCn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>INC</td>
+<td>[0]</td>
+<td>决定是否要对CURR_DST中的地址值在每次原子传输进行递增还是固定不变。</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>其他和传输相关辅助功能</strong></li>
+</ul>
+<p><strong>DSTATn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STAT</td>
+<td>[21:20]</td>
+<td>只读，标识当前该DMA通道忙闲状态</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DMASKTRIGn：</strong></p>
+<table>
+<thead>
+<tr>
+<th>域名</th>
+<th>位</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>STOP</td>
+<td>[2]</td>
+<td>用于打开或者关闭DMA通道。注意，实际的关闭只会发生在通<br>道的空闲状态，即atomic transfer结束后才会真正结束，<br>实际是否结束可以通过查询ON_OFF。通道关闭后CURR_TC, <br>CURR_SRC和CURR_DST都会被清零。</td>
+</tr>
+<tr>
+<td>ON_OFF</td>
+<td>[1]</td>
+<td>只读，显示通道开关状态</td>
+</tr>
+</tbody>
+</table>
+<h1 id="参考："><a href="#参考：" class="headerlink" title="参考："></a>参考：</h1><p><a href="http://blog.csdn.net/yexinghai/article/details/4054817" target="_blank" rel="external">DMA方式</a><br><a href="http://www.cnblogs.com/jhxk/articles/1893314.html" target="_blank" rel="external">中断方式与轮询方式比较</a><br><a href="http://blog.csdn.net/cybertan/article/details/4697482" target="_blank" rel="external">s3c2440学习系列6（dma）</a><br><a href="http://blog.csdn.net/cybertan/article/details/4697516" target="_blank" rel="external">s3c2440学习系列6(dma 续)</a> 有一个DMA在SD卡中使用的一段示例<br><a href="http://blog.csdn.net/js_xj/article/details/5730120" target="_blank" rel="external">DMA原理和实验</a> 是针对s3c2410，但也是很详尽的描述，有个内存间DMA传输的例子。<br><a href="http://blog.csdn.net/yexinghai/article/details/4054842" target="_blank" rel="external">S3C2440的DMA控制</a><br><a href="http://blog.csdn.net/zhaocj/article/details/5583935" target="_blank" rel="external">s3c2440的DMA应用</a> 有个音频的实现例子<br><a href="http://chengang-cn.blog.163.com/blog/static/180998697201112321555904/" target="_blank" rel="external">S3C2440的DMA </a> 有一个DMA实现memcpy的例子<br><a href="http://chengang-cn.blog.163.com/blog/static/180998697201112321431766/" target="_blank" rel="external">S3C2440的DMA相关寄存器  </a><br><a href="http://blog.chinaunix.net/uid-20672257-id-2833803.html" target="_blank" rel="external">s3c2440的dma操作的一般步骤 </a><br><a href="http://helloyesyes.iteye.com/blog/1072485" target="_blank" rel="external">S3C2440-DMA</a><br><a href="http://wenku.baidu.com/link?url=rUViTASTl-VnskVT7c5T0sZ9AbFWz_Ztf5SKFEVQbQ1jyKM6jkthDImZb3J1ccYxxqu-si2dO2jL3j9D7u0_S7GZgjxngvMoIdc9eCH5h47" target="_blank" rel="external">TQ2440的DMA学习心得</a><br><a href="http://www.eeworld.com.cn/mcu/2015/0408/article_19229_2.html" target="_blank" rel="external">clock and DMA</a> 有个对时序的分析，可以参考</p>
+<p>一些基于单片机的DMA技术 8237<br><a href="http://blog.chinaunix.net/uid-387104-id-1744111.html" target="_blank" rel="external">DMA技术</a> 不错，虽然基于单片机技术，但也有参考价值。<br><a href="http://doc.mbalib.com/view/3baf6716db1d4f12806cc6e353dfd66d.html" target="_blank" rel="external">第5章DMA接口技术</a><br><a href="http://wenku.baidu.com/link?url=DpNQuk0jqaBGzDEjrEfXqrfEVNPI5_CFdEzFEF9y05vKYQx0wZns3ZvuytMjaYIo7AQD6K_4h5c7rPEQ1gVhhpqxGdzGhTcyqykvTXWAsJq" target="_blank" rel="external">最通俗易懂的DMA技术</a></p>
+<p>其他<br><a href="http://www.amobbs.com/thread-3913018-1-1.html" target="_blank" rel="external">关于DMA和CPU占用总线的疑问</a></p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/mini2440/" rel="tag">#mini2440</a>
+          
+            <a href="/tags/s3c2440/" rel="tag">#s3c2440</a>
+          
+            <a href="/tags/dma/" rel="tag">#dma</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/08/26/20150826-lwn-650816/" rel="next" title="翻译-lwn-650816">
+                <i class="fa fa-chevron-left"></i> 翻译-lwn-650816
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/09/11/20150910-linux-display/" rel="prev" title="Linux上的图形系统-扫盲帖">
+                Linux上的图形系统-扫盲帖 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/09/06/20150906-mini2440-dma/"
+           data-title="基于mini2440开发板学习DMA" data-url="http://unicornx.github.io/2015/09/06/20150906-mini2440-dma/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#一、DMA的工作原理"><span class="nav-number">1.</span> <span class="nav-text">一、DMA的工作原理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#程序查询方式："><span class="nav-number">1.1.</span> <span class="nav-text">程序查询方式：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#中断处理方式："><span class="nav-number">1.2.</span> <span class="nav-text">中断处理方式：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#直接内存存取（DMA，Direct-Memory-Access）方式"><span class="nav-number">1.3.</span> <span class="nav-text">直接内存存取（DMA，Direct Memory Access）方式</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#DMA工作原理："><span class="nav-number">1.3.1.</span> <span class="nav-text">DMA工作原理：</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DMA与中断的区别"><span class="nav-number">1.3.2.</span> <span class="nav-text">DMA与中断的区别</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DMA方式的优缺点"><span class="nav-number">1.3.3.</span> <span class="nav-text">DMA方式的优缺点</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#二、S3C2440的DMA控制器-DMAC"><span class="nav-number">2.</span> <span class="nav-text">二、S3C2440的DMA控制器(DMAC)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#DMA的工作过程"><span class="nav-number">2.1.</span> <span class="nav-text">DMA的工作过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DMAC通道的开关"><span class="nav-number">2.2.</span> <span class="nav-text">DMAC通道的开关</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DMA传输的源设备和目的设备："><span class="nav-number">2.3.</span> <span class="nav-text">DMA传输的源设备和目的设备：</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#DMA的传输-Transfer"><span class="nav-number">2.4.</span> <span class="nav-text">DMA的传输(Transfer)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#原子性传输-atomic-transfer"><span class="nav-number">2.4.1.</span> <span class="nav-text">原子性传输(atomic transfer)</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DMA的传输服务模式"><span class="nav-number">2.4.2.</span> <span class="nav-text">DMA的传输服务模式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DMA传输的状态机"><span class="nav-number">2.4.3.</span> <span class="nav-text">DMA传输的状态机</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#外接设备的DMA工作时序"><span class="nav-number">2.5.</span> <span class="nav-text">外接设备的DMA工作时序</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#信号线定义"><span class="nav-number">2.5.1.</span> <span class="nav-text">信号线定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#基本时序图"><span class="nav-number">2.5.2.</span> <span class="nav-text">基本时序图</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#DMAC和外设之间的同步方式"><span class="nav-number">2.5.3.</span> <span class="nav-text">DMAC和外设之间的同步方式</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#三、S3C2440的DMA控制器配置接口"><span class="nav-number">3.</span> <span class="nav-text">三、S3C2440的DMA控制器配置接口</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#数据从哪里来，到哪里去？"><span class="nav-number">3.1.</span> <span class="nav-text">数据从哪里来，到哪里去？</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#参考："><span class="nav-number">4.</span> <span class="nav-text">参考：</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

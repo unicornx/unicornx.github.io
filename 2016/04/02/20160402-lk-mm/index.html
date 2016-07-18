@@ -1,0 +1,961 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,memory management,slab,buddy," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-02
+主要参考
+
+kernel v2.6.32.6
+ULK3
+LKD3
+深入Linux内核架构
+《深入Linux内核架构》笔记：(N)UMA模型中的内存组织
+(N)UMA模型中的内存组织
+(N)UMA 模型中的内存组织——《深入Linux内核">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内存管理">
+<meta property="og:url" content="http://unicornx.github.io/2016/04/02/20160402-lk-mm/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-02
+主要参考
+
+kernel v2.6.32.6
+ULK3
+LKD3
+深入Linux内核架构
+《深入Linux内核架构》笔记：(N)UMA模型中的内存组织
+(N)UMA模型中的内存组织
+(N)UMA 模型中的内存组织——《深入Linux内核">
+<meta property="og:image" content="http://hi.csdn.net/attachment/201109/29/0_13172773353dww.gif">
+<meta property="og:image" content="http://img.educity.cn/img_21/359/2014062610/4737100030.jpg">
+<meta property="og:image" content="http://www.2cto.com/uploadfile/Collfiles/20140211/2014021108533285.png">
+<meta property="og:image" content="http://hi.csdn.net/attachment/201201/11/0_1326286877mKUk.gif">
+<meta property="og:updated_time" content="2016-04-01T21:49:05.064Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内存管理">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-02
+主要参考
+
+kernel v2.6.32.6
+ULK3
+LKD3
+深入Linux内核架构
+《深入Linux内核架构》笔记：(N)UMA模型中的内存组织
+(N)UMA模型中的内存组织
+(N)UMA 模型中的内存组织——《深入Linux内核">
+<meta name="twitter:image" content="http://hi.csdn.net/attachment/201109/29/0_13172773353dww.gif">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/04/02/20160402-lk-mm/"/>
+
+  <title> Linux内存管理 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux内存管理
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-04-02T05:48:12+08:00" content="2016-04-02">
+              2016-04-02
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux内核/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux内核</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/04/02/20160402-lk-mm/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/04/02/20160402-lk-mm/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-02</p>
+<p>主要参考</p>
+<ul>
+<li>kernel v2.6.32.6</li>
+<li>ULK3</li>
+<li>LKD3</li>
+<li>深入Linux内核架构</li>
+<li><a href="http://www.educity.cn/linux/1607814.html" target="_blank" rel="external">《深入Linux内核架构》笔记：(N)UMA模型中的内存组织</a></li>
+<li><a href="http://blog.chinaunix.net/uid-8430507-id-3345961.html" target="_blank" rel="external">(N)UMA模型中的内存组织</a></li>
+<li><a href="http://blog.csdn.net/daniel_ice/article/details/6833835" target="_blank" rel="external">(N)UMA 模型中的内存组织——《深入Linux内核架构》笔记</a></li>
+</ul>
+<a id="more"></a>
+<h1 id="总论"><a href="#总论" class="headerlink" title="总论"></a>总论</h1><p>有关Linux内存管理的介绍，ULK3的体系整理我目前觉得是最好的。</p>
+<p>参考ULK3的第八章-内存管理</p>
+<ul>
+<li><p>页框管理(Page Frame Management)，这里主要是介绍内核是如何对物理内存页进行管理的（buddy system algorithm）。以及内核开发时如何申请和释放以页为单位的内存块。以物理页分配内存是所有内存管理的基础。</p>
+</li>
+<li><p>内存区管理(Memory Area Management)，这里主要是介绍内核在buddy算法的基础上引入的slab内存分配机制来支持小颗粒内存块(few tens or hundreds of bytes)的申请和释放。</p>
+</li>
+<li><p>非连续内存区管理(Noncontiguous Memory Area Management)，vmalloc。</p>
+</li>
+</ul>
+<p>这篇笔记就以上三点中内核所采用的机制记录一下自己的理解。</p>
+<h1 id="物理页的管理"><a href="#物理页的管理" class="headerlink" title="物理页的管理"></a>物理页的管理</h1><p>网上文章：</p>
+<ul>
+<li><a href="http://blog.csdn.net/geekcome/article/details/6591412" target="_blank" rel="external">内存管理简介之Buddy算法和slab分配</a></li>
+<li><a href="http://blog.csdn.net/goodluckwhh/article/details/9989695" target="_blank" rel="external">linux内核内存管理学习之二（物理内存管理–伙伴系统）</a></li>
+<li><a href="http://www.cnblogs.com/Fredric-2013/p/3182862.html" target="_blank" rel="external">Linux 2.6 源码学习-内存管理-buddy算法</a></li>
+</ul>
+<h2 id="涉及的内核主要数据结构"><a href="#涉及的内核主要数据结构" class="headerlink" title="涉及的内核主要数据结构"></a>涉及的内核主要数据结构</h2><p>linux 2.6的内存管理支持NUMA(Non Uniform Memory Access Achitecture)，即非一致内存访问体系，在该体系中存在多个CPU，并且拥有分离的存储器以及共享存储器。UMA和NUMA模式的区别可以参考如下图。内核对一致和非一致内存访问系统使用相同的数据结构，在UMA系统上，退化为只使用一个NUMA节点来管理整个系统内存。</p>
+<p><img src="http://hi.csdn.net/attachment/201109/29/0_13172773353dww.gif" alt=""></p>
+<p>更多有关NUMA，可以参考<a href="/2016/03/26/20160326-mem-shared-arch/">多处理器并行运算中的内存共享方式</a>。</p>
+<p>Linux的内核设计采取了”节点”、”域”、”页”三级结构来描述物理内存。从上往下，首先内在划分为节点(node)。每一个CPU的可访问内存定义为一个内存节点，在内核中表示为<code>pg_data_t</code>的结构。各个节点又划分为内存域(zone)，域的划分完全是在逻辑上根据功能对内存区域的进一步细分。每个域由多个物理页(page)构成。大致如下图所示，其对应的内核结构体类型在下面再详细描述：</p>
+<p><img src="http://img.educity.cn/img_21/359/2014062610/4737100030.jpg" alt=""></p>
+<p>核心数据结构如下：</p>
+<h3 id="内存节点pg-data-t"><a href="#内存节点pg-data-t" class="headerlink" title="内存节点pg_data_t"></a>内存节点<code>pg_data_t</code></h3><p><code>&lt;include/linux/mmzone.h&gt;</code></p>
+<pre><code>/*
+ * The pg_data_t structure is used in machines with CONFIG_DISCONTIGMEM
+ * (mostly NUMA machines?) to denote a higher-level memory zone than the
+ * zone denotes.
+ *
+ * On NUMA machines, each NUMA node would have a pg_data_t to describe
+ * it&apos;s memory layout.
+ *
+ * Memory statistics and page replacement data structures are maintained on a
+ * per-zone basis.
+ */
+struct bootmem_data;
+typedef struct pglist_data {
+    struct zone node_zones[MAX_NR_ZONES];
+    ...
+}
+</code></pre><p>有关<code>MAX_NR_ZONES</code></p>
+<p><code>&lt;include/linux/mmzone.h&gt;</code></p>
+<pre><code>enum zone_type {
+#ifdef CONFIG_ZONE_DMA
+    ...
+    ZONE_DMA,
+#endif
+#ifdef CONFIG_ZONE_DMA32
+    ...
+    ZONE_DMA32,
+#endif
+    ...
+    ZONE_NORMAL,
+#ifdef CONFIG_HIGHMEM
+    ...
+    ZONE_HIGHMEM,
+#endif
+    ZONE_MOVABLE,
+    __MAX_NR_ZONES
+};
+</code></pre><h3 id="域zone"><a href="#域zone" class="headerlink" title="域zone"></a>域<code>zone</code></h3><pre><code>struct zone {
+    ...
+    struct free_area    free_area[MAX_ORDER];
+
+    ...
+} ____cacheline_internodealigned_in_smp;
+</code></pre><p>free_area成员用于实现buddy伙伴系统，管理该区域中的空闲内存页。buddy算法的主要目标是要解决内存管理中著名的<code>external fragmentation</code>问题，即碎片化的问题。ULK3上对碎片化的问题的诠释如下：</p>
+<pre><code>In doing so, it must deal with a well-known memory management
+problem called external fragmentation: frequent requests and releases of groups
+of contiguous page frames of different sizes may lead to a situation in which several
+small blocks of free page frames are “scattered” inside blocks of allocated page
+frames. As a result, it may become impossible to allocate a large block of contiguous
+page frames, even if there are enough free pages to satisfy the request.
+</code></pre><p>有关buddy算法的概念，ULK3中的“The Buddy System Algorithm”章节的解释基本上说得很明白了。</p>
+<h3 id="页描述符page"><a href="#页描述符page" class="headerlink" title="页描述符page"></a>页描述符<code>page</code></h3><p><code>&lt;include/linux/mm_types.h&gt;</code></p>
+<pre><code>/*
+ * Each physical page in the system has a struct page associated with
+ * it to keep track of whatever it is we are using the page for at the
+ * moment. Note that we have no way to track which tasks are using
+ * a page, though if it is a pagecache page, rmap structures can tell us
+ * who is mapping it.
+ */
+struct page {
+    ...
+};
+</code></pre><p>需要注意的是这个结构体描述的是物理页，而不是虚拟页。系统中每个物理页都要分配一个这样的结构体。所有的页描述符(一个数组)由一个全局的指针变量<code>mem_map</code>所指向。参考<code>mm/memory.c</code></p>
+<pre><code>struct page *mem_map;
+
+...
+EXPORT_SYMBOL(mem_map);
+</code></pre><h2 id="整页管理内存的函数"><a href="#整页管理内存的函数" class="headerlink" title="整页管理内存的函数"></a>整页管理内存的函数</h2><p>按页分配属于内存分配的底层机制，所有这些接口都是以”页”为单位分配”连续”的”物理”内存。如果需要分配大块的内存，使用这些面向页的分配技术会更好些。这些函数都定义在<code>&lt;linux/gfp.h&gt;</code>，gfp是英文<code>get free pages</code>的缩写。</p>
+<p>核心代码是<code>__alloc_pages_nodemask()</code></p>
+<pre><code>/*
+ * This is the &apos;heart&apos; of the zoned buddy allocator.
+ */
+struct page *
+__alloc_pages_nodemask(gfp_t gfp_mask, unsigned int order,
+            struct zonelist *zonelist, nodemask_t *nodemask)
+{
+    ...
+}
+</code></pre><p>但我们常用的函数为</p>
+<ul>
+<li><code>alloc_pages()</code>: 表示在当前(current)节点上分配指定个数的物理页</li>
+<li><code>alloc_page()</code>: 更简单，直接在当前节点上只分配一个物理页。<br>这两个函数执行成功后返回的是指向第一个页的地址。</li>
+</ul>
+<p>可以使用下面这个函数将上面的返回结果转化为其对应的逻辑地址。</p>
+<ul>
+<li><code>void *page_address(struct page *page);</code></li>
+</ul>
+<p>也可以在获取页时直接得到逻辑地址，对应<code>alloc_pages()</code>和<code>alloc_page()</code>有两个函数：</p>
+<ul>
+<li><code>__get_free_pages()</code></li>
+<li><code>__get_free_page()</code></li>
+<li><code>get_zeroed_page()</code>: 只分配一页，并将该页清零，譬如将分配的该页是准备给用户空间的，可以用于保障系统安全。</li>
+</ul>
+<p>释放页：</p>
+<ul>
+<li><code>__free_pages()</code>: 按照page释放</li>
+<li><code>free_pages()</code>: 按照虚拟地址释放</li>
+<li><code>free_page()</code>: 按照虚拟地址释放，只释放一页。</li>
+</ul>
+<h1 id="内存区管理"><a href="#内存区管理" class="headerlink" title="内存区管理"></a>内存区管理</h1><p>网上参考文献</p>
+<ul>
+<li><a href="http://www.aiuxian.com/article/p-766909.html" target="_blank" rel="external">Linux slab 分配器剖析</a> 这篇文章写得不错哦。</li>
+<li><a href="http://www.linuxidc.com/Linux/2013-08/88803.htm" target="_blank" rel="external">Linux2.6中的Slab层</a> - LKD3的12.6章节的翻译。</li>
+<li><a href="http://blog.csdn.net/bullbat/article/details/7194794" target="_blank" rel="external">Linux内存管理之slab机制（概述）</a></li>
+<li><a href="http://blog.csdn.net/u010246947/article/details/10133101" target="_blank" rel="external">详解slab机制(1) slab是什么</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_65373f1401017o4v.html" target="_blank" rel="external">linux kernel学习笔记-2 slab分配器</a></li>
+</ul>
+<p>参考ULK3的描述：</p>
+<pre><code>The buddy system algorithm adopts the page frame as the basic memory area. This is
+fine for dealing with relatively large memory requests, but how are we going to deal
+with requests for small memory areas, say a few tens or hundreds of bytes?
+
+Clearly, it would be quite wasteful to allocate a full page frame to store a few bytes. A
+better approach instead consists of introducing new data structures that describe
+how small memory areas are allocated within the same page frame. In doing so, we
+introduce a new problem called internal fragmentation. It is caused by a mismatch
+between the size of the memory request and the size of the memory area allocated to
+satisfy the request.
+</code></pre><p>有了伙伴系统buddy，我们可以以页为单位获取连续的物理内存了，即4K为单位的获取，但如果需要频繁的获取/释放并不大的连续物理内存怎么办，如几十字节几百字节的获取/释放，这样的话用buddy就不太合适了，这就引出了slab。</p>
+<p>简而言之，buddy系统适合分配page（4k）为单位的内存，而slab系统适合分配更小的内存，slab是基于buddy开发，会先向buddy申请再细分后分配给用户。</p>
+<p>ULK3和LKD3都有对slab的描述，但个人觉得LKD3的介绍比较通俗易懂。所以主要参考LKD3的12.6章节。</p>
+<h2 id="slab高速缓存机制介绍"><a href="#slab高速缓存机制介绍" class="headerlink" title="slab高速缓存机制介绍"></a>slab高速缓存机制介绍</h2><p>slab高速缓存机制可以参考LKD3“12.6.1 slab层的设计”的描述。分为三层结构：高速缓存-slab-对象，也可以参考下图</p>
+<p>slab结构的高层组织结构。在最高层是<code>cache_chain</code>，这是一个slab缓存的链接列表。具体参考<code>mm/slab.c</code>文件：</p>
+<pre><code>/*
+ * Guard access to the cache-chain.
+ */
+static DEFINE_MUTEX(cache_chain_mutex);
+static struct list_head cache_chain;
+</code></pre><p>这对于<code>best-fit</code>算法非常有用，可以用来查找最适合所需要的分配大小的缓存（遍历列表）。<code>cache_chain</code>的每个元素都是一个 <code>kmem_cache</code>结构的引用（称为一个高速缓存cache）。它定义了一个要管理的给定大小的对象池。</p>
+<p>这些高速缓存又被划分为slab。slab由一个或多个物理上连续的页组成。一般情况下，slab也就仅仅一页。每个高速缓存可以由多个slab组成。每个被划分成一个个对象。这些对象是从特定缓存中进行分配和释放的基本元素。</p>
+<p>这些slab被组织为三个slabs链表。</p>
+<ul>
+<li>slabs_full：完全分配的slab</li>
+<li>slabs_partial：部分分配的slab</li>
+<li>slabs_empty：空 slab，或者没有对象被分配</li>
+</ul>
+<p>当内核的某一部分需要一个对象时，就要由slab分配了，首先考虑的是部分满的slab，如果不存在部分满的slab则去空的slab分配，如果也不存在空的slab，则内核需要申请页重新分配高速缓存。</p>
+<p>由于对象是从slab中进行分配和释放的，因此单个slab可以在slab链表之间进行移动。例如，当一个slab中的所有对象都被使用完时，就从<code>slabs_partial</code>链表中移动到<code>slabs_full</code>链表中。当一个已经完全被分配的slab中有对象被释放后，就从<code>slabs_full</code>链表中移动到<code>slabs_partial</code>链表中。当其所有对象都被释放之后，就从<code>slabs_partial</code>链表移动到<code>slabs_empty</code>链表中。</p>
+<p>注意<code>slabs_empty</code>列表中的slab是进行回收（reaping）的主要备选对象。正是通过此过程，slab所使用的内存才能被返回给操作系统供其他用户使用。</p>
+<p><img src="http://www.2cto.com/uploadfile/Collfiles/20140211/2014021108533285.png" alt=""></p>
+<p>每个高速缓存都用<code>kmem_cache</code>结构体来表示。这个结构体定义在三个头文件中，<code>&lt;linux/slub_def.h&gt;</code>,<code>&lt;linux/slob_def.h&gt;</code>和<code>&lt;linux/slab_def.h&gt;</code>。具体可以参考<code>&lt;linux/slab.h&gt;</code>，在这个文件中有这么一段代码：</p>
+<pre><code>/*
+ * Allocator specific definitions. These are mainly used to establish optimized
+ * ways to convert kmalloc() calls to kmem_cache_alloc() invocations by
+ * selecting the appropriate general cache at compile time.
+ * ...
+ * See each allocator definition file for additional comments and
+ * implementation notes.
+ */
+#ifdef CONFIG_SLUB
+#include &lt;linux/slub_def.h&gt;
+#elif defined(CONFIG_SLOB)
+#include &lt;linux/slob_def.h&gt;
+#else
+#include &lt;linux/slab_def.h&gt;
+#endif
+</code></pre><p>SLUB分配器：在打开<code>CONFIG_SLUB</code>时，内核会使用SLUB分配器。这是一个精简版本的SLAB，slub分配器保留了slab分配器的所有接口，实际上slub分配器的模型和slab分配的模型是基本一致的，只不过在一些地方进行了精简，这也使得slub分配器工作起来更为游刃有余。具体参考<a href="http://www.linuxidc.com/Linux/2012-06/63886.htm" target="_blank" rel="external">Linux Slub分配器</a></p>
+<p>SLOB分配器：在打开<code>CONFIG_SLOB</code>时，内核会使用SLOB分配器。对于小型的嵌入式系统来说，存在一个slab模拟层，名为 SLOB。这个slab的替代品在小型嵌入式Linux系统中具有优势，但是即使它保存了512KB内存，依然存在碎片和难于扩展的问题。<br>意思是针对kmalloc函数的优化，，我们可以直接看<code>&lt;linux/slab_def.h&gt;</code>。</p>
+<p>slab对应的结构体为<code>slab</code>,定义在<code>mm/slab.c</code>中。</p>
+<h2 id="内核中对slab分配器的使用"><a href="#内核中对slab分配器的使用" class="headerlink" title="内核中对slab分配器的使用"></a>内核中对slab分配器的使用</h2><p>内核中的高速缓存可以分为两大类，</p>
+<ul>
+<li><p>第一类，我们叫做通用缓存，也就是我们可以用<code>kmalloc()/kfree()</code>分配的内存，通过kmalloc分配的对象叫作通用数据对象。kmalloc使用的对象按照大小分属不同的cache，32、64、128、……，每种大小对应两个cache节点，一个用于DMA，一个用于普通分配。</p>
+</li>
+<li><p>第二类，专用缓存，一些频繁创建和释放对象的子系统可以利用slab管理器建立<strong>专用</strong>的高速缓存来管理内存的分配，搜索关键字<code>kmem_cache_create()</code>可以看到内核代码中很多子系统和子模块都利用这套机制管理小内存对象。</p>
+</li>
+</ul>
+<p>参考下图所示：<br><img src="http://hi.csdn.net/attachment/201201/11/0_1326286877mKUk.gif" alt=""></p>
+<p>对于一些子系统利用slab层的专用高速缓存，以inode使用slab为例：，具体参考<code>fs/inode.c</code></p>
+<pre><code>static struct kmem_cache *inode_cachep __read_mostly;
+
+void __init inode_init(void)
+{
+    int loop;
+
+    /* inode slab cache */
+    inode_cachep = kmem_cache_create(&quot;inode_cache&quot;,
+                     sizeof(struct inode),
+                     0,
+                     (SLAB_RECLAIM_ACCOUNT|SLAB_PANIC|
+                     SLAB_MEM_SPREAD),
+
+    ...
+}
+
+
+
+static struct inode *alloc_inode(struct super_block *sb)
+{
+    struct inode *inode;
+
+    if (sb-&gt;s_op-&gt;alloc_inode)
+        inode = sb-&gt;s_op-&gt;alloc_inode(sb);
+    else
+        inode = kmem_cache_alloc(inode_cachep, GFP_KERNEL);
+    ...
+}
+
+void destroy_inode(struct inode *inode)
+{
+    __destroy_inode(inode);
+    if (inode-&gt;i_sb-&gt;s_op-&gt;destroy_inode)
+        inode-&gt;i_sb-&gt;s_op-&gt;destroy_inode(inode);
+    else
+        kmem_cache_free(inode_cachep, (inode));
+}
+</code></pre><p>proc文件系统提供了一种简单的方法来监视系统中所有活动的slab缓存。这个文件称为<code>/proc/slabinfo</code>，它除了提供一些可以从用户空间访问的可调整参数之外，还提供了有关所有slab缓存的详细信息。当前版本的对于系统中的每个slab缓存来说，这个文件提供了对象数量、活动对象数量以及对象大小的信息（除了每个 slab 的对象和页面之外）。另外还提供了一组可调整的参数和 slab 数据。</p>
+<p>总之，如果我们要频繁创建很多相同类型的对象，那么就应该考虑使用slab高速缓存，不用自己开发自己的管理机制。</p>
+<h1 id="非连续内存区管理"><a href="#非连续内存区管理" class="headerlink" title="非连续内存区管理"></a>非连续内存区管理</h1><ul>
+<li>vmalloc</li>
+<li>vfree</li>
+</ul>
+<p>vmalloc和kmalloc的区别：</p>
+<ul>
+<li>kmalloc保证分配的内存在物理上是连续的,vmalloc保证的是在虚拟地址空间上的连续</li>
+<li>kmalloc能分配的大小有限,vmalloc能分配的大小相对较大</li>
+<li>vmalloc比kmalloc要慢</li>
+<li>kmallloc使用的是slab内存分配机制，而vmalloc使用的是伙伴系统分配机制，这也是造成它们区别的根本所在</li>
+</ul>
+<p>从性能考虑，内核代码中主要使用kmalloc来分配内存，而不是vmalloc，具体参考LKD3的12.5章节。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/memory-management/" rel="tag">#memory management</a>
+          
+            <a href="/tags/slab/" rel="tag">#slab</a>
+          
+            <a href="/tags/buddy/" rel="tag">#buddy</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/03/26/20160326-mem-shared-arch/" rel="next" title="多处理器并行运算中的内存共享方式">
+                <i class="fa fa-chevron-left"></i> 多处理器并行运算中的内存共享方式
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/04/04/20160404-mini2440-dev-env-setup/" rel="prev" title="mini2440开发环境搭建总结">
+                mini2440开发环境搭建总结 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/04/02/20160402-lk-mm/"
+           data-title="Linux内存管理" data-url="http://unicornx.github.io/2016/04/02/20160402-lk-mm/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#总论"><span class="nav-number">1.</span> <span class="nav-text">总论</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#物理页的管理"><span class="nav-number">2.</span> <span class="nav-text">物理页的管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#涉及的内核主要数据结构"><span class="nav-number">2.1.</span> <span class="nav-text">涉及的内核主要数据结构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#内存节点pg-data-t"><span class="nav-number">2.1.1.</span> <span class="nav-text">内存节点pg_data_t</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#域zone"><span class="nav-number">2.1.2.</span> <span class="nav-text">域zone</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#页描述符page"><span class="nav-number">2.1.3.</span> <span class="nav-text">页描述符page</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#整页管理内存的函数"><span class="nav-number">2.2.</span> <span class="nav-text">整页管理内存的函数</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#内存区管理"><span class="nav-number">3.</span> <span class="nav-text">内存区管理</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#slab高速缓存机制介绍"><span class="nav-number">3.1.</span> <span class="nav-text">slab高速缓存机制介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#内核中对slab分配器的使用"><span class="nav-number">3.2.</span> <span class="nav-text">内核中对slab分配器的使用</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#非连续内存区管理"><span class="nav-number">4.</span> <span class="nav-text">非连续内存区管理</span></a></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

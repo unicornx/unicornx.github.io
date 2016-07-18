@@ -1,0 +1,750 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="hexo," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-11-29
+仅仅是个过程的记录，以便以后再重做一次时会快一点。
+主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在github上利用hexo自制blog站点的过程总结">
+<meta property="og:url" content="http://unicornx.github.io/2015/11/29/20150620-sum-construct-hexo-blog-on-github/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-11-29
+仅仅是个过程的记录，以便以后再重做一次时会快一点。
+主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系">
+<meta property="og:updated_time" content="2016-03-18T23:02:48.598Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在github上利用hexo自制blog站点的过程总结">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2015-11-29
+仅仅是个过程的记录，以便以后再重做一次时会快一点。
+主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2015/11/29/20150620-sum-construct-hexo-blog-on-github/"/>
+
+  <title> 在github上利用hexo自制blog站点的过程总结 | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                在github上利用hexo自制blog站点的过程总结
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2015-11-29T10:34:35+08:00" content="2015-11-29">
+              2015-11-29
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/internet/" itemprop="url" rel="index">
+                    <span itemprop="name">internet</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2015/11/29/20150620-sum-construct-hexo-blog-on-github/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2015/11/29/20150620-sum-construct-hexo-blog-on-github/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2015-11-29</p>
+<p>仅仅是个过程的记录，以便以后再重做一次时会快一点。</p>
+<h1 id="主要的参考文章："><a href="#主要的参考文章：" class="headerlink" title="主要的参考文章："></a>主要的参考文章：</h1><p><a href="http://defcon.cn/2119.html" target="_blank" rel="external">在Windows下搭建nodejs环境以及配置npm</a><br><a href="http://defcon.cn/2152.html" target="_blank" rel="external">使用Hexo在github上搭建静态博客</a><br><a href="http://my.oschina.net/JeeChou/blog/219699" target="_blank" rel="external">Windows环境下的NodeJS+NPM+Bower安装配置步骤</a><br><a href="http://zipperary.com/categories/hexo/" target="_blank" rel="external">hexo系列教程</a><br><a href="http://www.tuicool.com/articles/AfQnQjy" target="_blank" rel="external">hexo你的博客</a></p>
+<p>下面这些个留着以后在ubuntu上搭环境的时候再看：<br><a href="http://blog.maxwi.com/2014/02/22/first-post/" target="_blank" rel="external">Ubuntu+hexo+github搭建个人博客环境及hexo配置</a><br><a href="http://m.blog.csdn.net/blog/u012366161/42059813" target="_blank" rel="external">[原]Ubuntu下用Hexo搭建个人博客及常见问题的解决方案</a></p>
+<a id="more"></a>
+<h1 id="工作环境："><a href="#工作环境：" class="headerlink" title="工作环境："></a>工作环境：</h1><p>Windows XP/Windows 7</p>
+<h1 id="预置条件："><a href="#预置条件：" class="headerlink" title="预置条件："></a>预置条件：</h1><p>Windows上已经安装git</p>
+<p>已经在github上创建好pages</p>
+<h1 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h1><h2 id="step-1-install-node-js"><a href="#step-1-install-node-js" class="headerlink" title="step 1: install node.js"></a>step 1: install node.js</h2><p>download latest installation package from nidejs homepage</p>
+<h2 id="step-2-open-git-bash"><a href="#step-2-open-git-bash" class="headerlink" title="step 2: open git-bash"></a>step 2: open git-bash</h2><p>为了加速访问，很多国外的源由于被墙的原因，速度很慢。幸好有一个国内的镜像，输入如下指令设置国内的源：</p>
+<pre><code>$ npm config set registry http://registry.cnpmjs.org
+</code></pre><p><strong>20150724更新，今天在一台干净的机器上重新做了一遍，做到这步发现不同。</strong></p>
+<p><strong>首先是设置了<code>http://registry.cnpmjs.org</code>的源后老是下不来，所以上<code>http://cnpmjs.org/</code>去看了一下，不知道是不是更新了还是咋的，反正我根据网页的提示”中国用户请访问国内镜像站点”，点击后就来到了<code>https://npm.taobao.org/</code>。按照提示我更新了源如下：</strong></p>
+<pre><code>$ npm config set registry https://registry.npm.taobao.org/
+</code></pre><p><strong>然后执行步骤照常，唯一的区别是原来的第4步不需要做了，其实我觉得也是，干嘛要自己设置环境变量呢。</strong></p>
+<p><strong>20151129更新，今天在一台干净的Windows7机器上重新做了一遍，也发现只要设置taobao的源即可，同时第4步不需要做。</strong></p>
+<p>关闭bash：close git-bash<br>参考：<a href="http://www.xuanfengge.com/npm-installation-did-not-succeed-and-github-will-not-open-solutions.html" target="_blank" rel="external">Npm包下载不成功及Github打不开解决方案</a></p>
+<h2 id="step-3-install-hexo"><a href="#step-3-install-hexo" class="headerlink" title="step 3: install hexo"></a>step 3: install hexo</h2><p>open git-bash, 使新的源设置生效</p>
+<pre><code>$ npm install -g hexo
+</code></pre><p>close git-bash</p>
+<h2 id="step-4-set-env-vars（这一步最新的尝试发现可以不做）"><a href="#step-4-set-env-vars（这一步最新的尝试发现可以不做）" class="headerlink" title="step 4: set env vars（这一步最新的尝试发现可以不做）"></a>step 4: set env vars（这一步最新的尝试发现可以不做）</h2><p><strong>20150724更新，用了最新的源后这步不做也可以。</strong><br>add hexo 执行路径 to env PATH<br>C:\Program Files\nodejs\node_global\node_modules\hexo\bin<br>add new env var NODE_PATH=C:\Program Files\nodejs\node_global\node_modules</p>
+<h2 id="step-5-verify-hexo-works"><a href="#step-5-verify-hexo-works" class="headerlink" title="step 5: verify hexo works"></a>step 5: verify hexo works</h2><p>open git-bash 使新的env vars生效</p>
+<pre><code>$ hexo version
+</code></pre><p><strong>20150724更新，用了最新的源后下面这步不做也可以，似乎也没有啥问题。</strong></p>
+<pre><code>$ node
+&gt; require(&apos;hexo&apos;) // this will see the hexo vesion is 3.1.1
+</code></pre><h2 id="step-6-init-hexo"><a href="#step-6-init-hexo" class="headerlink" title="step 6: init hexo"></a>step 6: init hexo</h2><pre><code>$ cd myblog //进入你blog工作目录的主目录
+$ hexo init
+$ npm install
+$ npm install hexo-deployer-git --save 
+</code></pre><p>参考<a href="http://www.v2ex.com/t/175940" target="_blank" rel="external">install deployer for v3, in current folder</a></p>
+<h2 id="step-7-configure-site"><a href="#step-7-configure-site" class="headerlink" title="step 7: configure site"></a>step 7: configure site</h2><ul>
+<li>title: # 修改为blog站点的标题</li>
+<li>subtitle: #修改为blog站点的副标题</li>
+<li>description: #修改为blog站点的描述，可以被搜索引擎作为关键字搜索</li>
+<li>author: # 站点作者名字，会显示在主页页脚位置</li>
+<li>email: # 站点作者的电子邮件联系方式，</li>
+<li>language: # 站点显示的文字编码格式，我这里使用的是zh-Hans，主要是和我使用的主题是next有关，详细参考<a href="https://github.com/iissnan/hexo-theme-next/wiki/%E8%AE%BE%E7%BD%AE%E8%AF%AD%E8%A8%80" target="_blank" rel="external">next特性-设置语言</a></li>
+<li>url: # 修改为本站点的URL</li>
+<li>deploy:<br>如果你的git仓库使用的是github，那么可以做如下配置：<br>type: git<br>repository: #你的github上project的URL，一般形如：<a href="https://github.com/yourusername/yourusername.github.io.git" target="_blank" rel="external">https://github.com/yourusername/yourusername.github.io.git</a><br>branch: master<br>如果你的git仓库使用的是gitcafe，那么可以做如下配置：<br>type: git<br>repository: #你的github上project的URL，一般形如：git@gitcafe.com:yourusernamx/yourusernam.git<br>branch: gitcafe-pages</li>
+</ul>
+<h2 id="step-8-compile-site-code"><a href="#step-8-compile-site-code" class="headerlink" title="step 8: compile site code"></a>step 8: compile site code</h2><pre><code>$ hexo clean 
+$ hexo g
+</code></pre><h2 id="step-9-publish"><a href="#step-9-publish" class="headerlink" title="step 9: publish"></a>step 9: publish</h2><pre><code>$ hexo d
+</code></pre><p>完成后上网站看看：<a href="http://unicornx.github.io/">http://unicornx.github.io/</a></p>
+<h1 id="后继的一些站点配置工作总结"><a href="#后继的一些站点配置工作总结" class="headerlink" title="后继的一些站点配置工作总结"></a>后继的一些站点配置工作总结</h1><h2 id="设置主题-theme"><a href="#设置主题-theme" class="headerlink" title="设置主题/theme"></a>设置主题/theme</h2><p>我选择了是next，具体参考<a href="https://github.com/iissnan/hexo-theme-next" target="_blank" rel="external">next on github</a></p>
+<p>下载了该主题后，相关代码都放在”themes/next”下。<br>首先修改：开启紧凑模式，将主题配置文件”themes/next/_config.yml”中的</p>
+<pre><code>#scheme: Mist
+</code></pre><p>前的 # 去掉</p>
+<h2 id="支持文章分类"><a href="#支持文章分类" class="headerlink" title="支持文章分类"></a>支持文章分类</h2><p>有关如何设置自己的文章分类和标签的一篇文章<a href="http://www.cnblogs.com/holbrook/archive/2012/11/05/2755268.html" target="_blank" rel="external">如何规划blog的标签（tag）和分类</a>，但个人感觉写得过于理论化了。</p>
+<p>参考<a href="https://github.com/iissnan/hexo-theme-next/wiki/%E5%88%9B%E5%BB%BA%E5%88%86%E7%B1%BB%E9%A1%B5%E9%9D%A2" target="_blank" rel="external">next-创建分类页面</a><br>以后在编辑文章时，可以在categories添加分类名称<br>一个类别的例子：</p>
+<pre><code>categories: [internet]
+</code></pre><p>多个类别：</p>
+<pre><code>categories: [internet, tools]
+</code></pre><h2 id="支持标签"><a href="#支持标签" class="headerlink" title="支持标签"></a>支持标签</h2><p>参考<a href="https://github.com/iissnan/hexo-theme-next/wiki/%E5%88%9B%E5%BB%BA%E6%A0%87%E7%AD%BE%E4%BA%91%E9%A1%B5%E9%9D%A2" target="_blank" rel="external">next-创建标签云页面</a><br>以后在编辑文章时，可以在tags后添加标签名称<br>一个标签的例子：</p>
+<pre><code>tags: [hexo]
+</code></pre><p>多个标签：</p>
+<pre><code>tags: [hexo, git]
+</code></pre><h2 id="设置侧边栏头像"><a href="#设置侧边栏头像" class="headerlink" title="设置侧边栏头像"></a>设置侧边栏头像</h2><p>参考<a href="https://github.com/iissnan/hexo-theme-next/wiki/%E8%AE%BE%E7%BD%AE%E4%BE%A7%E8%BE%B9%E6%A0%8F%E5%A4%B4%E5%83%8F" target="_blank" rel="external">next-设置侧边栏头像</a></p>
+<h2 id="修改你编辑网站文件的模版"><a href="#修改你编辑网站文件的模版" class="headerlink" title="修改你编辑网站文件的模版"></a>修改你编辑网站文件的模版</h2><p>在你blog工作目录的scaffolds下有三个文件：</p>
+<ul>
+<li>draft.md # 草稿文章模版</li>
+<li>page.md #页面模版</li>
+<li>post.md # 发布文章的模版</li>
+</ul>
+<p>以post.md为例，这个模版会影响如下行为：<br>当我们要发布文章时，需要在工作目录下运行如下命令：</p>
+<pre><code>hexo new [template] “文章名字”
+</code></pre><p>template不写则缺省为post，命令执行完后会在”source/_posts”目录下生成同名的md文件，譬如：文章名字.md，缺省内容就是从scaffolds/post.md拷贝过来的。<br>我喜欢的模版样式： </p>
+<pre><code>title: {{ title }} # 这里会自动插入文章名字
+date: {{ date }} # 这里会自动插入new文章时的时间
+categories:
+tags:
+--- # 其后为正文
+
+&lt;!--more--&gt; # 这个可以用来做出“Read More”的效果，在这行前编辑的正文会显示在页面上，这行后编辑的正文则隐藏，点击“Read More”后会跳转到本文页面继续显示。
+</code></pre>
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/hexo/" rel="tag">#hexo</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2015/11/27/20151031-my-translated-articles/" rel="next" title="已经发表了的我的翻译文章集合">
+                <i class="fa fa-chevron-left"></i> 已经发表了的我的翻译文章集合
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2015/11/29/20151129-chrome-plugin/" rel="prev" title="我最喜欢的Chrome插件及其安装方法">
+                我最喜欢的Chrome插件及其安装方法 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2015/11/29/20150620-sum-construct-hexo-blog-on-github/"
+           data-title="在github上利用hexo自制blog站点的过程总结" data-url="http://unicornx.github.io/2015/11/29/20150620-sum-construct-hexo-blog-on-github/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#主要的参考文章："><span class="nav-number">1.</span> <span class="nav-text">主要的参考文章：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#工作环境："><span class="nav-number">2.</span> <span class="nav-text">工作环境：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#预置条件："><span class="nav-number">3.</span> <span class="nav-text">预置条件：</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#步骤"><span class="nav-number">4.</span> <span class="nav-text">步骤</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#step-1-install-node-js"><span class="nav-number">4.1.</span> <span class="nav-text">step 1: install node.js</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#step-2-open-git-bash"><span class="nav-number">4.2.</span> <span class="nav-text">step 2: open git-bash</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#step-3-install-hexo"><span class="nav-number">4.3.</span> <span class="nav-text">step 3: install hexo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#step-4-set-env-vars（这一步最新的尝试发现可以不做）"><span class="nav-number">4.4.</span> <span class="nav-text">step 4: set env vars（这一步最新的尝试发现可以不做）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#step-5-verify-hexo-works"><span class="nav-number">4.5.</span> <span class="nav-text">step 5: verify hexo works</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#step-6-init-hexo"><span class="nav-number">4.6.</span> <span class="nav-text">step 6: init hexo</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#step-7-configure-site"><span class="nav-number">4.7.</span> <span class="nav-text">step 7: configure site</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#step-8-compile-site-code"><span class="nav-number">4.8.</span> <span class="nav-text">step 8: compile site code</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#step-9-publish"><span class="nav-number">4.9.</span> <span class="nav-text">step 9: publish</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#后继的一些站点配置工作总结"><span class="nav-number">5.</span> <span class="nav-text">后继的一些站点配置工作总结</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#设置主题-theme"><span class="nav-number">5.1.</span> <span class="nav-text">设置主题/theme</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#支持文章分类"><span class="nav-number">5.2.</span> <span class="nav-text">支持文章分类</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#支持标签"><span class="nav-number">5.3.</span> <span class="nav-text">支持标签</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#设置侧边栏头像"><span class="nav-number">5.4.</span> <span class="nav-text">设置侧边栏头像</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#修改你编辑网站文件的模版"><span class="nav-number">5.5.</span> <span class="nav-text">修改你编辑网站文件的模版</span></a></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>

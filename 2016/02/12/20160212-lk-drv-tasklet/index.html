@@ -1,0 +1,991 @@
+<!doctype html>
+
+
+
+  
+
+
+<html class="theme-next mist use-motion">
+<head>
+  <meta charset="UTF-8"/>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1"/>
+
+
+
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta http-equiv="Cache-Control" content="no-siteapp" />
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <link href="/vendors/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css" />
+
+
+
+
+  
+  
+  
+  
+
+  
+    
+    
+  
+
+  
+
+  
+
+  
+
+  
+
+  
+    
+    
+    <link href="//fonts.googleapis.com/css?family=Lato:300,300italic,400,400italic,700,700italic&subset=latin,latin-ext" rel="stylesheet" type="text/css">
+  
+
+
+
+
+
+
+<link href="/vendors/font-awesome/css/font-awesome.min.css?v=4.4.0" rel="stylesheet" type="text/css" />
+
+<link href="/css/main.css?v=5.0.1" rel="stylesheet" type="text/css" />
+
+
+  <meta name="keywords" content="linux,driver,tasklet," />
+
+
+
+
+
+
+
+
+  <link rel="shortcut icon" type="image/x-icon" href="/favicon.jpg?v=5.0.1" />
+
+
+
+
+
+
+<meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+
+LKD3
+LDD3
+Linux内核中的下半部机制之软中断(softirq) 
+文中有关tasklet会涉及到一些SMP的概念，baidu”smp 多处理器内存屏障”，会看到一些相关的文章，譬如Linux内核中的内存屏障以及b">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux内核中的下半部机制之tasklet">
+<meta property="og:url" content="http://unicornx.github.io/2016/02/12/20160212-lk-drv-tasklet/index.html">
+<meta property="og:site_name" content="Blog of UnicornX">
+<meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+
+LKD3
+LDD3
+Linux内核中的下半部机制之软中断(softirq) 
+文中有关tasklet会涉及到一些SMP的概念，baidu”smp 多处理器内存屏障”，会看到一些相关的文章，譬如Linux内核中的内存屏障以及b">
+<meta property="og:image" content="http://space.ednchina.com/Upload/Blog/2008/7/17/c03b6770-a29a-4f3b-843b-03023f10f6b0.JPG">
+<meta property="og:updated_time" content="2016-04-19T14:32:56.583Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux内核中的下半部机制之tasklet">
+<meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
+最新更新于：2016-04-19
+主要参考
+
+LKD3
+LDD3
+Linux内核中的下半部机制之软中断(softirq) 
+文中有关tasklet会涉及到一些SMP的概念，baidu”smp 多处理器内存屏障”，会看到一些相关的文章，譬如Linux内核中的内存屏障以及b">
+<meta name="twitter:image" content="http://space.ednchina.com/Upload/Blog/2008/7/17/c03b6770-a29a-4f3b-843b-03023f10f6b0.JPG">
+
+
+
+<script type="text/javascript" id="hexo.configuration">
+  var NexT = window.NexT || {};
+  var CONFIG = {
+    scheme: 'Mist',
+    sidebar: {"position":"left","display":"post"},
+    fancybox: true,
+    motion: true,
+    duoshuo: {
+      userId: 0,
+      author: '博主'
+    }
+  };
+</script>
+
+
+
+
+  <link rel="canonical" href="http://unicornx.github.io/2016/02/12/20160212-lk-drv-tasklet/"/>
+
+  <title> Linux内核中的下半部机制之tasklet | Blog of UnicornX </title>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans">
+
+  
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+  
+
+  <div class="container one-collumn sidebar-position-left page-post-detail ">
+    <div class="headband"></div>
+
+    <header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-meta ">
+  
+
+  <div class="custom-logo-site-title">
+    <a href="/"  class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <span class="site-title">Blog of UnicornX</span>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+  <p class="site-subtitle">On the way.</p>
+</div>
+
+<div class="site-nav-toggle">
+  <button>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+    <span class="btn-bar"></span>
+  </button>
+</div>
+
+<nav class="site-nav">
+  
+
+  
+    <ul id="menu" class="menu">
+      
+        
+        <li class="menu-item menu-item-home">
+          <a href="/" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-home"></i> <br />
+            
+            首页
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-categories">
+          <a href="/categories" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-th"></i> <br />
+            
+            分类
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-about">
+          <a href="/about" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-user"></i> <br />
+            
+            关于
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-archives">
+          <a href="/archives" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-archive"></i> <br />
+            
+            归档
+          </a>
+        </li>
+      
+        
+        <li class="menu-item menu-item-tags">
+          <a href="/tags" rel="section">
+            
+              <i class="menu-item-icon fa fa-fw fa-tags"></i> <br />
+            
+            标签
+          </a>
+        </li>
+      
+
+      
+    </ul>
+  
+
+  
+</nav>
+
+ </div>
+    </header>
+
+    <main id="main" class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          <div id="content" class="content">
+            
+
+  <div id="posts" class="posts-expand">
+    
+
+  
+  
+
+  
+  
+  
+
+  <article class="post post-type-normal " itemscope itemtype="http://schema.org/Article">
+
+    
+      <header class="post-header">
+
+        
+        
+          <h1 class="post-title" itemprop="name headline">
+            
+            
+              
+                Linux内核中的下半部机制之tasklet
+              
+            
+          </h1>
+        
+
+        <div class="post-meta">
+          <span class="post-time">
+            <span class="post-meta-item-icon">
+              <i class="fa fa-calendar-o"></i>
+            </span>
+            <span class="post-meta-item-text">发表于</span>
+            <time itemprop="dateCreated" datetime="2016-02-12T20:57:12+08:00" content="2016-02-12">
+              2016-02-12
+            </time>
+          </span>
+
+          
+            <span class="post-category" >
+              &nbsp; | &nbsp;
+              <span class="post-meta-item-icon">
+                <i class="fa fa-folder-o"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+              
+                <span itemprop="about" itemscope itemtype="https://schema.org/Thing">
+                  <a href="/categories/Linux驱动开发/" itemprop="url" rel="index">
+                    <span itemprop="name">Linux驱动开发</span>
+                  </a>
+                </span>
+
+                
+                
+
+              
+            </span>
+          
+
+          
+            
+              <span class="post-comments-count">
+                &nbsp; | &nbsp;
+                <a href="/2016/02/12/20160212-lk-drv-tasklet/#comments" itemprop="discussionUrl">
+                  <span class="post-comments-count ds-thread-count" data-thread-key="2016/02/12/20160212-lk-drv-tasklet/" itemprop="commentsCount"></span>
+                </a>
+              </span>
+            
+          
+
+          
+
+          
+          
+
+          
+        </div>
+      </header>
+    
+
+
+    <div class="post-body" itemprop="articleBody">
+
+      
+      
+
+      
+        <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
+<p>最新更新于：2016-04-19</p>
+<p>主要参考</p>
+<ul>
+<li>LKD3</li>
+<li>LDD3</li>
+<li><a href="/2016/02/11/20160211-lk-drv-softirq">Linux内核中的下半部机制之软中断(softirq)</a> </li>
+<li>文中有关tasklet会涉及到一些SMP的概念，baidu”smp 多处理器内存屏障”，会看到一些相关的文章，譬如<a href="http://www.linuxidc.com/Linux/2011-10/44623.htm" target="_blank" rel="external">Linux内核中的内存屏障</a>以及<a href="http://blog.csdn.net/xujianqun/article/details/7800813" target="_blank" rel="external">barrier 和 smp_mb</a></li>
+<li><a href="http://blog.sina.com.cn/s/blog_677166430101hpwd.html" target="_blank" rel="external">Linux tasklet 分析笔记</a> 有点老，应该是针对较早内核版本，但对tasklet部分的分析可以借鉴，BH部分在最新的内核里已经没有了。</li>
+<li><a href="http://bbs.chinaunix.net/forum.php?mod=viewthread&amp;action=printable&amp;tid=3725878" target="_blank" rel="external">tasklet_action的疑问</a></li>
+<li><a href="http://www.ibm.com/developerworks/library/l-tasklets/" target="_blank" rel="external">Kernel APIs, Part 2: Deferrable functions, kernel tasklets, and work queues</a> 一个简单的介绍，但后面有很多不错的参考文章。</li>
+<li><a href="http://www.kuqin.com/shuoit/20140104/337421.html" target="_blank" rel="external">tasklet原理</a>, 其中第一章节所描述的“一、tasklet解决什么问题？”有些描述比较中肯。</li>
+<li><a href="http://blog.csdn.net/zirconsdu/article/details/8440735" target="_blank" rel="external">linux tasklet和workqueue的应用情景</a></li>
+</ul>
+<a id="more"></a>
+<p>Tasklet机制是一种较为特殊的软中断。Tasklet一词的原意是“小片任务”的意思，这里是指一小段可执行的代码，且通常以函数的形式出现。但这个名字本身和内核中可调度的任务没有半毛钱的关系。</p>
+<p>参考<a href="/2016/02/11/20160211-lk-drv-softirq">Linux内核中的下半部机制之软中断(softirq)</a>，理解了软中断的实现机制后，再理解tasklet就简单了，因为tasklet也是一种软中断，考虑到优先级问题，分别占用了向量表(<code>softirq_vec</code>)中的<code>HI_SOFTIRQ</code>和<code>TASKLET_SOFTIRQ</code>两类软中断。tasklet机制的实现原理可以参考下图，这张图同样来自<a href="http://bbs.ednchina.com/BLOG_ARTICLE_135152.HTM" target="_blank" rel="external">Linux中软中断机制分析</a>。同样注意这篇文章认为执行软中断只有通过内核线程，而根据本文的分析这是不全面的，这里暂先不管它，这里只是通过这张图从整体上了解一下内核实现tasklet时涉及到哪些重要的对象。</p>
+<p><img src="http://space.ednchina.com/Upload/Blog/2008/7/17/c03b6770-a29a-4f3b-843b-03023f10f6b0.JPG" alt=""></p>
+<p>先结合这张图简单地描述一下<code>TASKLET_SOFTIRQ</code>这类软中断的处理机制，后面再展开。开发驱动模块时如果要使用tasklet，首先驱动模块自己要定义自己的tasklet(通过内核提供的接口)，包括定义自己驱动感兴趣的动作并以回调函数（图上的function）的方式记录在tasklet的结构体中，完成这些注册后，驱动模块可以在中断处理的上半部分触发<code>TASKLET_SOFTIRQ</code>软中断，触发的同时将自己定义的tasklet(包括回调函数的地址)加入到内核维护的一个tasklet的链表中，触发完成后，<code>tasklet_action</code>函数作为<code>TASKLET_SOFTIRQ</code>软中断的处理函数以下半部的形式在一个合适的推迟的时间点上被内核运行，该函数会扫描tasklett的链表，针对链表中的每一个预先注册的tasklet，调用回调函数function。</p>
+<p>从某种程度上讲，tasklet机制是Linux内核对软中断机制的一种<font color="red"><strong>扩展和封装</strong></font>。正是由于这种历史的延伸关系，使得tasklet机制与一般意义上的软中断有所不同，而呈现出以下两个显著的特点：</p>
+<ul>
+<li>特点1. 与一般的软中断不同，同一段tasklet代码（也就是对应某一个<code>tasklet_struct</code>对象的func函数）在某个时刻只能在一个CPU上运行，而不像一般的软中断服务函数（即<code>softirq_action</code>结构中的<code>action</code>函数指针）那样——在同一时刻可以被多个CPU并发地执行。</li>
+<li>特点2. 不同的tasklet代码在同一时刻可以在多个CPU上并发地执行。</li>
+</ul>
+<p>下面具体分析一下内核对tasklet的实现，特别解释一下是如何支持以上两个特点的。</p>
+<h1 id="构成tasklet的核心元素："><a href="#构成tasklet的核心元素：" class="headerlink" title="构成tasklet的核心元素："></a>构成tasklet的核心元素：</h1><h2 id="tasklet结构体tasklet-struct"><a href="#tasklet结构体tasklet-struct" class="headerlink" title="tasklet结构体tasklet_struct"></a>tasklet结构体<code>tasklet_struct</code></h2><p>驱动开发时直接使用<code>HI_SOFTIRQ</code>和<code>TASKLET_SOFTIRQ</code>这两类软中断太局限了，为了扩展性，内核允许我们定义自己的tasklet，tasklet由<code>tasklet_struct</code>结构体类型表示，每个结构体代表一个tasklet，在<linux interrupt.h="">中定义：</linux></p>
+<pre><code>struct tasklet_struct
+{
+    struct tasklet_struct *next;
+    unsigned long state;
+    atomic_t count;
+    void (*func)(unsigned long);
+    unsigned long data;
+};
+</code></pre><p>其中的成员：  </p>
+<ul>
+<li><code>next</code>：指向下一个tasklet的指针，说明这个结构体的成员会被加入到一个链表里。</li>
+<li><p><code>state</code>:用于标识tasklet状态，这一个无符号长整数，当前只使用了bit[1]和bit[0]两个状态位。其中，bit[1]=1表示这个tasklet当前正在某个CPU上被执行，它仅对SMP系统才有意义，其作用就是为了防止多个CPU同时执行一个tasklet的情形出现；bit[0]=1表示这个tasklet已经被调度去等待执行了但还没有开始执行，其作用是阻止同一个tasklet在被运行之前被重复调度，考虑如下情况：一个tasklet已经被触发过一次，即调度过一次，但可能还没有来得及被执行。对这两个状态位的宏定义如下所示：</p>
+<pre><code>enum
+{
+    TASKLET_STATE_SCHED,
+    TASKLET_STATE_RUN
+};
+</code></pre><p>  可以理解为每个tasklet有一个简单的状态机，<code>0 -&gt; TASKLET_STATE_SCHED -&gt; TASKLET_STATE_RUN -&gt; 0</code>。</p>
+</li>
+<li><p><code>count</code>：引用计数，若不为0，则tasklet被禁止，只有当它为0时，tasklet才被激活，也就是说该tasklet的处理函数<code>func</code>才可以被执行，只有设置为激活后，tasklet对应的软中断被raise时该tasklet才会被投入运行。  </p>
+</li>
+<li><code>func</code>：是一个函数指针，也是对应这个tasklet的处理函数。</li>
+<li><code>data</code>：函数func的参数。这是一个32位的无符号整数，其具体含义可供func函数自行解释，比如将其解释成一个指向某个用户自定义数据结构的地址值。</li>
+</ul>
+<h2 id="操作tasklet-struct的相关函数"><a href="#操作tasklet-struct的相关函数" class="headerlink" title="操作tasklet_struct的相关函数"></a>操作<code>tasklet_struct</code>的相关函数</h2><h3 id="创建tasklet对象"><a href="#创建tasklet对象" class="headerlink" title="创建tasklet对象"></a>创建tasklet对象</h3><p>分两种创建tasklet对象的方式：</p>
+<ul>
+<li><p>静态创建：使用<linux interrupt.h="">中定义的两个宏中的一个：</linux></p>
+<pre><code>#define DECLARE_TASKLET(name, func, data) \
+struct tasklet_struct name = { NULL, 0, ATOMIC_INIT(0), func, data }
+
+#define DECLARE_TASKLET_DISABLED(name, func, data) \
+struct tasklet_struct name = { NULL, 0, ATOMIC_INIT(1), func, data }
+</code></pre></li>
+</ul>
+<p>两个宏之间的区别在于引用计数的初始值设置不同，<code>DECLARE_TASKLET</code>把创建的tasklet的引用计数设置为0，一开始处于激活状态；<code>DECLARE_TASKLET_DISABLED</code>把创建的tasklet的引用计数设置为1，一开始处于禁止(非激活)状态。</p>
+<ul>
+<li><p>动态创建：使用<code>tasklet_init</code>函数：</p>
+<pre><code>extern void tasklet_init(struct tasklet_struct *t,
+     void (*func)(unsigned long), unsigned long data);
+</code></pre></li>
+</ul>
+<p>我们可以看到，无论是静态方式，还是动态方式，都需要传一个函数地址，这个函数就是每个tasklet自己需要实现的处理函数<code>func</code></p>
+<h3 id="改变一个tasklet对象的状态"><a href="#改变一个tasklet对象的状态" class="headerlink" title="改变一个tasklet对象的状态"></a>改变一个tasklet对象的状态</h3><p>影响的是<code>tasklet_struct</code>结构体的state域。</p>
+<ul>
+<li><p>state成员中的bit<a href="`TASKLET_STATE_SCHED`">0</a>表示一个tasklet是否<font color="red"><strong>已被调度但还未被执行，正在等待被执行(run)</strong></font>，内核实现tasklet的机制会保证处在这种状态下的同一个tasklet只会有一个被触发，也就是说如果一个tasklet已经被触发过一次，即调度过一次，但可能还没有来得及被执行(run)，而期间同一个tasklet又被触发一次，则系统会简单地拒绝掉，无论当前系统是单处理器还是多处理器，参考内核提供的触发tasklet的函数<code>tasklet_schedule</code>代码如下：</p>
+<pre><code>static inline void tasklet_schedule(struct tasklet_struct *t)
+{
+    if (!test_and_set_bit(TASKLET_STATE_SCHED, &amp;t-&gt;state))
+        __tasklet_schedule(t);
+}
+</code></pre><p>  该函数中调用<code>test_and_set_bit</code>的用意是<code>Set a bit and return its old value</code>，并且保证在一个原子操作中完成，如果原来<code>bit[0]</code>的值就是1，那么取非后为0则里面<code>__tasklet_schedule(t);</code>就不会被执行。</p>
+<p>  该bit[0]的值在tasklet的状态迁移到<code>TASKLET_STATE_RUN</code>后被恢复为0，发生在tasklet的执行函数<code>tasklet_action</code>中。注意恢复为0的动作<code>test_and_clear_bit(TASKLET_STATE_SCHED...</code>发生在实际运行<code>t-&gt;func(t-&gt;data);</code>之前，这说明在SMP系统上，同一个tasklet一旦被run起来之后，其状态位<code>TASKLET_STATE_SCHED</code>必然已经被归零，即使没有run结束，在另一个处理器上还是有机会利用上述的<code>tasklet_schedule</code>将同一个tasklet调度(schedule)起来的。参考如下代码:</p>
+<pre><code>static void tasklet_action(struct softirq_action *a)
+{
+    ...
+    while (list) {
+    ...
+    if (tasklet_trylock(t)) {
+        if (!atomic_read(&amp;t-&gt;count)) {
+            if (!test_and_clear_bit(TASKLET_STATE_SCHED, &amp;t-&gt;state))
+                BUG();
+            t-&gt;func(t-&gt;data);
+            tasklet_unlock(t);
+            continue;
+        }
+        tasklet_unlock(t);
+    }
+    ...
+}
+</code></pre><p>  现在就比较好理解LKD3的<code>8.3.2 使用tasklet</code>章节的<code>3. 调度你自己的tasklet</code>中的那句话了。原文如下：</p>
+<pre><code>在tasklet被调度后，只要有机会它就会尽可能早地运行。在它还没有得到
+运行机会之前，如果有一个相同的tasklet又被调度了，那么它仍然只会运
+行一次。而如果这时它已经开始运行了，比如说在另外一个处理器上，那
+么这个新的tasklet会被重新调度并再次运行。
+</code></pre><p>  更进一步来说，如果对同一个tasklet，如果一个处理器CPU0上正在运行它，另一个处理器CPU1还是有机会调度它，注意仍然保证不会同时运行，但可以在此后的时间被CPU1运行。但与此同时如果在第三个CPU2上又有一个新的想通过的tasklet发生，那只有被丢弃的份了。</p>
+<p>  要深刻理解以上内容，可以结合下文描述的”软中断向量TASKLET_SOFTIRQ的服务程序tasklet_action()”的详细解释。</p>
+</li>
+<li><p>state成员中的bit<a href="`TASKLET_STATE_RUN`">1</a>用于判断一个<br>tasklet是否正在某个CPU上执行。对于state变量中某位的改变必须是一个原子操作，因此可以用定义在<code>&lt;linux/bitops.h&gt;</code>头文件中的位操作来进行。由于这一位（即<code>TASKLET_STATE_RUN</code>）仅仅对于SMP系统才有意义，因此Linux在<code>interrupt.h</code>头文件中显示地定义了对<code>TASKLET_STATE_RUN</code>位的操作。如下所示：</p>
+<pre><code>#ifdef CONFIG_SMP
+static inline int tasklet_trylock(struct tasklet_struct *t)
+{
+    return !test_and_set_bit(TASKLET_STATE_RUN, &amp;(t)-&gt;state);
+}
+static inline void tasklet_unlock(struct tasklet_struct *t)
+{
+    smp_mb__before_clear_bit(); 
+    clear_bit(TASKLET_STATE_RUN, &amp;(t)-&gt;state);
+}
+
+static inline void tasklet_unlock_wait(struct tasklet_struct *t)
+{
+    while (test_bit(TASKLET_STATE_RUN, &amp;(t)-&gt;state)) { barrier(); }
+}
+#else
+#define tasklet_trylock(t) 1
+#define tasklet_unlock_wait(t) do { } while (0)
+#define tasklet_unlock(t) do { } while (0)
+#endif
+</code></pre><p>  对于第1位的处理还是发生在tasklet的执行函数<code>tasklet_action</code>中。</p>
+<pre><code>static void tasklet_action(struct softirq_action *a)
+{
+    ...
+    while (list) {
+    ...
+    if (tasklet_trylock(t)) {
+        if (!atomic_read(&amp;t-&gt;count)) {
+            if (!test_and_clear_bit(TASKLET_STATE_SCHED, &amp;t-&gt;state))
+                BUG();
+            t-&gt;func(t-&gt;data);
+            tasklet_unlock(t);
+            continue;
+        }
+        tasklet_unlock(t);
+    }
+    ...
+}    
+</code></pre><p>  显然，在SMP系统中，tasklet_trylock()宏将把一个tasklet_struct结构变量中的state成员中的<code>bit[1]</code>位设置成1，同时还返回<code>bit[1]</code>位的非。因此，如果<code>bit[1]</code>位原有值为1（表示另外一个CPU正在执行这个tasklet代码），那么<code>tasklet_trylock()</code>宏将返回值0，也就表示上锁不成功。如果<code>bit[1]</code>位的原有值为0，那么<code>tasklet_trylock()</code>宏将返回值1，表示加锁成功。而在单CPU系统中，<code>tasklet_trylock()</code>宏总是返回为1。<br>  任何想要执行某个tasklet代码的程序都必须首先调用宏<code>tasklet_trylock()</code>来试图对这个tasklet进行上锁（即设置<code>TASKLET_STATE_RUN</code>位），且只能在上锁成功的情况下才能执行这个tasklet。</p>
+<p>  宏<code>tasklet_unlock()</code>用来对一个tasklet进行解锁操作，也即将<code>TASKLET_STATE_RUN</code>位清零。在单CPU系统中，<code>tasklet_unlock</code>被优化为一个空操作。</p>
+<p>  针对另外一个在<code>tasklet_action</code>没有用到的接口<code>tasklet_unlock_wait</code>，在SMP系统中，<code>tasklet_unlock_wait()</code>宏将一直不停地测试<code>TASKLET_STATE_RUN</code>位的值，直到该位的值变为0（即一直等待到解锁），假如：CPU0正在执行tasklet A的代码，在此期间，CPU1也想执行tasklet A的代码，但CPU1发现tasklet A的<code>TASKLET_STATE_RUN</code>位为1，于是它就可以通过<code>tasklet_unlock_wait()</code>宏等待tasklet A被解锁（也即<code>TASKLET_STATE_RUN</code>位被清零）。在单CPU系统中，<code>tasklet_unlock_wait</code>被优化为一个空操作。</p>
+</li>
+</ul>
+<h3 id="使能／禁止一个tasklet"><a href="#使能／禁止一个tasklet" class="headerlink" title="使能／禁止一个tasklet"></a>使能／禁止一个tasklet</h3><p>使能与禁止操作往往总是成对地被调用的，tasklet_disable()函数如下：</p>
+<pre><code>static inline void tasklet_disable(struct tasklet_struct *t)
+{
+    tasklet_disable_nosync(t);
+    tasklet_unlock_wait(t);
+    smp_mb();
+}
+
+static inline void tasklet_enable(struct tasklet_struct *t)
+{
+    smp_mb__before_atomic_dec();
+    atomic_dec(&amp;t-&gt;count);
+}
+</code></pre><p>函数tasklet_disable_nosync()也是一个静态inline函数，它简单地通过原子操作将count成员变量的值减1。如下所示（interrupt.h）：<br>    static inline void tasklet_disable_nosync(struct tasklet_struct *t)<br>    {<br>        atomic_inc(&amp;t-&gt;count);<br>        smp_mb__after_atomic_inc();<br>    }</p>
+<h2 id="tasklet的任务列表"><a href="#tasklet的任务列表" class="headerlink" title="tasklet的任务列表"></a>tasklet的任务列表</h2><p>前面我们看到<code>tasklet_struct</code>里有个<code>next</code>成员说明这个结构体的成员会被加入到一个链表里，这个链表的链表头定义在<code>kernel/softirq.c</code>中：</p>
+<pre><code>/*
+ * Tasklets
+ */
+struct tasklet_head
+{
+    struct tasklet_struct *head;
+    struct tasklet_struct **tail;
+};
+</code></pre><p>尽管tasklet机制是特定于软中断向量<code>HI_SOFTIRQ</code>和<code>TASKLET_SOFTIRQ</code>的一种实现，但是tasklet机制仍然属于softirq机制的整体框架范围内的，因此，它的设计与实现仍然必须坚持“谁触发，谁执行”的思想。为此，Linux为系统中的每一个CPU都定义了一个tasklet队列头部，来表示应该由各个CPU负责执行的tasklet队列。</p>
+<pre><code>static DEFINE_PER_CPU(struct tasklet_head, tasklet_vec);
+static DEFINE_PER_CPU(struct tasklet_head, tasklet_hi_vec);
+</code></pre><p>其中<code>tasklet_vec</code>用来处理<code>TASKLET_SOFTIRQ</code>类的tasklets。<code>tasklet_hi_vec</code>用来处理<code>HI_SOFTIRQ</code>类的tasklets。</p>
+<h1 id="tasklet软中断的触发和处理。"><a href="#tasklet软中断的触发和处理。" class="headerlink" title="tasklet软中断的触发和处理。"></a>tasklet软中断的触发和处理。</h1><p>队列<code>tasklet_vec</code>和<code>tasklet_hi_vec</code>中的各个tasklet是怎样被所CPU所执行的呢？其关键就是软中断向量<code>TASKLET_SOFTIRQ</code>和<code>HI_SOFTIRQ</code>的软中断服务程序——<code>tasklet_action()</code>函数和<code>tasklet_hi_action()</code>函数。下面我们就来分析这两个函数。</p>
+<p>Linux为软中断向量<code>TASKLET_SOFTIRQ</code>和<code>HI_SOFTIRQ</code>实现了专用的触发函数和软中断服务函数。其中，<code>tasklet_schedule()</code>函数和<code>tasklet_hi_schedule()</code>函数分别用来在当前CPU上触发软中断向量<code>TASKLET_SOFTIRQ</code>和<code>HI_SOFTIRQ</code>，并把指定的tasklet加入当前CPU所对应的<code>tasklet_vec</code>和<code>tasklet_hi_vec</code>队列中去等待执行。而<code>tasklet_action()</code>函数和<code>tasklet_hi_action()</code>函数则分别是软中断向量<code>TASKLET_SOFTIRQ</code>和<code>HI_SOFTIRQ</code>的软中断服务函数。在初始化函数<code>softirq_init()</code>中，这两个软中断向量对应action函数指针就被分别初始化成指向函数<code>tasklet_action()</code>和函数<code>tasklet_hi_action()</code>。参考<code>kernel/softirq.c</code>的<code>softirq_init</code>函数，里面有如下两个函数调用:</p>
+<pre><code>open_softirq(TASKLET_SOFTIRQ, tasklet_action);
+open_softirq(HI_SOFTIRQ, tasklet_hi_action);
+</code></pre><p><code>softirq_init</code>将会在内核启动阶段被调用，完成对这两类tasklet相关的软中断的注册。</p>
+<p><strong>后面我们主要针对<code>TASKLET_SOFTIRQ</code>学习，<code>HI_SOFTIRQ</code>原理基本上是一样的。</strong></p>
+<h2 id="软中断向量TASKLET-SOFTIRQ的触发函数tasklet-schedule"><a href="#软中断向量TASKLET-SOFTIRQ的触发函数tasklet-schedule" class="headerlink" title="软中断向量TASKLET_SOFTIRQ的触发函数tasklet_schedule()"></a>软中断向量<code>TASKLET_SOFTIRQ</code>的触发函数<code>tasklet_schedule()</code></h2><p>该函数实现在<code>include/linux/interrupt.h</code>头文件中，是一个inline函数。其源码如下所示：</p>
+<pre><code>static inline void tasklet_schedule(struct tasklet_struct *t)
+{
+    if (!test_and_set_bit(TASKLET_STATE_SCHED, &amp;t-&gt;state))
+        __tasklet_schedule(t);
+}
+</code></pre><p>在我们所期望的上半部分，比如一个中断处理函数中，驱动可以通过调用<code>tasklet_schedule</code>来触发<code>TASKLET_SOFTIRQ</code>软中断，检查<code>tasklet_schedule</code>函数可以知道，该函数首先检查该tasklet是否已经被触发过(<code>TASKLET_STATE_SCHED</code>是否已经被设置为1)，如果已经为1则立即退出，说明这个tasklet已经被调度，并在一个CPU上等待被执行但还没有执行。由于同一个tasklet在某一个时刻只能在一个CPU上等待被执行，因此<code>tasklet_schedule()</code>函数什么也不做就直接返回了。避免了重复触发，否则就设置<code>TASKLET_STATE_SCHED</code>对应位为1，注意以上检查和设置的操作以原子的方式进行。此后如果继续触发则调用函数<code>__tasklet_schedule</code>，该函数定义在<code>kernel/softirq.c</code>中，完成实际的触发动作，如下所示：</p>
+<pre><code>void __tasklet_schedule(struct tasklet_struct *t)
+{
+    unsigned long flags;
+
+    local_irq_save(flags);①
+    t-&gt;next = NULL;②
+    *__get_cpu_var(tasklet_vec).tail = t;
+    __get_cpu_var(tasklet_vec).tail = &amp;(t-&gt;next);
+    raise_softirq_irqoff(TASKLET_SOFTIRQ);③
+    local_irq_restore(flags);④
+}
+</code></pre><p>该函数中：</p>
+<ul>
+<li>①首先，调用<code>local_irq_save()</code>函数来关闭当前CPU的中断，以保证下面的步骤在当前CPU上原子地被执行。</li>
+<li>②然后，将待调度的tasklet添加到当前CPU对应的tasklet队列的首部。</li>
+<li>③接着，调用<code>raise_softirq_irqoff()</code>函数在当前CPU上触发软中断请求<code>TASKLET_SOFTIRQ</code>，具体地就是将软中断状态寄存器<code>irq_stat</code>中对应<code>TASKLET_SOFTIRQ</code>的状态位<code>raise/设置</code>为pending状态。这样内核将在稍后的一个恰当的时间点对该触发的<code>TASKLET_SOFTIRQ</code>软中断进行处理。</li>
+<li>④最后，调用<code>local_irq_restore()</code>函数来开当前CPU的中断。</li>
+</ul>
+<h2 id="软中断向量TASKLET-SOFTIRQ的服务程序tasklet-action"><a href="#软中断向量TASKLET-SOFTIRQ的服务程序tasklet-action" class="headerlink" title="软中断向量TASKLET_SOFTIRQ的服务程序tasklet_action()"></a>软中断向量TASKLET_SOFTIRQ的服务程序<code>tasklet_action()</code></h2><p>函数<code>tasklet_action()</code>是tasklet机制与软中断向量<code>TASKLET_SOFTIRQ</code>的联系纽带。正是该函数将当前CPU的tasklet队列中的各个tasklet放到当前CPU上来执行的。该函数实现在<code>kernel/softirq.c</code>文件中，其源代码如下：</p>
+<pre><code>static void tasklet_action(struct softirq_action *a)
+{
+    struct tasklet_struct *list;
+
+    local_irq_disable();①
+    list = __get_cpu_var(tasklet_vec).head;
+    __get_cpu_var(tasklet_vec).head = NULL;
+    __get_cpu_var(tasklet_vec).tail = &amp;__get_cpu_var(tasklet_vec).head;
+    local_irq_enable();
+
+    while (list) {②
+        struct tasklet_struct *t = list;③
+
+        list = list-&gt;next;④
+
+        if (tasklet_trylock(t)) {⑤
+            if (!atomic_read(&amp;t-&gt;count)) {⑥
+                if (!test_and_clear_bit(TASKLET_STATE_SCHED, &amp;t-&gt;state))⑥-①
+                    BUG();
+                t-&gt;func(t-&gt;data);⑥-②
+                tasklet_unlock(t);⑥-③
+                continue;⑥-④
+            }
+            tasklet_unlock(t);⑦
+        }
+
+        local_irq_disable();⑧-①
+        t-&gt;next = NULL;⑧-②
+        *__get_cpu_var(tasklet_vec).tail = t;
+        __get_cpu_var(tasklet_vec).tail = &amp;(t-&gt;next);
+        __raise_softirq_irqoff(TASKLET_SOFTIRQ);⑧-③
+        local_irq_enable();⑧-④
+    }⑨
+}
+</code></pre><p>注释如下：</p>
+<ul>
+<li>① 首先，在当前CPU关中断的情况下，“原子”地读取当前CPU的tasklet队列<code>tasklet_vec</code>的头部指针，将其保存到局部变量list指针中，然后将当前CPU的tasklet队列头部指针设置为NULL，</li>
+<li>以表示理论上如果后面的while循环执行完后如果没有未处理的tasklet则链表<code>tasklet_vec</code>为空（但最后的实际结果却并不一定如此，下面将会看到）。</li>
+<li>② 然后，用一个while{}循环来遍历由list所指向的tasklet队列，队列中的各个元素就是将在当前CPU上执行的tasklet。循环体的执行步骤如下：</li>
+<li>③ 用指针t来表示当前队列元素，即当前需要执行的tasklet。</li>
+<li>④ 更新list指针为list-&gt;next，使它指向下一个要执行的tasklet。</li>
+<li>⑤ 用<code>tasklet_trylock()</code>试图对当前要执行的tasklet（由指针t所指向）进行加锁，如果加锁成功（当前没有任何其他CPU正在执行这个tasklet），则用原子读函数<code>atomic_read()</code>进一步判断count成员的值。</li>
+<li>⑥ 如果count为0，说明这个tasklet是允许执行的，于是：</li>
+<li>⑥-① 先清除<code>TASKLET_STATE_SCHED</code>位；<ul>
+<li>⑥-② 然后，调用这个tasklet的可执行函数func；</li>
+<li>⑥-③ 调用<code>tasklet_unlock()</code>来清除<code>TASKLET_STATE_RUN</code>位。</li>
+<li>⑥-④ 最后，执行continue语句跳过下面的步骤，回到while循环继续遍历队列中的下一个元素。可以认为处理成功的tasklet将会从最终的<code>tasklet_vec</code>链表中移除。</li>
+</ul>
+</li>
+<li>⑦ 如果count不为0，说明这个tasklet是禁止运行的，于是调用<code>tasklet_unlock()</code>清除前面用<code>tasklet_trylock()</code>设置的<code>TASKLET_STATE_RUN</code>位。</li>
+<li>⑧ 如果<code>tasklet_trylock()</code>加锁不成功，或者因为当前tasklet的count值非0而不允许执行时，我们必须将这个tasklet重新放回到当前CPU的tasklet队列中，以留待这个CPU下次服务软中断向量<code>TASKLET_SOFTIRQ</code>时再执行。为此进行这样几步操作：<ul>
+<li>⑧-① 先关CPU中断，以保证下面操作的原子性。</li>
+<li>⑧-② 把这个tasklet重新放回到当前CPU的tasklet队列的首部；</li>
+<li>⑧-③ 调用<code>__raise_softirq_irqoff()</code>函数在当前CPU上再触发一次软中断请求<code>TASKLET_SOFTIRQ</code>；</li>
+<li>⑧-④ 开中断。</li>
+</ul>
+</li>
+<li>⑨ 最后，回到while循环继续遍历队列。</li>
+</ul>
+<p>整个过程我们发现tasklet的实现完全基于软中断机制，但施加了一些特定的约束，导致采用tasklet实现时对于驱动开发人员来说更容易。tasklet相关于一般软中断，相同点和不同点如下：</p>
+<ul>
+<li>和一般软中断类似的是，tasklet的处理函数<code>func</code>中依然不允许休眠，而且是在开中断的上下文环境下运行。</li>
+<li>和一般软中断不同的是，某个tasklet一旦被触发，则同类的tasklet不允许被再次触发，相当于同类tasklet被关闭了，即使是在多处理SMP系统上这点也可以得到保证。而普通的软中断做不到这点，如果同一个软中断在它被执行的同时再次被触发的话，那么如果存在另外一个处理器依然会执行该软中断的处理函数。tasklet的实现之所以加上这个约束，完全是为了方便驱动开发。试想如果针对同一个软中断，如果在多处理器上存在并发现象，那么任何可能被多线程共享的数据(甚至是仅在软中断处理程序内部使用的全局变量)都需要严格的锁保护。而这个问题在tasklet中已经天然地避免了。tasklet引入的逻辑保证了针对tasklet这种软中断(tasklet本质上也是软中断)，同一个处理程序的多个实例是不可能在多个处理器上同时运行的。换句话说，如果你的驱动程序不需要充分挖掘多处理器的效率特性，可以直接使用tasklet来利用软中断实现下半部分，而且实现起来不需要考虑太多的并发问题。</li>
+</ul>
+<h2 id="软中断和tasklet的总结"><a href="#软中断和tasklet的总结" class="headerlink" title="软中断和tasklet的总结"></a>软中断和tasklet的总结</h2><p>软中断：</p>
+<ul>
+<li>1、软中断是在编译期间静态分配的。</li>
+<li>2、最多可以有32个软中断。</li>
+<li>3、软中断不会抢占另外一个软中断，唯一可以抢占软中断的是中断处理程序。</li>
+<li>4、可以并发运行在多个CPU上（即使同一类型的也可以）。所以软中断必须设计为可重入的函数（允许多个CPU同时操作），因此也需要使用自旋锁来保护其数据结构。</li>
+<li>5、目前只有两个子系直接使用软中断：网络和SCSI。</li>
+<li>6、执行时间有：从硬件中断代码返回时、在ksoftirqd内核线程中和某些显示检查并执行软中断的代码中。</li>
+</ul>
+<p>tasklet：</p>
+<ul>
+<li>1、tasklet是使用两类软中断实现的：<code>HI_SOFTIRQ</code>和<code>TASKLET_SOFTIRQ</code>。本质上没有什么区别，只不过<code>HI_SOFTIRQ</code>的优先级更高一些，建立在<code>HI_SOFTIRQ</code>上的tasklet会早于<code>TASKLET_SOFTIRQ</code>执行。</li>
+<li>2、可以动态增加减少，没有数量限制。</li>
+<li>3、同一类的tasklet不能并发执行。</li>
+<li>4、不同类的tasklet可以并发执行。</li>
+<li>5、大部分情况下推荐使用tasklet。</li>
+</ul>
+<h1 id="在驱动开发中利用tasklet实现中断处理的下半部分"><a href="#在驱动开发中利用tasklet实现中断处理的下半部分" class="headerlink" title="在驱动开发中利用tasklet实现中断处理的下半部分"></a>在驱动开发中利用tasklet实现中断处理的下半部分</h1><p>驱动模块利用tasklet来实现下半部分的时候需要遵循下面的步骤：</p>
+<h3 id="第一步：定义自己tasklet的处理函数"><a href="#第一步：定义自己tasklet的处理函数" class="headerlink" title="第一步：定义自己tasklet的处理函数"></a>第一步：定义自己tasklet的处理函数</h3><p>这个回调函数的形式必须是<code>void tasklet_handler(unsigned long data);</code></p>
+<p>参数<code>data</code>是传递给回调函数的参数，其值在第一步创建tasklet时给定。</p>
+<p>编写tasklet处理函数时要注意以下要求：</p>
+<ul>
+<li>该函数不能睡眠，这意味着不能在该函数中使用信号量或者其他什么会导致阻塞的函数。</li>
+<li>我们还要时刻提醒自己在该处理函数执行过程中中断已经被打开，即任意时候都可能会有中断发生打断该处理函数的执行。</li>
+<li>采用tasklet实现下半部时，无论CPU是否多个，但该tasklet的处理函数同时只会在一个CPU上执行，所以不需要担心下半部分的执行过程中对共享数据的竞争问题。</li>
+<li>两个不同的tasklet还是会在两个处理器上同时执行的。所以不同tasklet之间或者tasklet和其他软中断之间共享了数据，如果有必要则要适当地进行锁保护。</li>
+</ul>
+<h3 id="第二步：创建一个自己的tasklet"><a href="#第二步：创建一个自己的tasklet" class="headerlink" title="第二步：创建一个自己的tasklet"></a>第二步：创建一个自己的tasklet</h3><p>采用静态或者动态方式，在创建的同时将定义的tasklet处理函数的地址注册到内核中。</p>
+<h3 id="第三步：触发软中断"><a href="#第三步：触发软中断" class="headerlink" title="第三步：触发软中断"></a>第三步：触发软中断</h3><p>驱动模块在中断处理的上半部分调用<code>tasklet_schedule()</code>函数触发软中断。内核会在稍后的下半部分处理过程中调用我们曾经注册的处理函数执行BH动作。</p>
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <div>
+      
+        
+
+      
+    </div>
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/linux/" rel="tag">#linux</a>
+          
+            <a href="/tags/driver/" rel="tag">#driver</a>
+          
+            <a href="/tags/tasklet/" rel="tag">#tasklet</a>
+          
+        </div>
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/2016/02/11/20160211-lk-drv-softirq/" rel="next" title="Linux内核中的下半部机制之软中断(softirq)">
+                <i class="fa fa-chevron-left"></i> Linux内核中的下半部机制之软中断(softirq)
+              </a>
+            
+          </div>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/2016/02/13/20160213-ldd3-samples/" rel="prev" title="LDD3源代码">
+                LDD3源代码 <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+  <div class="comments" id="comments">
+    
+      <div class="ds-thread" data-thread-key="2016/02/12/20160212-lk-drv-tasklet/"
+           data-title="Linux内核中的下半部机制之tasklet" data-url="http://unicornx.github.io/2016/02/12/20160212-lk-drv-tasklet/">
+      </div>
+    
+  </div>
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap" >
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview sidebar-panel ">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+          <img class="site-author-image" itemprop="image"
+               src="/uploads/avatar.jpg"
+               alt="unicornx" />
+          <p class="site-author-name" itemprop="name">unicornx</p>
+          <p class="site-description motion-element" itemprop="description">最初的梦想</p>
+        </div>
+        <nav class="site-state motion-element">
+          <div class="site-state-item site-state-posts">
+            <a href="/archives">
+              <span class="site-state-item-count">94</span>
+              <span class="site-state-item-name">日志</span>
+            </a>
+          </div>
+
+          
+            <div class="site-state-item site-state-categories">
+              <a href="/categories">
+                <span class="site-state-item-count">13</span>
+                <span class="site-state-item-name">分类</span>
+              </a>
+            </div>
+          
+
+          
+            <div class="site-state-item site-state-tags">
+              <a href="/tags">
+                <span class="site-state-item-count">81</span>
+                <span class="site-state-item-name">标签</span>
+              </a>
+            </div>
+          
+
+        </nav>
+
+        
+
+        <div class="links-of-author motion-element">
+          
+            
+              <span class="links-of-author-item">
+                <a href="http://weibo.com/unicornxw" target="_blank" title="weibo">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  weibo
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="https://github.com/unicornx" target="_blank" title="github">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  github
+                </a>
+              </span>
+            
+              <span class="links-of-author-item">
+                <a href="http://git.oschina.net/unicornx" target="_blank" title="git@osc">
+                  
+                    <i class="fa fa-fw fa-globe"></i>
+                  
+                  git@osc
+                </a>
+              </span>
+            
+          
+        </div>
+
+        
+        
+
+        
+        
+
+      </section>
+
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+            
+              
+            
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#构成tasklet的核心元素："><span class="nav-number">1.</span> <span class="nav-text">构成tasklet的核心元素：</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#tasklet结构体tasklet-struct"><span class="nav-number">1.1.</span> <span class="nav-text">tasklet结构体tasklet_struct</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#操作tasklet-struct的相关函数"><span class="nav-number">1.2.</span> <span class="nav-text">操作tasklet_struct的相关函数</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#创建tasklet对象"><span class="nav-number">1.2.1.</span> <span class="nav-text">创建tasklet对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#改变一个tasklet对象的状态"><span class="nav-number">1.2.2.</span> <span class="nav-text">改变一个tasklet对象的状态</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#使能／禁止一个tasklet"><span class="nav-number">1.2.3.</span> <span class="nav-text">使能／禁止一个tasklet</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#tasklet的任务列表"><span class="nav-number">1.3.</span> <span class="nav-text">tasklet的任务列表</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#tasklet软中断的触发和处理。"><span class="nav-number">2.</span> <span class="nav-text">tasklet软中断的触发和处理。</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#软中断向量TASKLET-SOFTIRQ的触发函数tasklet-schedule"><span class="nav-number">2.1.</span> <span class="nav-text">软中断向量TASKLET_SOFTIRQ的触发函数tasklet_schedule()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#软中断向量TASKLET-SOFTIRQ的服务程序tasklet-action"><span class="nav-number">2.2.</span> <span class="nav-text">软中断向量TASKLET_SOFTIRQ的服务程序tasklet_action()</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#软中断和tasklet的总结"><span class="nav-number">2.3.</span> <span class="nav-text">软中断和tasklet的总结</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#在驱动开发中利用tasklet实现中断处理的下半部分"><span class="nav-number">3.</span> <span class="nav-text">在驱动开发中利用tasklet实现中断处理的下半部分</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#第一步：定义自己tasklet的处理函数"><span class="nav-number">3.0.1.</span> <span class="nav-text">第一步：定义自己tasklet的处理函数</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第二步：创建一个自己的tasklet"><span class="nav-number">3.0.2.</span> <span class="nav-text">第二步：创建一个自己的tasklet</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#第三步：触发软中断"><span class="nav-number">3.0.3.</span> <span class="nav-text">第三步：触发软中断</span></a></li></ol></li></ol></li></ol></div>
+            
+          </div>
+        </section>
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright" >
+  
+  &copy; 
+  <span itemprop="copyrightYear">2016</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">unicornx</span>
+</div>
+
+<div class="powered-by">
+  由 <a class="theme-link" href="http://hexo.io">Hexo</a> 强力驱动
+</div>
+
+<div class="theme-info">
+  主题 -
+  <a class="theme-link" href="https://github.com/iissnan/hexo-theme-next">
+    NexT.Mist
+  </a>
+</div>
+
+        
+
+        
+      </div>
+    </footer>
+
+    <div class="back-to-top">
+      <i class="fa fa-arrow-up"></i>
+    </div>
+  </div>
+
+  
+
+<script type="text/javascript">
+  if (Object.prototype.toString.call(window.Promise) !== '[object Function]') {
+    window.Promise = null;
+  }
+</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+  
+  <script type="text/javascript" src="/vendors/jquery/index.js?v=2.1.3"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+
+  
+  <script type="text/javascript" src="/vendors/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/velocity/velocity.ui.min.js?v=1.2.1"></script>
+
+  
+  <script type="text/javascript" src="/vendors/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.0.1"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.0.1"></script>
+
+
+
+  
+  
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.0.1"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.0.1"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.0.1"></script>
+
+
+
+  
+
+  
+    
+  
+
+  <script type="text/javascript">
+    var duoshuoQuery = {short_name:"unicornx2"};
+    (function() {
+      var ds = document.createElement('script');
+      ds.type = 'text/javascript';ds.async = true;
+      ds.id = 'duoshuo-script';
+      ds.src = (document.location.protocol == 'https:' ? 'https:' : 'http:') + '//static.duoshuo.com/embed.js';
+      ds.charset = 'UTF-8';
+      (document.getElementsByTagName('head')[0]
+      || document.getElementsByTagName('body')[0]).appendChild(ds);
+    })();
+  </script>
+
+  
+    
+    <script src="/vendors/ua-parser-js/dist/ua-parser.min.js?v=0.7.9"></script>
+    <script src="/js/src/hook-duoshuo.js"></script>
+  
+
+
+
+
+
+
+  
+  
+
+  
+
+  
+
+  
+
+</body>
+</html>
