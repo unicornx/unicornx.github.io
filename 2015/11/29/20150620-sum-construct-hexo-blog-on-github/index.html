@@ -85,24 +85,24 @@
 
 
 <meta name="description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
-最新更新于：2015-11-29
+最新更新于：2016-7-18
 仅仅是个过程的记录，以便以后再重做一次时会快一点。
-主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系">
+主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系列">
 <meta property="og:type" content="article">
 <meta property="og:title" content="在github上利用hexo自制blog站点的过程总结">
 <meta property="og:url" content="http://unicornx.github.io/2015/11/29/20150620-sum-construct-hexo-blog-on-github/index.html">
 <meta property="og:site_name" content="Blog of UnicornX">
 <meta property="og:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
-最新更新于：2015-11-29
+最新更新于：2016-7-18
 仅仅是个过程的记录，以便以后再重做一次时会快一点。
-主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系">
-<meta property="og:updated_time" content="2016-03-18T23:02:48.598Z">
+主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系列">
+<meta property="og:updated_time" content="2016-07-18T05:12:53.269Z">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="在github上利用hexo自制blog站点的过程总结">
 <meta name="twitter:description" content="文章系原创，如需转载请注明：转载自”Blog of UnicornX” (http://unicornx.github.io/)
-最新更新于：2015-11-29
+最新更新于：2016-7-18
 仅仅是个过程的记录，以便以后再重做一次时会快一点。
-主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系">
+主要的参考文章：在Windows下搭建nodejs环境以及配置npm使用Hexo在github上搭建静态博客Windows环境下的NodeJS+NPM+Bower安装配置步骤hexo系列">
 
 
 
@@ -332,14 +332,17 @@
 
       
         <p><strong>文章系原创，如需转载请注明：转载自”Blog of UnicornX” (<a href="http://unicornx.github.io/">http://unicornx.github.io/</a>)</strong></p>
-<p>最新更新于：2015-11-29</p>
+<p>最新更新于：2016-7-18</p>
 <p>仅仅是个过程的记录，以便以后再重做一次时会快一点。</p>
 <h1 id="主要的参考文章："><a href="#主要的参考文章：" class="headerlink" title="主要的参考文章："></a>主要的参考文章：</h1><p><a href="http://defcon.cn/2119.html" target="_blank" rel="external">在Windows下搭建nodejs环境以及配置npm</a><br><a href="http://defcon.cn/2152.html" target="_blank" rel="external">使用Hexo在github上搭建静态博客</a><br><a href="http://my.oschina.net/JeeChou/blog/219699" target="_blank" rel="external">Windows环境下的NodeJS+NPM+Bower安装配置步骤</a><br><a href="http://zipperary.com/categories/hexo/" target="_blank" rel="external">hexo系列教程</a><br><a href="http://www.tuicool.com/articles/AfQnQjy" target="_blank" rel="external">hexo你的博客</a></p>
 <p>下面这些个留着以后在ubuntu上搭环境的时候再看：<br><a href="http://blog.maxwi.com/2014/02/22/first-post/" target="_blank" rel="external">Ubuntu+hexo+github搭建个人博客环境及hexo配置</a><br><a href="http://m.blog.csdn.net/blog/u012366161/42059813" target="_blank" rel="external">[原]Ubuntu下用Hexo搭建个人博客及常见问题的解决方案</a></p>
 <a id="more"></a>
 <h1 id="工作环境："><a href="#工作环境：" class="headerlink" title="工作环境："></a>工作环境：</h1><p>Windows XP/Windows 7</p>
-<h1 id="预置条件："><a href="#预置条件：" class="headerlink" title="预置条件："></a>预置条件：</h1><p>Windows上已经安装git</p>
-<p>已经在github上创建好pages</p>
+<h1 id="预置条件："><a href="#预置条件：" class="headerlink" title="预置条件："></a>预置条件：</h1><ul>
+<li>Windows上已经安装git-bash</li>
+<li>已经在github上创建好pages</li>
+<li>确保本机可以ssh登录github服务器，方法，在终端执行<code>ssh -T git@github.com</code>，如果不成功说明需要设置RSA密钥，具体参考<a href="https://help.github.com/articles/generating-an-ssh-key/" target="_blank" rel="external">Generating an SSH key</a>，更多的帮助参考<a href="https://help.github.com/articles/changing-a-remote-s-url/" target="_blank" rel="external">Changing a remote’s URL</a>，我最新的blog使用了SSH方式。</li>
+</ul>
 <h1 id="步骤"><a href="#步骤" class="headerlink" title="步骤"></a>步骤</h1><h2 id="step-1-install-node-js"><a href="#step-1-install-node-js" class="headerlink" title="step 1: install node.js"></a>step 1: install node.js</h2><p>download latest installation package from nidejs homepage</p>
 <h2 id="step-2-open-git-bash"><a href="#step-2-open-git-bash" class="headerlink" title="step 2: open git-bash"></a>step 2: open git-bash</h2><p>为了加速访问，很多国外的源由于被墙的原因，速度很慢。幸好有一个国内的镜像，输入如下指令设置国内的源：</p>
 <pre><code>$ npm config set registry http://registry.cnpmjs.org
@@ -363,6 +366,7 @@ $ hexo init
 $ npm install
 $ npm install hexo-deployer-git --save 
 </code></pre><p>参考<a href="http://www.v2ex.com/t/175940" target="_blank" rel="external">install deployer for v3, in current folder</a></p>
+<p><strong>注意：</strong>  如果是在一台新的机器上安装，以上步骤涉及升级node，hexo，包括next都是需要做的。做好后可以先clone一个myblog的目录下来，然后和这个目录做merge，完成手动的升级。</p>
 <h2 id="step-7-configure-site"><a href="#step-7-configure-site" class="headerlink" title="step 7: configure site"></a>step 7: configure site</h2><ul>
 <li>title: # 修改为blog站点的标题</li>
 <li>subtitle: #修改为blog站点的副标题</li>
@@ -371,13 +375,15 @@ $ npm install hexo-deployer-git --save
 <li>email: # 站点作者的电子邮件联系方式，</li>
 <li>language: # 站点显示的文字编码格式，我这里使用的是zh-Hans，主要是和我使用的主题是next有关，详细参考<a href="https://github.com/iissnan/hexo-theme-next/wiki/%E8%AE%BE%E7%BD%AE%E8%AF%AD%E8%A8%80" target="_blank" rel="external">next特性-设置语言</a></li>
 <li>url: # 修改为本站点的URL</li>
-<li>deploy:<br>如果你的git仓库使用的是github，那么可以做如下配置：<br>type: git<br>repository: #你的github上project的URL，一般形如：<a href="https://github.com/yourusername/yourusername.github.io.git" target="_blank" rel="external">https://github.com/yourusername/yourusername.github.io.git</a><br>branch: master<br>如果你的git仓库使用的是gitcafe，那么可以做如下配置：<br>type: git<br>repository: #你的github上project的URL，一般形如：git@gitcafe.com:yourusernamx/yourusernam.git<br>branch: gitcafe-pages</li>
+<li><p>deploy:<br>如果你的git仓库使用的是github，那么可以做如下配置：<br>type: git<br>repository: #你的github上project的URL，一般形如：<a href="https://github.com/yourusername/yourusername.github.io.git" target="_blank" rel="external">https://github.com/yourusername/yourusername.github.io.git</a><br>branch: master<br>注：后来也改成<code>git@</code>的形式了。</p>
+<p>如果你的git仓库使用的是gitcafe，那么可以做如下配置：<br>type: git<br>repository: #你的github上project的URL，一般形如：git@gitcafe.com:yourusernamx/yourusernam.git<br>branch: gitcafe-pages</p>
+</li>
 </ul>
 <h2 id="step-8-compile-site-code"><a href="#step-8-compile-site-code" class="headerlink" title="step 8: compile site code"></a>step 8: compile site code</h2><pre><code>$ hexo clean 
 $ hexo g
 </code></pre><h2 id="step-9-publish"><a href="#step-9-publish" class="headerlink" title="step 9: publish"></a>step 9: publish</h2><pre><code>$ hexo d
 </code></pre><p>完成后上网站看看：<a href="http://unicornx.github.io/">http://unicornx.github.io/</a></p>
-<h1 id="后继的一些站点配置工作总结"><a href="#后继的一些站点配置工作总结" class="headerlink" title="后继的一些站点配置工作总结"></a>后继的一些站点配置工作总结</h1><h2 id="设置主题-theme"><a href="#设置主题-theme" class="headerlink" title="设置主题/theme"></a>设置主题/theme</h2><p>我选择了是next，具体参考<a href="https://github.com/iissnan/hexo-theme-next" target="_blank" rel="external">next on github</a></p>
+<h1 id="后继的一些站点配置工作总结"><a href="#后继的一些站点配置工作总结" class="headerlink" title="后继的一些站点配置工作总结"></a>后继的一些站点配置工作总结</h1><h2 id="设置主题-theme"><a href="#设置主题-theme" class="headerlink" title="设置主题/theme"></a>设置主题/theme</h2><p>我选择了是next，具体参考<a href="http://theme-next.iissnan.com/getting-started.html" target="_blank" rel="external">开始使用</a></p>
 <p>下载了该主题后，相关代码都放在”themes/next”下。<br>首先修改：开启紧凑模式，将主题配置文件”themes/next/_config.yml”中的</p>
 <pre><code>#scheme: Mist
 </code></pre><p>前的 # 去掉</p>
