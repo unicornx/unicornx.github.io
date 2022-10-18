@@ -1,1 +1,1 @@
-# [AOSP for RISC-V Bi-Weekly Update 2022-10-13] (./android-review/aosp-riscv-2022-10-14.html)
+# [AOSP for RISC-V Bi-Weekly Update 2022-10-13](./android-review/aosp-riscv-2022-10-14.html)
