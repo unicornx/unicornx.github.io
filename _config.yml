@@ -1,0 +1,5 @@
+theme: jekyll-theme-hacker
+title: Welcome to UnicornX
+description: Hi, here i am.
+markdown: kramdown
+url: "https://unicornx.github.io"
