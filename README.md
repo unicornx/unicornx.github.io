@@ -11,4 +11,4 @@
 - [Issue 09 (2023-01-19 ~ 2023-02-03)](./android-review/aosp-riscv-2023-02-03.html)
 - [Issue 10 (2023-02-02 ~ 2023-02-17)](./android-review/aosp-riscv-2023-02-17.html)
 - [Issue 11 (2023-02-16 ~ 2023-03-03)](./android-review/aosp-riscv-2023-03-03.html)
-- [Issue 12 (2023-03-02 ~ 2023-03-16)](./android-review/aosp-riscv-2023-03-16.html)
+- [Issue 12 (2023-03-02 ~ 2023-03-17)](./android-review/aosp-riscv-2023-03-17.html)
